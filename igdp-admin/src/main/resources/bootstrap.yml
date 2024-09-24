@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: igdp-admin
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  cloud:
+    nacos:
+      config:
+        server-addr: 10.110.149.140:30001
+        username: nacos
+        password: '!QAZ2wsx.'
+#        namespace: 52ef02ec-772c-4268-a8cc-d97673be3c21
+        namespace: e50d707b-4890-49af-808f-082edf51752b
+#        namespace: igdp-v3-highgo-dev
+#        namespace: igdp-v3-dm-local
+        file-extension: yml
+        shared-configs:
+          - data-id: common.yml
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: del_flag
+      logic-delete-value: "2"
+      logic-not-delete-value: "0"
+  # 搜索指定包别名
+  typeAliasesPackage: com.inspur.**.domain,com.inspur.**.**.domain
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+#RocketMQ配置
+#rocketmq:
+#  name-server: 127.0.0.1:9876
+#
+#  #生产者配置
+#  producer:
+#    #生产者组名字
+#    group: "service-producer"
+#    # 消息最大长度 默认 1024 * 4 (4M)
+#    max-message-size: 4096
+#    # 发送消息超时时间，默认 3000
+#    send-message-timeout: 3000
+#    # 发送消息失败重试次数，默认2
+#    retry-times-when-send-failed: 2
+#    retry-times-when-send-async-failed: 2

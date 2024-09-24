@@ -1,0 +1,137 @@
+sys:
+  name: 广东省政法委工单管理系统
+  version: 3.8.7
+  copyrightYear: 2023
+  profile: /data/igdp/service/igdp-upload
+  addressEnabled: false
+  captchaType: math
+  serverPath: http://10.40.12.170:8088/prod-api
+
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  timeout: -1
+  active-timeout: -1
+  is-concurrent: true
+  is-share: true
+  token-style: uuid
+  is-log: true
+
+server:
+  port: 9011
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    accept-count: 1000
+    threads:
+      max: 800
+      min-spare: 100
+
+spring:
+  devtools:
+    restart:
+      enabled: true
+  redis:
+    host: 10.40.12.171
+    port: 30005
+    database: 6
+    password: '!QAZ2wsx.'
+    timeout: 10s
+    lettuce:
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-active: 8
+        max-wait: -1ms
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.highgo.jdbc.Driver
+    druid:
+      master:
+        url: jdbc:highgo://10.40.12.171:5866/highgo?currentSchema=igdp_v3&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+        username: sysdba
+        password: '!QAZ2wsx'
+      slave:
+        enabled: false
+        url: jdbc:highgo://10.40.12.171:5866/highgo?currentSchema=icd_web_cloud&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+        username: sysdba
+        password: '!QAZ2wsx'
+      initialSize: 5
+      minIdle: 10
+      maxActive: 20
+      maxWait: 60000
+      connectTimeout: 30000
+      socketTimeout: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      maxEvictableIdleTimeMillis: 900000
+      validationQuery: SELECT 1
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      webStatFilter:
+        enabled: true
+      statViewServlet:
+        enabled: true
+        allow:
+        url-pattern: /druid/*
+        login-username: ruoyi
+        login-password: 123456
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+
+
+logging:
+  level:
+    com.inspur: debug
+    org.springframework: warn
+
+user:
+  password:
+    maxRetryCount: 5
+    lockTime: 10
+
+rsa:
+  private-key: MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKv5ibxcxz7iQdSkuy0fUmMkHmeT3Y80M9ySgqcRWPuUu/gdh6bCUXqCjrZ6h5ecrpiXS1aWsQ/1h4KzPHSF4oGyPrDq5iDuBQTXilrbBfMCKmL+b9iwVpw+UpkMHwI5VC7e/Y1V+rjakObc597qxiz7dgnlwezIMWXnZetcQyS3AgMBAAECgYB0q2UK+fJeMgcxKNSnJwGwqrdJ06HS3jp04JxslTNF8kCXcgkuU9QNBfelyniknbJBaRq+Upsq1YqqW8ie0Jm5/WNHg6H13luEKj12HYB6CXpSFD3rkkS52dgo+ahjpCcuP1Oe13O+modDKEu1JjFUNeQCr4nTGko5yLexkifiIQJBAPQ9fpkO22oouRJbAYZIW1tdhNcGQYyVuQqz7kWhWpKPWte9wl+CmQiRERlJGbLR1T5SuWIxbYQggOjLrI2DIXECQQC0QUyguf7nmIvJmP31tx4RpwkUzw/o2sqZzew/vNcBtZ6TQgmUOyjpD3JFXNuPQ4oqM7QsaR2PZ9fsrmtRE5SnAkBL3ZImbvP+zLl4FyapFG60OZ9av0m7JoK87VkU7eLZZYgdPYdT7ZgljhIWnZtK7VzkqAOHmbzf7sy8AxANQO8xAkEAs1QDmCNypZXt/DJo9funvogfUMRvX4nL5hgn4YFNpjW5/WbFgOMaYEMtvDQVewIGgtXNeiFZd0IoXx9nRNHmIQJAELpJyOF78LEq9Oh2mMrHcO71k58FcU5bjTGjvDCT3A+sF/jPhHMTFyEQouc9v3ajBe/NqSEUTwNDkNVRLM1f3w==
+
+sso:
+  type: igdp
+  igdp:
+    client-id: rbac
+    client-secret: igdp.0430.IXV.!#
+    redirect-uri: http://10.40.12.170:8088/callback/oauth
+    server: http://10.40.12.170:9010
+    api:
+      token: /oauth2/token
+      check-token: /oauth2/checkToken
+      refresh-token: /oauth2/refresh
+      current-user: /user/userinfo
+      logout: /oauth2/logout
+
+mybatis-plus:
+  typeAliasesPackage: com.inspur.**.domain,com.inspur.**.**.domain.entity
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+pagehelper:
+  helperDialect: mysql
+  supportMethodsArguments: true
+  params: count=countSql
+
+swagger:
+  enabled: true
+  pathMapping: /dev-api
+
+xss:
+  enabled: true
+  excludes: /system/notice
+  urlPatterns: /system/*,/monitor/*,/tool/*

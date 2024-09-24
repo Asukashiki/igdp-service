@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.inspur</groupId>
+    <artifactId>igdp</artifactId>
+    <version>3.8.7</version>
+
+    <name>igdp</name>
+    <description>运营平台数字底座</description>
+    
+    <properties>
+        <igdp.version>3.8.7</igdp.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+        <druid.version>1.2.20</druid.version>
+        <bitwalker.version>1.21</bitwalker.version>
+        <swagger.version>3.0.0</swagger.version>
+        <kaptcha.version>2.3.3</kaptcha.version>
+        <pagehelper.boot.version>1.4.7</pagehelper.boot.version>
+        <fastjson.version>2.0.43</fastjson.version>
+        <oshi.version>6.4.8</oshi.version>
+        <commons.io.version>2.13.0</commons.io.version>
+        <commons.collections.version>3.2.2</commons.collections.version>
+        <poi.version>4.1.2</poi.version>
+        <velocity.version>2.3</velocity.version>
+        <jwt.version>0.9.1</jwt.version>
+        <highgo.version>6.2.3</highgo.version>
+        <dm8jdbc.version>8.1.2.192</dm8jdbc.version>
+        <rocketmq.version>4.9.0</rocketmq.version>
+        <hutool.version>5.8.27</hutool.version>
+        <sa-token.version>1.37.0</sa-token.version>
+    </properties>
+
+    <!-- 依赖声明 -->
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- SpringBoot的依赖配置-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.7.6</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+            <!-- 阿里数据库连接池 -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+
+            <!-- 解析客户端操作系统、浏览器等 -->
+            <dependency>
+                <groupId>eu.bitwalker</groupId>
+                <artifactId>UserAgentUtils</artifactId>
+                <version>${bitwalker.version}</version>
+            </dependency>
+
+            <!-- pagehelper 分页插件 -->
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>${pagehelper.boot.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>8.2.2</version>
+            </dependency>
+
+            <!--rocketmq消息队列-->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>2.2.0</version>
+            </dependency>
+
+            <!-- nacos配置 -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-bootstrap</artifactId>
+                <version>3.1.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                <version>2021.0.1.0</version>
+            </dependency>
+
+<!--            <dependency>-->
+<!--                <groupId>com.squareup.okhttp3</groupId>-->
+<!--                <artifactId>okhttp</artifactId>-->
+<!--                <version>4.8.1</version>-->
+<!--                <scope>compile</scope>-->
+<!--            </dependency>-->
+
+            <!-- 获取系统信息 -->
+            <dependency>
+                <groupId>com.github.oshi</groupId>
+                <artifactId>oshi-core</artifactId>
+                <version>${oshi.version}</version>
+            </dependency>
+
+            <!-- Swagger3依赖 -->
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-boot-starter</artifactId>
+                <version>${swagger.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.swagger</groupId>
+                        <artifactId>swagger-models</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- io常用工具类 -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
+
+            <!-- excel工具 -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+
+            <!-- velocity代码生成使用模板 -->
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity-engine-core</artifactId>
+                <version>${velocity.version}</version>
+            </dependency>
+
+            <!-- collections工具类 -->
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons.collections.version}</version>
+            </dependency>
+
+            <!-- 阿里JSON解析器 -->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+
+            <!-- Sa-Token 权限认证，在线文档：https://sa-token.cc -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot-starter</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+            <!-- Sa-Token 整合 Redis （使用 jdk 默认序列化方式） -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redis-jackson</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <!-- 瀚高数据库驱动包 -->
+            <!-- https://mvnrepository.com/artifact/com.highgo/HgdbJdbc -->
+            <dependency>
+                <groupId>com.highgo</groupId>
+                <artifactId>HgdbJdbc</artifactId>
+                <version>${highgo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.dameng</groupId>
+                <artifactId>DmJdbcDriver18</artifactId>
+                <version>${dm8jdbc.version}</version>
+            </dependency>
+
+            <!-- Token生成与解析-->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jwt.version}</version>
+            </dependency>
+
+            <!-- 验证码 -->
+            <dependency>
+                <groupId>pro.fessional</groupId>
+                <artifactId>kaptcha</artifactId>
+                <version>${kaptcha.version}</version>
+            </dependency>
+
+            <!-- 定时任务-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-quartz</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <!-- 代码生成-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-generator</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <!-- 核心模块-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-framework</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <!-- 系统模块-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-system</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <!-- 通用工具-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-common</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <!-- uc-if-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-uc-interface-forward</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <!-- work-order -->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-scene-square</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-aiagent-square</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-data-warehourse</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
+<!--            <dependency>-->
+<!--                <groupId>com.inspur</groupId>-->
+<!--                <artifactId>igdp-data-treating</artifactId>-->
+<!--                <version>${igdp.version}</version>-->
+<!--            </dependency>-->
+
+<!--            文件存储模块-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-doc</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>igdp-admin</module>
+        <module>igdp-framework</module>
+        <module>igdp-system</module>
+        <module>igdp-quartz</module>
+        <module>igdp-generator</module>
+        <module>igdp-common</module>
+        <module>igdp-uc-interface-forward</module>
+        <module>igdp-scene-square</module>
+        <module>igdp-aiagent-square</module>
+        <module>igdp-data-warehourse</module>
+<!--        <module>igdp-work-order</module>-->
+<!--        <module>igdp-assets-monitor</module>-->
+<!--        <module>igdp-data-treating</module>-->
+        <module>igdp-doc</module>
+    </modules>
+    <packaging>pom</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>public</id>
+            <name>aliyun nexus</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>public</id>
+            <name>aliyun nexus</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>

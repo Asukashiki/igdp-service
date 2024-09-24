@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.system.mapper.SysFastItemMapper">
+
+    <select id="selectListByUserId" resultType="com.inspur.system.domain.SysFastItem">
+        select item.*
+        from sys_fast_item item
+                 left join sys_user_fast_item ui on item.id = ui.item_id
+        where ui.user_id = #{userId} order by ui.sort_number asc
+    </select>
+</mapper>

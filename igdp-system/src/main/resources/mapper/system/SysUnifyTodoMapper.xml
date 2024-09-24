@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.system.mapper.SysUnifyTodoMapper">
+
+    <select id="selectType" resultType='com.inspur.common.core.domain.SelectEntity'>
+        SELECT
+            SUBSTR( STATUS,- 2 ) AS value,
+            type as label
+        FROM
+            sys_unify_todo
+        GROUP BY
+            type,status
+        order by status asc
+    </select>
+
+    <select id="selectSource" resultType='com.inspur.common.core.domain.SelectEntity'>
+
+        SELECT
+            SUBSTR( STATUS,- 2 ) AS value,
+            source as label
+        FROM
+            sys_unify_todo
+        GROUP BY
+            source,status
+        order by status asc
+    </select>
+</mapper>
