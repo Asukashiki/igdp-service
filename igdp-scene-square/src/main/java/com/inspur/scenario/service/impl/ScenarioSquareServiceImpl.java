@@ -1,14 +1,12 @@
 package com.inspur.scenario.service.impl;
 
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.inspur.common.core.domain.AjaxResult;
-import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.utils.LlmEntityUtil;
-import com.inspur.scenario.domain.ScenarioSquareEntity;
+import com.inspur.scenario.domain.ScenarioSquareLLmEntity;
 import com.inspur.scenario.mapper.IScenarioSquareMapper;
 import com.inspur.scenario.service.IScenarioSquareService;
 import lombok.AllArgsConstructor;
@@ -21,7 +19,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
-public class ScenarioSquareServiceImpl extends ServiceImpl<IScenarioSquareMapper, ScenarioSquareEntity> implements IScenarioSquareService {
+public class ScenarioSquareServiceImpl extends ServiceImpl<IScenarioSquareMapper, ScenarioSquareLLmEntity> implements IScenarioSquareService {
     private static Logger logger = LoggerFactory.getLogger(ScenarioSquareServiceImpl.class);
 
 
@@ -29,7 +27,7 @@ public class ScenarioSquareServiceImpl extends ServiceImpl<IScenarioSquareMapper
 
 
     @Override
-    public AjaxResult insertInfo(ScenarioSquareEntity baseInfo) {
+    public AjaxResult insertInfo(ScenarioSquareLLmEntity baseInfo) {
         LlmEntityUtil.setDefaultValue(baseInfo);
         baseInfo.setVisibility("0");
         scenarioSquareMapper.insert(baseInfo);
@@ -37,27 +35,27 @@ public class ScenarioSquareServiceImpl extends ServiceImpl<IScenarioSquareMapper
     }
 
     @Override
-    public AjaxResult upadateInfo(ScenarioSquareEntity baseInfo) {
+    public AjaxResult upadateInfo(ScenarioSquareLLmEntity baseInfo) {
         LlmEntityUtil.setDefaultValue(baseInfo);
         scenarioSquareMapper.updateById(baseInfo);
         return AjaxResult.success();
     }
 
     @Override
-    public AjaxResult pageList(ScenarioSquareEntity scenario,Integer pageNum, Integer pageSize) {
-        IPage<ScenarioSquareEntity> scenarioPage = scenarioSquareMapper.pageList(scenario.getCategory(), scenario.getLyCategory(), scenario.getZyCategory(), pageNum, pageSize);
+    public AjaxResult pageList(ScenarioSquareLLmEntity scenario, Integer pageNum, Integer pageSize) {
+        IPage<ScenarioSquareLLmEntity> scenarioPage = scenarioSquareMapper.pageList(scenario.getCategory(), scenario.getLyCategory(), scenario.getZyCategory(), pageNum, pageSize);
         return AjaxResult.success(scenarioPage);
     }
 
     @Override
     public AjaxResult info(String id) {
-        ScenarioSquareEntity scenarioSquareEntity = scenarioSquareMapper.selectById(id);
+        ScenarioSquareLLmEntity scenarioSquareEntity = scenarioSquareMapper.selectById(id);
         return AjaxResult.success(scenarioSquareEntity);
     }
 
     @Override
     public AjaxResult publish(String id) {
-        ScenarioSquareEntity scenarioSquareEntity = scenarioSquareMapper.selectById(id);
+        ScenarioSquareLLmEntity scenarioSquareEntity = scenarioSquareMapper.selectById(id);
         if(scenarioSquareEntity == null){
             return  AjaxResult.error("信息不存在");
         }
@@ -67,7 +65,7 @@ public class ScenarioSquareServiceImpl extends ServiceImpl<IScenarioSquareMapper
 
     @Override
     public AjaxResult cancelPublish(String id) {
-        ScenarioSquareEntity scenarioSquareEntity = scenarioSquareMapper.selectById(id);
+        ScenarioSquareLLmEntity scenarioSquareEntity = scenarioSquareMapper.selectById(id);
         if(scenarioSquareEntity == null){
             return  AjaxResult.error("信息不存在");
         }

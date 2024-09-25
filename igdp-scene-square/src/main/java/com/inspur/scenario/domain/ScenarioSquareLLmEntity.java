@@ -1,7 +1,7 @@
 package com.inspur.scenario.domain;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.inspur.common.domain.BaseEntity;
+import com.inspur.common.domain.BaseLLmEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @TableName("scenario_hub")
 @EqualsAndHashCode(callSuper = false)
-public class ScenarioSquareEntity  extends BaseEntity {
+public class ScenarioSquareLLmEntity extends BaseLLmEntity {
     private String scenarioNameZh;
     private String category; //通用
     private String zyCategory; //专用

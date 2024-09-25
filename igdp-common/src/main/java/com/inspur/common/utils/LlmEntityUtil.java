@@ -2,11 +2,11 @@ package com.inspur.common.utils;
 
 
 import cn.hutool.core.date.DateTime;
-import com.inspur.common.domain.BaseEntity;
+import com.inspur.common.domain.BaseLLmEntity;
 
 
 public class LlmEntityUtil {
-    public static void setDefaultValue(BaseEntity entity) {
+    public static void setDefaultValue(BaseLLmEntity entity) {
 
         String user = LoginHelper.getUsername();
         if (entity.getId() == 0) {

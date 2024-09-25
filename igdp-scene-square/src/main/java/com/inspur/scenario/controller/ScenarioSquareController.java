@@ -2,7 +2,7 @@ package com.inspur.scenario.controller;
 
 
 import com.inspur.common.core.domain.AjaxResult;
-import com.inspur.scenario.domain.ScenarioSquareEntity;
+import com.inspur.scenario.domain.ScenarioSquareLLmEntity;
 import com.inspur.scenario.service.IScenarioSquareService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +26,7 @@ public class ScenarioSquareController {
      * @return
      */
     @PostMapping("/save")
-    public AjaxResult save(@RequestBody ScenarioSquareEntity baseInfo) {
+    public AjaxResult save(@RequestBody ScenarioSquareLLmEntity baseInfo) {
 
         if (StringUtils.isEmpty(baseInfo.getId())) {
 
@@ -38,7 +38,7 @@ public class ScenarioSquareController {
     }
 
     @GetMapping("/page")
-    public AjaxResult page(  ScenarioSquareEntity scenario,Integer pageNum, Integer pageSize) {
+    public AjaxResult page(ScenarioSquareLLmEntity scenario, Integer pageNum, Integer pageSize) {
 
         return scenarioSquareService.pageList(scenario,pageNum,pageSize);
 

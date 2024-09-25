@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class BaseEntity {
+public class BaseLLmEntity {
     @TableId
     private Integer id;
     private String creator;
