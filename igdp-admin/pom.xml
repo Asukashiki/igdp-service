@@ -112,18 +112,18 @@
             <artifactId>igdp-uc-interface-forward</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.inspur</groupId>-->
-<!--            <artifactId>igdp-aiagent-square</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.inspur</groupId>-->
-<!--            <artifactId>igdp-scene-square</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.inspur</groupId>-->
-<!--            <artifactId>igdp-data-warehourse</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-aiagent-square</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-scene-square</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-data-warehourse</artifactId>
+        </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.inspur</groupId>-->
 <!--            <artifactId>igdp-data-treating</artifactId>-->
