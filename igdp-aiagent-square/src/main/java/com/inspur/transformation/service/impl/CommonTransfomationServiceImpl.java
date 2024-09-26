@@ -79,6 +79,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
 
 
         } catch (Exception e) {
+            e.printStackTrace();
             return AjaxResult.error("失败");
         }
         logger.error("============response body============:"+responseEntity.getBody());
