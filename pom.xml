@@ -205,11 +205,11 @@
             </dependency>
 
             <!-- 定时任务-->
-            <dependency>
-                <groupId>com.inspur</groupId>
-                <artifactId>igdp-quartz</artifactId>
-                <version>${igdp.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.inspur</groupId>-->
+<!--                <artifactId>igdp-quartz</artifactId>-->
+<!--                <version>${igdp.version}</version>-->
+<!--            </dependency>-->
 
             <!-- 代码生成-->
             <dependency>
@@ -284,7 +284,7 @@
         <module>igdp-admin</module>
         <module>igdp-framework</module>
         <module>igdp-system</module>
-        <module>igdp-quartz</module>
+<!--        <module>igdp-quartz</module>-->
         <module>igdp-generator</module>
         <module>igdp-common</module>
         <module>igdp-uc-interface-forward</module>
