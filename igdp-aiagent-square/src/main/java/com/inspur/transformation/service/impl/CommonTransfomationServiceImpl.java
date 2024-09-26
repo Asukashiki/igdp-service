@@ -41,8 +41,8 @@ import java.util.stream.Collectors;
 public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleationMapper, DifyUserRelationEntity> implements IDifyUserReleationService {
     private static Logger logger = LoggerFactory.getLogger(CommonTransfomationServiceImpl.class);
     private final IDifyUserReleationMapper difyUserReleationMapper;
-    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjI2YTVlMTUtYjA3Zi00NWEwLWEwOTgtZjViNDE3YWM0NzNhIiwiZXhwIjoxNzI5NzYwNzYxLCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.1yF5Z7jUZ03-ad_TSlN5bIS3BODWlkY_gNDocWNpaVo";
-    private String workspaceId = "a424216f-55da-401f-850d-38d8b6583702";
+    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzI5OTE0MzUyLCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.8MAkylpdwRHUOmfoHY4ZWY4Ds0T0Yi-fkGUzju-xovU";
+    private String workspaceId = "6326afba-ca97-47f1-b02c-3897cb5694e8";
     private String difyAddress = "http://10.110.149.140:30099";
     private final RestTemplate restTemplate;
 
@@ -79,6 +79,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
 
 
         } catch (Exception e) {
+            response.setStatus(500);
             e.printStackTrace();
             return AjaxResult.error("失败");
         }
