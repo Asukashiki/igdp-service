@@ -128,7 +128,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
         }
         headers.remove("Authorization");
         headers.add("Authorization" , "Bearer "+apiKey);
-        headers.add("X-WORKSPACE-ID" , workspaceId);
+//        headers.add("X-WORKSPACE-ID" , workspaceId);
         //这里获取不到 form-data 中数据，只能获取,requestBody, form-urlencoded-www参数
         byte[] body = parseBody(request);
         logger.error("request: {}" , new String(body));
