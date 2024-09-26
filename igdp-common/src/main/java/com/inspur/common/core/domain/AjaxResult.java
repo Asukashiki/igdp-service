@@ -61,7 +61,15 @@ public class AjaxResult extends HashMap<String, Object>
             super.put(DATA_TAG, data);
         }
     }
-
+    public AjaxResult(int status, String msg, String code)
+    {
+        super.put("status", status);
+        super.put("message", msg);
+        if (StringUtils.isNotNull(code))
+        {
+            super.put(DATA_TAG, code);
+        }
+    }
     /**
      * 返回成功消息
      *

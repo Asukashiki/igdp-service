@@ -32,10 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -100,6 +97,8 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
             }
             if(e.getMessage().startsWith("400")){
                 response.setStatus(400);
+                return AjaxResult.success(e.getMessage());
+
             }else {
                 response.setStatus(500);
             }
