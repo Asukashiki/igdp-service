@@ -98,11 +98,16 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
                   commonCommit(request,response);
               }
             }
-            response.setStatus(500);
+            if(e.getMessage().startsWith("400")){
+                response.setStatus(400);
+            }else {
+                response.setStatus(500);
+            }
+
             e.printStackTrace();
             return AjaxResult.error("失败");
         }
-        logger.error("============response body============:"+responseEntity.getBody());
+        logger.error("============response body============:"+responseEntity.getBody().toString());
         return AjaxResult.success(responseEntity.getBody());
     }
 
