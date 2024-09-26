@@ -61,7 +61,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
         ResponseEntity<Resource> responseEntity;
         url =difyAddress.concat(url.replace("/igdp/" , "/"));
 //        String type = getTypeByUrl(url);
-        logger.error("========url======",url);
+        logger.error("========url======{}",url);
         //直接转发
         RequestEntity requestEntity = null;
         try {
