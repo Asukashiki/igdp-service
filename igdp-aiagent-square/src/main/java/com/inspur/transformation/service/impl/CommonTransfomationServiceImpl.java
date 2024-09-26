@@ -2,6 +2,11 @@ package com.inspur.transformation.service.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.transformation.domain.DifyUserRelationEntity;
@@ -44,6 +49,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
     private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzI5OTE0MzUyLCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.8MAkylpdwRHUOmfoHY4ZWY4Ds0T0Yi-fkGUzju-xovU";
     private String workspaceId = "6326afba-ca97-47f1-b02c-3897cb5694e8";
     private String difyAddress = "http://10.110.149.140:30099";
+    private String difylogin = "http://10.110.149.140:30099/dify/console/api/login";
     private final RestTemplate restTemplate;
 
     public CommonTransfomationServiceImpl(IDifyUserReleationMapper difyUserReleationMapper, RestTemplateBuilder restTemplateBuilder) {
@@ -79,6 +85,19 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
 
 
         } catch (Exception e) {
+            if(e.getMessage().startsWith("401")){
+                JSONObject loginJson = new JSONObject();
+                loginJson.putOnce("email","yymaas@inspur.com");
+                loginJson.putOnce("password","!QAZ2wsx.");
+                loginJson.putOnce("remember_me",true);
+              HttpResponse response1= HttpUtil.createPost(difylogin)
+                        .body(loginJson.toString())
+                        .execute();
+              if(response1.isOk()){
+                  apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
+                  commonCommit(request,response);
+              }
+            }
             response.setStatus(500);
             e.printStackTrace();
             return AjaxResult.error("失败");
