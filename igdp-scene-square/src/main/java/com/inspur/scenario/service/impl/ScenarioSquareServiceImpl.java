@@ -2,9 +2,11 @@ package com.inspur.scenario.service.impl;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.core.domain.entity.SysUser;
 import com.inspur.common.utils.LlmEntityUtil;
 import com.inspur.scenario.domain.ScenarioSquareLLmEntity;
 import com.inspur.scenario.mapper.IScenarioSquareMapper;
@@ -21,7 +23,6 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class ScenarioSquareServiceImpl extends ServiceImpl<IScenarioSquareMapper, ScenarioSquareLLmEntity> implements IScenarioSquareService {
     private static Logger logger = LoggerFactory.getLogger(ScenarioSquareServiceImpl.class);
-
 
     private final IScenarioSquareMapper scenarioSquareMapper;
 
@@ -43,7 +44,9 @@ public class ScenarioSquareServiceImpl extends ServiceImpl<IScenarioSquareMapper
 
     @Override
     public AjaxResult pageList(ScenarioSquareLLmEntity scenario, Integer pageNum, Integer pageSize) {
-        IPage<ScenarioSquareLLmEntity> scenarioPage = scenarioSquareMapper.pageList(scenario.getCategory(), scenario.getLyCategory(), scenario.getZyCategory(), pageNum, pageSize);
+        IPage<ScenarioSquareLLmEntity> page = new Page<>(pageNum, pageSize);
+
+        IPage<ScenarioSquareLLmEntity> scenarioPage = scenarioSquareMapper.pageList( page,scenario.getCategory(), scenario.getLyCategory(), scenario.getZyCategory());
         return AjaxResult.success(scenarioPage);
     }
 

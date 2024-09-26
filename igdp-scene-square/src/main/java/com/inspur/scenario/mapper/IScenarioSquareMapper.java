@@ -18,13 +18,13 @@ public interface IScenarioSquareMapper extends BaseMapper<ScenarioSquareLLmEntit
             "            and category = #{category}\n",
             "        </if>",
             "        <if test='lyCategory != null and lyCategory != \"\" '>\n",
-            "            and lyCategory =#{lyCategory} ",
+            "            and ly_category =#{lyCategory} ",
             "        </if>",
-            "        <if test='zyCateGory != null and zyCateGory != \"\" '>\n",
-            "            and zyCateGory =#{zyCateGory}  ",
+            "        <if test='zyCategory != null and zyCategory != \"\" '>\n",
+            "            and zy_category =#{zyCategory}  ",
             "        </if>",
             " ORDER BY created_time desc",
             "</script>"
     })
-    IPage<ScenarioSquareLLmEntity> pageList(String category, String lyCategory, String zyCateGory, Integer pageNum, Integer pageSize);
+    IPage<ScenarioSquareLLmEntity> pageList( IPage<ScenarioSquareLLmEntity> page,String category, String lyCategory, String zyCategory);
 }
