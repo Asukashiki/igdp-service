@@ -211,7 +211,10 @@ public class AjaxResult extends HashMap<String, Object>
     {
         return Objects.equals(HttpStatus.ERROR, this.get(CODE_TAG));
     }
-
+    public AjaxResult badRequest(String code, String msg)
+    {
+        return new AjaxResult(HttpStatus.BAD_REQUEST, code, msg);
+    }
     /**
      * 方便链式调用
      *

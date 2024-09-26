@@ -97,7 +97,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
             }
             if(e.getMessage().startsWith("400")){
                 response.setStatus(400);
-                return AjaxResult.success(e.getMessage());
+                return AjaxResult.error().badRequest("","");
 
             }else {
                 response.setStatus(500);
