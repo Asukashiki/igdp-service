@@ -61,6 +61,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
         ResponseEntity<Resource> responseEntity;
         url =difyAddress.concat(url.replace("/igdp/" , "/"));
 //        String type = getTypeByUrl(url);
+        logger.error("========url======",url);
         //直接转发
         RequestEntity requestEntity = null;
         try {
@@ -80,7 +81,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
         } catch (Exception e) {
             return AjaxResult.error("失败");
         }
-
+        logger.error("============response body============:"+responseEntity.getBody());
         return AjaxResult.success(responseEntity.getBody());
     }
 
@@ -109,7 +110,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
         headers.add("X-WORKSPACE-ID" , workspaceId);
         //这里获取不到 form-data 中数据，只能获取,requestBody, form-urlencoded-www参数
         byte[] body = parseBody(request);
-        logger.info("request: {}" , new String(body));
+        logger.error("request: {}" , new String(body));
         return new RequestEntity(body, headers, HttpMethod.resolve(request.getMethod()), URI.create(url));
     }
 
