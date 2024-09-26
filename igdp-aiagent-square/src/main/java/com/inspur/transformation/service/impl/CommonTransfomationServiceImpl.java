@@ -97,7 +97,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
             }
             if(e.getMessage().startsWith("400")){
                 response.setStatus(400);
-                return AjaxResult.error().badRequest("draft_workflow_not_exist","");
+                return AjaxResult.error().badRequest("draft_workflow_not_exist","draft_workflow_not_exist");
 //               return AjaxResult.success(e.getMessage());
             }else {
                 response.setStatus(500);
