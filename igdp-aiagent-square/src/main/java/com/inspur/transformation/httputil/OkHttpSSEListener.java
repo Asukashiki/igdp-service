@@ -60,7 +60,7 @@ public class OkHttpSSEListener extends EventSourceListener {
                 contextStreams.add(data);
             }
 
-            emitter.send(data, MediaType.APPLICATION_JSON);
+            emitter.send(data, MediaType.TEXT_EVENT_STREAM);
         } catch (IOException e) {
             countDownLatch.countDown();
             LOGGER.error(e.getMessage(), e);
