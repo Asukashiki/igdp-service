@@ -61,9 +61,9 @@ public class AjaxResult extends HashMap<String, Object> {
         }
     }
 
-    public AjaxResult(int status, String msg, String code) {
+    public AjaxResult(int status, String message, String code) {
         super.put("status" , status);
-        super.put("message" , msg);
+        super.put("message" , message);
         super.put("code" , code);
     }
 
@@ -196,8 +196,8 @@ public class AjaxResult extends HashMap<String, Object> {
         return Objects.equals(HttpStatus.ERROR, this.get(CODE_TAG));
     }
 
-    public AjaxResult badRequest(String code, String msg) {
-        return new AjaxResult(HttpStatus.BAD_REQUEST, code, msg);
+    public AjaxResult badRequest(String code, String message) {
+        return new AjaxResult(HttpStatus.BAD_REQUEST, message, code);
     }
 
     /**

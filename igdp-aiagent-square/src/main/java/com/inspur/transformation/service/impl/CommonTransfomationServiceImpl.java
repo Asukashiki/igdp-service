@@ -4,20 +4,25 @@ package com.inspur.transformation.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.transformation.domain.DifyUserRelationEntity;
+import com.inspur.transformation.httputil.OkHttpSSEListener;
 import com.inspur.transformation.mapper.IDifyUserReleationMapper;
 import com.inspur.transformation.service.IDifyUserReleationService;
+import okhttp3.*;
+import okhttp3.sse.EventSource;
+import okhttp3.sse.EventSourceListener;
+import okhttp3.sse.EventSources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -25,14 +30,21 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +55,7 @@ import java.util.stream.Collectors;
 public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleationMapper, DifyUserRelationEntity> implements IDifyUserReleationService {
     private static Logger logger = LoggerFactory.getLogger(CommonTransfomationServiceImpl.class);
     private final IDifyUserReleationMapper difyUserReleationMapper;
-    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzI5OTE0MzUyLCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.8MAkylpdwRHUOmfoHY4ZWY4Ds0T0Yi-fkGUzju-xovU";
+    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzMwMDIxODA5LCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.IwxE5w3fpP4yY6P1bPGbQrRfFStwINrRi-tGNylVH5Q";
     private String workspaceId = "6326afba-ca97-47f1-b02c-3897cb5694e8";
     private String difyAddress = "http://10.110.149.140:30099";
     private String difylogin = "http://10.110.149.140:30099/dify/console/api/login";
@@ -57,16 +69,82 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
 
 
     @Override
-    public AjaxResult commonCommit(HttpServletRequest request, HttpServletResponse response) {
-        String url = rebuildUlr(request);
-//        String host = request.getServerName();
-//        int port = request.getServerPort();
+    public Object commonCommit(HttpServletRequest httpServletRequest, HttpServletResponse response) {
+        String url = rebuildUlr(httpServletRequest);
+
         ResponseEntity<Resource> responseEntity;
-        url =difyAddress.concat(url.replace("/igdp/" , "/"));
-//        String type = getTypeByUrl(url);
-        logger.error("========url======{}",url);
+        url = difyAddress.concat(url.replace("/igdp/", "/"));
+        logger.error("========url======{}", url);
+
+            return proxyHttp(httpServletRequest, response, url);
+
+
+    }
+
+    @Override
+
+    public void draftRun(HttpServletRequest httpServletRequest, HttpServletResponse response, SseEmitter emitter) {
+        String url = rebuildUlr(httpServletRequest);
+        url = difyAddress.concat(url.replace("/igdp/", "/"));
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(1000, TimeUnit.SECONDS)
+                .writeTimeout(1000, TimeUnit.SECONDS)
+                .readTimeout(1000, TimeUnit.SECONDS)
+                .build();
+        RequestBody requestBody = null;
+        Headers headers = parseOkHhttpHeader(httpServletRequest);
+        try {
+            StringBuilder bodyBuilder = new StringBuilder();
+            String line;
+            BufferedReader reader = httpServletRequest.getReader();
+            while ((line = reader.readLine()) != null) {
+                bodyBuilder.append(line);
+            }
+            String body = bodyBuilder.toString();
+
+
+            requestBody = RequestBody.create(okhttp3.MediaType.parse("application/json;charset=utf-8"), body);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(headers)
+                .post(requestBody)
+                .build();
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        EventSource.Factory factory = EventSources.createFactory(client);
+        StringBuffer output = new StringBuffer();
+        try {
+            OkHttpSSEListener listener = new OkHttpSSEListener(emitter);
+            // 创建事件
+            EventSource eventSource = factory.newEventSource(request, listener);
+            countDownLatch.await();
+        } catch (Exception e) {
+            String errmsg = e.getMessage();
+            if (errmsg.startsWith("401")) {
+                JSONObject loginJson = new JSONObject();
+                loginJson.putOnce("email", "yymaas@inspur.com");
+                loginJson.putOnce("password", "!QAZ2wsx.");
+                loginJson.putOnce("remember_me", true);
+                HttpResponse response1 = HttpUtil.createPost(difylogin)
+                        .body(loginJson.toString())
+                        .execute();
+                if (response1.isOk()) {
+                    apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
+                    draftRun(httpServletRequest, response,emitter);
+                }
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Map proxyHttp(HttpServletRequest request, HttpServletResponse response, String url) {
+        ResponseEntity<Resource> responseEntity;
         //直接转发
         RequestEntity requestEntity = null;
+
         try {
             requestEntity = buildRequestEntity(url, request);
 
@@ -82,41 +160,56 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
 
 
         } catch (Exception e) {
-            if(e.getMessage().startsWith("401")){
+            String errmsg = e.getMessage();
+            if (errmsg.startsWith("401")) {
                 JSONObject loginJson = new JSONObject();
-                loginJson.putOnce("email","yymaas@inspur.com");
-                loginJson.putOnce("password","!QAZ2wsx.");
-                loginJson.putOnce("remember_me",true);
-              HttpResponse response1= HttpUtil.createPost(difylogin)
+                loginJson.putOnce("email", "yymaas@inspur.com");
+                loginJson.putOnce("password", "!QAZ2wsx.");
+                loginJson.putOnce("remember_me", true);
+                HttpResponse response1 = HttpUtil.createPost(difylogin)
                         .body(loginJson.toString())
                         .execute();
-              if(response1.isOk()){
-                  apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
-                  commonCommit(request,response);
-              }
+                if (response1.isOk()) {
+                    apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
+                    commonCommit(request, response);
+                }
             }
-            if(e.getMessage().startsWith("400")){
+            errmsg = errmsg.split("\\{<EOL>")[1];
+            errmsg = errmsg.replace("<EOL>", "");
+            errmsg = "{" + errmsg;
+            JSONObject jsonObject = JSONUtil.parseObj(errmsg);
+            Map resMap = com.alibaba.fastjson2.JSONObject.parseObject(jsonObject.toString(), Map.class);
+
+            if (errmsg.startsWith("400")) {
                 response.setStatus(400);
-                return AjaxResult.error().badRequest("draft_workflow_not_exist","draft_workflow_not_exist");
-//               return AjaxResult.success(e.getMessage());
-            }else {
+                return resMap;
+            } else {
                 response.setStatus(500);
             }
-
             e.printStackTrace();
-            return AjaxResult.error("失败");
+            return resMap;
         }
-        logger.error("============response body============:"+responseEntity.getBody().toString());
-        return AjaxResult.success(responseEntity.getBody());
+        logger.error("============response body============:" + responseEntity.getBody().toString());
+        return com.alibaba.fastjson2.JSONObject.parseObject(responseEntity.getBody().toString(), Map.class);
     }
 
     private void putHeadersMap(HttpServletResponse response, Map<String, List<String>> headers) {
-        response.setHeader("X-Frame-Options" , "SAMEORIGIN");
+        response.setHeader("X-Frame-Options", "SAMEORIGIN");
         headers.forEach((k, v) -> {
             if (ObjectUtil.isNotNull(k)) {
                 response.setHeader(k, v.stream().collect(Collectors.joining(", ")));
             }
         });
+    }
+
+    public static void main(String[] args) {
+        String msg = "415 UNSUPPORTED MEDIA TYPE: \"{<EOL>    \"code\": \"unsupported_media_type\",<EOL>    \"message\": \"Did not attempt to load JSON data because the request Content-Type was not 'application/json'.\",<EOL>    \"status\": 415<EOL>}<EOL>\"";
+        msg = msg.split("\\{<EOL>")[1];
+        msg = msg.replace("<EOL>", "");
+        msg = "{" + msg;
+        JSONUtil.parseObj(msg);
+        System.out.println(msg);
+
     }
 
     private RequestEntity buildRequestEntity(String url, HttpServletRequest request) throws IOException {
@@ -131,11 +224,11 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
             throw new RuntimeException("");
         }
         headers.remove("Authorization");
-        headers.add("Authorization" , "Bearer "+apiKey);
+        headers.add("Authorization", "Bearer " + apiKey);
 //        headers.add("X-WORKSPACE-ID" , workspaceId);
         //这里获取不到 form-data 中数据，只能获取,requestBody, form-urlencoded-www参数
         byte[] body = parseBody(request);
-        logger.error("request: {}" , new String(body));
+        logger.error("request: {}", new String(body));
         return new RequestEntity(body, headers, HttpMethod.resolve(request.getMethod()), URI.create(url));
     }
 
@@ -177,6 +270,25 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
         return request instanceof MultipartHttpServletRequest;
     }
 
+    private Headers parseOkHhttpHeader(HttpServletRequest request) {
+        Headers.Builder builder = new Headers.Builder();
+//        headers.add("X-Frame-Options", "SAMEORIGIN");
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            Enumeration<String> v = request.getHeaders(headerName);
+            List<String> arr = new ArrayList<>();
+            while (v.hasMoreElements()) {
+                arr.add(v.nextElement());
+            }
+            builder.add(headerName, arr.get(0));
+        }
+        builder.removeAll("Authorization");
+        builder.add("Authorization", "Bearer " + apiKey);
+        Headers headers = builder.build();
+        return headers;
+    }
+
     private HttpHeaders parseHeader(HttpServletRequest request) {
         HttpHeaders headers = new HttpHeaders();
 //        headers.add("X-Frame-Options", "SAMEORIGIN");
@@ -199,14 +311,14 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
 
     private String rebuildUlr(HttpServletRequest request) {
         String query = request.getQueryString();
-        return request.getRequestURI().replace("//" , "/").concat(query != null ? "?".concat(query) : "");
+        return request.getRequestURI().replace("//", "/").concat(query != null ? "?".concat(query) : "");
     }
 
     private void putResponseHeader(HttpServletResponse response, HttpHeaders headers) {
         headers.forEach((k, v) -> {
             response.setHeader(k, v.stream().collect(Collectors.joining(", ")));
         });
-        response.setHeader("X-Frame-Options" , "SAMEORIGIN");
+        response.setHeader("X-Frame-Options", "SAMEORIGIN");
     }
 
     private String getTypeByUrl(String url) {

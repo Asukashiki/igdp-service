@@ -101,12 +101,8 @@
                 <version>2021.0.1.0</version>
             </dependency>
 
-<!--            <dependency>-->
-<!--                <groupId>com.squareup.okhttp3</groupId>-->
-<!--                <artifactId>okhttp</artifactId>-->
-<!--                <version>4.8.1</version>-->
-<!--                <scope>compile</scope>-->
-<!--            </dependency>-->
+
+
 
             <!-- 获取系统信息 -->
             <dependency>
