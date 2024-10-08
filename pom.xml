@@ -245,7 +245,7 @@
             <!-- work-order -->
             <dependency>
                 <groupId>com.inspur</groupId>
-                <artifactId>igdp-scene-square</artifactId>
+                <artifactId>igdp-proxy-square</artifactId>
                 <version>${igdp.version}</version>
             </dependency>
 
@@ -284,7 +284,7 @@
         <module>igdp-generator</module>
         <module>igdp-common</module>
         <module>igdp-uc-interface-forward</module>
-        <module>igdp-scene-square</module>
+        <module>igdp-proxy-square</module>
         <module>igdp-aiagent-square</module>
         <module>igdp-data-warehourse</module>
 <!--        <module>igdp-work-order</module>-->

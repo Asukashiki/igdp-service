@@ -118,7 +118,7 @@
         </dependency>
         <dependency>
             <groupId>com.inspur</groupId>
-            <artifactId>igdp-scene-square</artifactId>
+            <artifactId>igdp-proxy-square</artifactId>
         </dependency>
         <dependency>
             <groupId>com.inspur</groupId>

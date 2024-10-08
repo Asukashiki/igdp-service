@@ -7,10 +7,10 @@
         <version>3.8.7</version>
     </parent>
 
-    <artifactId>igdp-scene-square</artifactId>
+    <artifactId>igdp-proxy-square</artifactId>
 
     <description>
-        场景广场模块
+        三方代理模块
     </description>
     <repositories>
         <repository>
