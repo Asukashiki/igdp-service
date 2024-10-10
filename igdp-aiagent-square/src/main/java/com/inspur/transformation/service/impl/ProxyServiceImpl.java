@@ -212,12 +212,12 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                     if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
 
                         if (entry.getValue().get(i).startsWith("session")) {
-
+                            logger.error("sessionid:----------:   "+entry.getValue().get(i));
                             Cookie sessionCookie = new Cookie("sessionid", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
 
                             sessionCookie.setHttpOnly(true);
                             httpServletResponse.addCookie(sessionCookie);
-                        } else {
+                        } else if(entry.getValue().get(i).startsWith("csrftoken")){
                             Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
                             httpServletResponse.addCookie(cookie);
                         }
