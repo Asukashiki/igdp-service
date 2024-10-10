@@ -43,7 +43,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -191,7 +194,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             throw new RuntimeException(e);
         }
         log.error("body: " + loginResponse.body());
-        return StringUtils.isEmpty(loginResponse.body())? new JSONObject():JSONUtil.parseObj(loginResponse.body());
+        return StringUtils.isEmpty(loginResponse.body()) ? new JSONObject() : JSONUtil.parseObj(loginResponse.body());
     }
 
     private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
@@ -204,13 +207,21 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             for (int i = 0; i < entry.getValue().size(); i++) {
                 httpServletResponse.setHeader(entry.getKey(), entry.getValue().get(i));
                 if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
-                    if (entry.getValue().get(i).startsWith("session")) {
-                        Cookie sessionCookie = new Cookie("sessionid", entry.getValue().get(i));
-                        sessionCookie.setHttpOnly(true);
-                        httpServletResponse.addCookie(sessionCookie);
-                    }else {
-                        Cookie cookie = new Cookie("csrftoken", entry.getValue().get(i));
-                        httpServletResponse.addCookie(cookie);
+                    try {
+                        if (entry.getValue().get(i).startsWith("session")) {
+                            log.error(entry.getValue().get(i).substring(58, 60));
+                            Cookie sessionCookie = null;
+
+                            sessionCookie = new Cookie("sessionid", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
+
+//                        sessionCookie.setHttpOnly(true);
+                            httpServletResponse.addCookie(sessionCookie);
+                        } else {
+                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
+                            httpServletResponse.addCookie(cookie);
+                        }
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
                     }
 
                 }
