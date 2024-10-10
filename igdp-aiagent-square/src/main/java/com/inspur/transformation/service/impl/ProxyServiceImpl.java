@@ -185,11 +185,11 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         ServletOutputStream outputStream = null;
         try {
             outputStream = httpServletResponse.getOutputStream();
-//            InputStream inputStream = loginResponse.bodyStream();
-//            int bytesRead;
-//            for (byte[] buffer = new byte[4096]; (bytesRead = inputStream.read(buffer)) != -1; ) {
-//                outputStream.write(buffer, 0, bytesRead);
-//            }
+            InputStream inputStream = loginResponse.bodyStream();
+            int bytesRead;
+            for (byte[] buffer = new byte[4096]; (bytesRead = inputStream.read(buffer)) != -1; ) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
             setResponseHeaders(loginResponse, httpServletResponse);
             outputStream.flush();
             log.error("httpServletResponse header: " + httpServletResponse.getHeaders("Set-Cookie"));
