@@ -162,7 +162,9 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelloginGet);
         // 发送请求并获取登录页返回的seesionid和 csrftoken
         HttpResponse response = request.execute();
+
         List<String> setCookie = response.headers().get("Set-Cookie");
+        System.out.println("Set-Cookie: " + setCookie);
         HttpRequest loginRequest = HttpRequest.post(labelloginIgdpLogin);
         Map<String, Object> params = new HashMap<>();
         params.put("email", user.getUsername() + "@inspur.com");
@@ -178,52 +180,58 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                 .body(paramsJson)
                 .addHeaders(headers)
                 .execute();
-        setResponseHeaders(loginResponse, httpServletResponse);
-        System.out.println("Set-Cookie: " + setCookie);
+
+
         ServletOutputStream outputStream = null;
         try {
             outputStream = httpServletResponse.getOutputStream();
-            InputStream inputStream = loginResponse.bodyStream();
-            int bytesRead;
-            for (byte[] buffer = new byte[4096]; (bytesRead = inputStream.read(buffer)) != -1; ) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
+//            InputStream inputStream = loginResponse.bodyStream();
+//            int bytesRead;
+//            for (byte[] buffer = new byte[4096]; (bytesRead = inputStream.read(buffer)) != -1; ) {
+//                outputStream.write(buffer, 0, bytesRead);
+//            }
+            setResponseHeaders(loginResponse, httpServletResponse);
             outputStream.flush();
+            log.error("httpServletResponse header: " + httpServletResponse.getHeaders("Set-Cookie"));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
 
-        log.error("body: " + loginResponse.body() +loginResponse.getStatus());
+
         return  JSONUtil.parseObj(loginResponse.body());
     }
 
     private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
         Map<String, List<String>> headers = loginResponse.headers();
-
+        Collection<String> httpServletResponseheaders = httpServletResponse.getHeaderNames();
+        logger.error("httpServletResponse headers:----------  "+httpServletResponseheaders.toString());
         Iterator<Map.Entry<String, List<String>>> entries = headers.entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry<String, List<String>> entry = entries.next();
             System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
             for (int i = 0; i < entry.getValue().size(); i++) {
                 try {
-                    httpServletResponse.setHeader(entry.getKey(), entry.getValue().get(i));
-                    if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
 
-                        if (entry.getValue().get(i).startsWith("session")) {
-                            logger.error("sessionid:----------:   "+entry.getValue().get(i));
-                            Cookie sessionCookie = new Cookie("sessionid", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
-
-                            sessionCookie.setHttpOnly(true);
-                            httpServletResponse.addCookie(sessionCookie);
-                        } else if(entry.getValue().get(i).startsWith("csrftoken")){
-                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
-                            httpServletResponse.addCookie(cookie);
-                        }
+                        httpServletResponse.addHeader(entry.getKey(), entry.getValue().get(i));
 
 
-                    }
+//                    if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
+//
+//                        if (entry.getValue().get(i).startsWith("session")) {
+//                            logger.error("sessionid:----------:   "+entry.getValue().get(i));
+//                            Cookie sessionCookie = new Cookie("sessionid", URLEncoder.encode(entry.getValue().get(i)));
+//
+////                            sessionCookie.setHttpOnly(true);
+//                            httpServletResponse.addCookie(sessionCookie);
+//                        } else if(entry.getValue().get(i).startsWith("csrftoken")){
+////                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i)));
+////                            cookie.setMaxAge(60*60);
+////                            httpServletResponse.addCookie(cookie);
+//                        }
+//
+//
+//                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new RuntimeException(e);
