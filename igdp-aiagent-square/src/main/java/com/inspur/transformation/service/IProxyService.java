@@ -20,5 +20,5 @@ public interface IProxyService extends IService<DifyUserRelationEntity> {
 
     Object labelStudioProxy(HttpServletRequest request, HttpServletResponse response);
 
-    void labelStudioProxyLogin(HttpServletRequest request, HttpServletResponse response);
+    String labelStudioProxyLogin(HttpServletRequest request, HttpServletResponse response);
 }

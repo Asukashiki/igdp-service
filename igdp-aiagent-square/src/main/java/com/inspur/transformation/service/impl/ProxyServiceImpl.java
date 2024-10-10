@@ -154,7 +154,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     }
 
     @Override
-    public void labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public String labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         LoginUser user = LoginHelper.getLoginUser();
         cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelloginGet);
         // 发送请求并获取登录页返回的seesionid和 csrftoken
@@ -163,7 +163,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         HttpRequest loginRequest = HttpRequest.post(labelloginIgdpLogin);
         Map<String, Object> params = new HashMap<>();
         params.put("email", user.getUsername() + "@inspur.com");
-        params.put("username", user.getUsername() );
+        params.put("username", user.getUsername());
         params.put("password", user.getUsername() + "yanyu");
         params.put("orgName", user.getDeptName());
         Map<String, String> headers = new HashMap<>();
@@ -189,8 +189,8 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-
+        log.error("body: " + loginResponse.body());
+        return loginResponse.body();
     }
 
     private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
@@ -201,10 +201,11 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             Map.Entry<String, List<String>> entry = entries.next();
             System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
             for (int i = 0; i < entry.getValue().size(); i++) {
-                httpServletResponse.setHeader(entry.getKey(),entry.getValue().get(i));
-                if(entry.getKey()!=null &&entry.getKey().equals("Set-Cookie")){
-                    if(entry.getValue().get(i).startsWith("session")){
-                        Cookie sessionCookie = new Cookie("sessionid", entry.getValue().get(i).substring(10,149));
+                httpServletResponse.setHeader(entry.getKey(), entry.getValue().get(i));
+                if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
+                    if (entry.getValue().get(i).startsWith("session")) {
+                        Cookie sessionCookie = new Cookie("sessionid", entry.getValue().get(i).substring(10, 149));
+                        sessionCookie.setHttpOnly(true);
                         httpServletResponse.addCookie(sessionCookie);
                     }
 
