@@ -10,6 +10,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.common.utils.LoginHelper;
+import com.inspur.common.utils.StringUtils;
 import com.inspur.transformation.domain.DifyUserRelationEntity;
 import com.inspur.transformation.httputil.OkHttpSSEListener;
 import com.inspur.transformation.mapper.IDifyUserReleationMapper;
@@ -154,7 +155,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     }
 
     @Override
-    public String labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public Object labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         LoginUser user = LoginHelper.getLoginUser();
         cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelloginGet);
         // 发送请求并获取登录页返回的seesionid和 csrftoken
@@ -190,7 +191,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             throw new RuntimeException(e);
         }
         log.error("body: " + loginResponse.body());
-        return loginResponse.body();
+        return StringUtils.isEmpty(loginResponse.body())? new JSONObject():JSONUtil.parseObj(loginResponse.body());
     }
 
     private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
