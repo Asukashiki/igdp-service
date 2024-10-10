@@ -158,7 +158,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     }
 
     @Override
-    public Object labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public void labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         LoginUser user = LoginHelper.getLoginUser();
         cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelloginGet);
         // 发送请求并获取登录页返回的seesionid和 csrftoken
@@ -194,7 +194,6 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             throw new RuntimeException(e);
         }
         log.error("body: " + loginResponse.body());
-        return StringUtils.isEmpty(loginResponse.body()) ? new JSONObject() : JSONUtil.parseObj(loginResponse.body());
     }
 
     private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
@@ -217,8 +216,8 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
 //                        sessionCookie.setHttpOnly(true);
                             httpServletResponse.addCookie(sessionCookie);
                         } else {
-                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
-                            httpServletResponse.addCookie(cookie);
+//                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
+//                            httpServletResponse.addCookie(cookie);
                         }
                     } catch (UnsupportedEncodingException e) {
                         throw new RuntimeException(e);
