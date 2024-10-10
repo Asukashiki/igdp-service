@@ -116,10 +116,10 @@
             <groupId>com.inspur</groupId>
             <artifactId>igdp-aiagent-square</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.inspur</groupId>
-            <artifactId>igdp-proxy-square</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.inspur</groupId>-->
+<!--            <artifactId>igdp-proxy-square</artifactId>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.inspur</groupId>
             <artifactId>igdp-data-warehourse</artifactId>

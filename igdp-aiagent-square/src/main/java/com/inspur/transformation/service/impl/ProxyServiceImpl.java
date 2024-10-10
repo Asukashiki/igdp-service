@@ -2,27 +2,30 @@ package com.inspur.transformation.service.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.common.core.domain.model.LoginUser;
+import com.inspur.common.utils.LoginHelper;
 import com.inspur.transformation.domain.DifyUserRelationEntity;
 import com.inspur.transformation.httputil.OkHttpSSEListener;
 import com.inspur.transformation.mapper.IDifyUserReleationMapper;
-import com.inspur.transformation.service.IDifyUserReleationService;
-import okhttp3.*;
+import com.inspur.transformation.service.IProxyService;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.sse.EventSource;
-import okhttp3.sse.EventSourceListener;
 import okhttp3.sse.EventSources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -33,16 +36,14 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -52,16 +53,17 @@ import java.util.stream.Collectors;
  */
 @Service
 
-public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleationMapper, DifyUserRelationEntity> implements IDifyUserReleationService {
-    private static Logger logger = LoggerFactory.getLogger(CommonTransfomationServiceImpl.class);
+public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, DifyUserRelationEntity> implements IProxyService {
+    private static Logger logger = LoggerFactory.getLogger(ProxyServiceImpl.class);
     private final IDifyUserReleationMapper difyUserReleationMapper;
     private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzMwMDIxODA5LCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.IwxE5w3fpP4yY6P1bPGbQrRfFStwINrRi-tGNylVH5Q";
-    private String workspaceId = "6326afba-ca97-47f1-b02c-3897cb5694e8";
     private String difyAddress = "http://10.110.149.140:30099";
     private String difylogin = "http://10.110.149.140:30099/dify/console/api/login";
+    private String labelloginGet = "http://10.110.149.140:30099/labelstudio/labelstudio/user/login/";
+    private String labelloginIgdpLogin = "http://10.110.149.140:30099/labelstudio/user/user-login-igdp/";
     private final RestTemplate restTemplate;
 
-    public CommonTransfomationServiceImpl(IDifyUserReleationMapper difyUserReleationMapper, RestTemplateBuilder restTemplateBuilder) {
+    public ProxyServiceImpl(IDifyUserReleationMapper difyUserReleationMapper, RestTemplateBuilder restTemplateBuilder) {
         this.difyUserReleationMapper = difyUserReleationMapper;
         this.restTemplate = restTemplateBuilder.build();
 
@@ -69,14 +71,14 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
 
 
     @Override
-    public Object commonCommit(HttpServletRequest httpServletRequest, HttpServletResponse response) {
+    public Object difyProxy(HttpServletRequest httpServletRequest, HttpServletResponse response) {
         String url = rebuildUlr(httpServletRequest);
 
         ResponseEntity<Resource> responseEntity;
         url = difyAddress.concat(url.replace("/igdp/", "/"));
         logger.error("========url======{}", url);
 
-            return proxyHttp(httpServletRequest, response, url);
+        return difyProxyHttp(httpServletRequest, response, url);
 
 
     }
@@ -133,14 +135,116 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
                         .execute();
                 if (response1.isOk()) {
                     apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
-                    draftRun(httpServletRequest, response,emitter);
+                    draftRun(httpServletRequest, response, emitter);
                 }
             }
             throw new RuntimeException(e);
         }
     }
 
-    private Map proxyHttp(HttpServletRequest request, HttpServletResponse response, String url) {
+    @Override
+    public Object labelStudioProxy(HttpServletRequest httpServletRequest, HttpServletResponse response) {
+        String url = rebuildUlr(httpServletRequest);
+
+        ResponseEntity<Resource> responseEntity;
+        url = difyAddress.concat(url.replace("/igdp/", "/"));
+        logger.error("========url======{}", url);
+
+        return labelStudioProxyHttp(httpServletRequest, response, url);
+    }
+
+    @Override
+    public void labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        LoginUser user = LoginHelper.getLoginUser();
+        cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelloginGet);
+        // 发送请求并获取登录页返回的seesionid和 csrftoken
+        HttpResponse response = request.execute();
+        List<String> setCookie = response.headers().get("Set-Cookie");
+        HttpRequest loginRequest = HttpRequest.post(labelloginIgdpLogin);
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", user.getUsername() + "@inspur.com");
+        params.put("username", user.getUsername() );
+        params.put("password", user.getUsername() + "yanyu");
+        params.put("orgName", user.getDeptName());
+        Map<String, String> headers = new HashMap<>();
+        for (int i = 0; i < setCookie.size(); i++) {
+            headers.put("Set-Cookie", setCookie.get(i));
+        }
+        String paramsJson = JSONUtil.toJsonStr(params);
+        HttpResponse loginResponse = loginRequest
+                .body(paramsJson)
+                .addHeaders(headers)
+                .execute();
+        setResponseHeaders(loginResponse, httpServletResponse);
+        System.out.println("Set-Cookie: " + setCookie);
+        ServletOutputStream outputStream = null;
+        try {
+            outputStream = httpServletResponse.getOutputStream();
+            InputStream inputStream = loginResponse.bodyStream();
+            int bytesRead;
+            for (byte[] buffer = new byte[4096]; (bytesRead = inputStream.read(buffer)) != -1; ) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
+        Map<String, List<String>> headers = loginResponse.headers();
+
+        Iterator<Map.Entry<String, List<String>>> entries = headers.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, List<String>> entry = entries.next();
+            System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+            for (int i = 0; i < entry.getValue().size(); i++) {
+                httpServletResponse.setHeader(entry.getKey(),entry.getValue().get(i));
+                if(entry.getKey()!=null &&entry.getKey().equals("Set-Cookie")){
+                    if(entry.getValue().get(i).startsWith("session")){
+                        Cookie sessionCookie = new Cookie("sessionid", entry.getValue().get(i).substring(10,149));
+                        httpServletResponse.addCookie(sessionCookie);
+                    }
+
+                }
+            }
+
+        }
+
+    }
+
+    private Map labelStudioProxyHttp(HttpServletRequest request, HttpServletResponse response, String url) {
+        ResponseEntity<Resource> responseEntity;
+        //直接转发
+        RequestEntity requestEntity = null;
+
+        try {
+            requestEntity = buildRequestEntity(url, request);
+
+            responseEntity = restTemplate.exchange(requestEntity, Resource.class);
+            putResponseHeader(response, responseEntity.getHeaders());
+            ServletOutputStream outputStream = response.getOutputStream();
+            InputStream inputStream = responseEntity.getBody().getInputStream();
+            int bytesRead;
+            for (byte[] buffer = new byte[4096]; (bytesRead = inputStream.read(buffer)) != -1; ) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.flush();
+
+
+        } catch (Exception e) {
+            String errmsg = e.getMessage();
+            log.error("labelstudio proxy error:+  " + errmsg);
+            e.printStackTrace();
+            return null;
+        }
+        logger.error("============response body============:" + responseEntity.getBody().toString());
+        return com.alibaba.fastjson2.JSONObject.parseObject(responseEntity.getBody().toString(), Map.class);
+    }
+
+    private Map difyProxyHttp(HttpServletRequest request, HttpServletResponse response, String url) {
         ResponseEntity<Resource> responseEntity;
         //直接转发
         RequestEntity requestEntity = null;
@@ -171,7 +275,7 @@ public class CommonTransfomationServiceImpl extends ServiceImpl<IDifyUserReleati
                         .execute();
                 if (response1.isOk()) {
                     apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
-                    commonCommit(request, response);
+                    difyProxy(request, response);
                 }
             }
             errmsg = errmsg.split("\\{<EOL>")[1];

@@ -1,7 +1,7 @@
 package com.inspur.transformation.controller;
 
 
-import com.inspur.transformation.service.IDifyUserReleationService;
+import com.inspur.transformation.service.IProxyService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,9 +15,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 public class ProxyController {
-    final IDifyUserReleationService transfomationService;
+    final IProxyService transfomationService;
 
-    public ProxyController(IDifyUserReleationService transfomationService) {
+    public ProxyController(IProxyService transfomationService) {
         this.transfomationService = transfomationService;
     }
 
@@ -38,9 +38,19 @@ public class ProxyController {
     @RequestMapping(value = "/dify/**")
     public Object commit(HttpServletRequest request, HttpServletResponse response) {
 
-        return transfomationService.commonCommit(request, response);
+        return transfomationService.difyProxy(request, response);
 
     }
+    @RequestMapping(value = "/labelstudio/api/**")
+    public Object labelStudioProxy(HttpServletRequest request, HttpServletResponse response) {
 
+        return transfomationService.labelStudioProxy(request, response);
 
+    }
+    @RequestMapping(value = "/labelstudio/proxy/login")
+    public void labelStudioProxyLogin(HttpServletRequest request, HttpServletResponse response) {
+
+         transfomationService.labelStudioProxyLogin(request, response);
+
+    }
 }
