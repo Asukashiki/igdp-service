@@ -10,7 +10,6 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.common.utils.LoginHelper;
-import com.inspur.common.utils.StringUtils;
 import com.inspur.transformation.domain.DifyUserRelationEntity;
 import com.inspur.transformation.httputil.OkHttpSSEListener;
 import com.inspur.transformation.mapper.IDifyUserReleationMapper;
@@ -158,7 +157,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     }
 
     @Override
-    public void labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public Object labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         LoginUser user = LoginHelper.getLoginUser();
         cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelloginGet);
         // 发送请求并获取登录页返回的seesionid和 csrftoken
@@ -189,11 +188,15 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             for (byte[] buffer = new byte[4096]; (bytesRead = inputStream.read(buffer)) != -1; ) {
                 outputStream.write(buffer, 0, bytesRead);
             }
+
             outputStream.flush();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
-        log.error("body: " + loginResponse.body());
+
+        log.error("body: " + loginResponse.body() +loginResponse.getStatus());
+        return  JSONUtil.parseObj(loginResponse.body());
     }
 
     private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
@@ -204,25 +207,26 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             Map.Entry<String, List<String>> entry = entries.next();
             System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
             for (int i = 0; i < entry.getValue().size(); i++) {
-                httpServletResponse.setHeader(entry.getKey(), entry.getValue().get(i));
-                if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
-                    try {
+                try {
+                    httpServletResponse.setHeader(entry.getKey(), entry.getValue().get(i));
+                    if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
+
                         if (entry.getValue().get(i).startsWith("session")) {
-                            log.error(entry.getValue().get(i).substring(58, 60));
-                            Cookie sessionCookie = null;
 
-                            sessionCookie = new Cookie("sessionid", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
+                            Cookie sessionCookie = new Cookie("sessionid", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
 
-//                        sessionCookie.setHttpOnly(true);
+                            sessionCookie.setHttpOnly(true);
                             httpServletResponse.addCookie(sessionCookie);
                         } else {
-//                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
-//                            httpServletResponse.addCookie(cookie);
+                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i), StandardCharsets.UTF_8.toString()));
+                            httpServletResponse.addCookie(cookie);
                         }
-                    } catch (UnsupportedEncodingException e) {
-                        throw new RuntimeException(e);
-                    }
 
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
 

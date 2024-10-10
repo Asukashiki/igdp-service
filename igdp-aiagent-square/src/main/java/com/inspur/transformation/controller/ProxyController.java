@@ -47,10 +47,10 @@ public class ProxyController {
         return transfomationService.labelStudioProxy(request, response);
 
     }
-    @RequestMapping(value = "/labelstudio/proxy/login")
-    public void  labelStudioProxyLogin(HttpServletRequest request, HttpServletResponse response) {
+    @RequestMapping(value = "/labelstudio/proxy/login",produces = "text/html;charset=utf-8")
+    public Object  labelStudioProxyLogin(HttpServletRequest request, HttpServletResponse response) {
 
-          transfomationService.labelStudioProxyLogin(request, response);
+       return    transfomationService.labelStudioProxyLogin(request, response);
 
     }
 }
