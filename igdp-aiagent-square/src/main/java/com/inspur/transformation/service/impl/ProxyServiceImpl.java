@@ -36,23 +36,21 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+
 /**
- * 公共转换服务
+ * @author lijieming
+ * @date 2024/10/2
  */
 @Service
 
@@ -199,45 +197,18 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         }
 
 
-        return  JSONUtil.parseObj(loginResponse.body());
+        return JSONUtil.parseObj(loginResponse.body());
     }
 
     private void setResponseHeaders(HttpResponse loginResponse, HttpServletResponse httpServletResponse) {
         Map<String, List<String>> headers = loginResponse.headers();
-        Collection<String> httpServletResponseheaders = httpServletResponse.getHeaderNames();
-        logger.error("httpServletResponse headers:----------  "+httpServletResponseheaders.toString());
         Iterator<Map.Entry<String, List<String>>> entries = headers.entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry<String, List<String>> entry = entries.next();
             System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
             for (int i = 0; i < entry.getValue().size(); i++) {
-                try {
-
-                        httpServletResponse.addHeader(entry.getKey(), entry.getValue().get(i));
-
-
-//                    if (entry.getKey() != null && entry.getKey().equals("Set-Cookie")) {
-//
-//                        if (entry.getValue().get(i).startsWith("session")) {
-//                            logger.error("sessionid:----------:   "+entry.getValue().get(i));
-//                            Cookie sessionCookie = new Cookie("sessionid", URLEncoder.encode(entry.getValue().get(i)));
-//
-////                            sessionCookie.setHttpOnly(true);
-//                            httpServletResponse.addCookie(sessionCookie);
-//                        } else if(entry.getValue().get(i).startsWith("csrftoken")){
-////                            Cookie cookie = new Cookie("csrftoken", URLEncoder.encode(entry.getValue().get(i)));
-////                            cookie.setMaxAge(60*60);
-////                            httpServletResponse.addCookie(cookie);
-//                        }
-//
-//
-//                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
+                httpServletResponse.addHeader(entry.getKey(), entry.getValue().get(i));
             }
-
         }
 
     }

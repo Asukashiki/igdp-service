@@ -24,6 +24,10 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * @author lijieming
+ * @date 2024/9/25
+ */
 public class OkHttpSSEListener extends EventSourceListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OkHttpSSEListener.class);

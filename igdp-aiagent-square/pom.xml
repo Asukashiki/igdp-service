@@ -10,7 +10,7 @@
     <artifactId>igdp-aiagent-square</artifactId>
 
     <description>
-        场景广场模块
+        dify、labelstudio三方代理模块
     </description>
     <repositories>
         <repository>

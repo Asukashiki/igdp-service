@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+
 /**
- * 场景广场
+ * @author lijieming
+ * @date 2024/9/25
  */
 @Data
 @TableName("dify_user_releation")

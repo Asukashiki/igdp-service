@@ -7,6 +7,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * @author lijieming
+ * @date 2024/9/25
+ */
 public interface IProxyService extends IService<DifyUserRelationEntity> {
 
 
