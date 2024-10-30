@@ -22,6 +22,7 @@ import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -58,10 +59,13 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     private static Logger logger = LoggerFactory.getLogger(ProxyServiceImpl.class);
     private final IDifyUserReleationMapper difyUserReleationMapper;
     private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzMwMDIxODA5LCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.IwxE5w3fpP4yY6P1bPGbQrRfFStwINrRi-tGNylVH5Q";
-    private String difyAddress = "http://10.110.149.140:30099";
-    private String difylogin = "http://10.110.149.140:30099/dify/console/api/login";
-    private String labelloginGet = "http://10.110.149.140:30099/labelstudio/labelstudio/user/login/";
-    private String labelloginIgdpLogin = "http://10.110.149.140:30099/labelstudio/user/user-login-igdp/";
+    @Value("${proxyBaseUrl.dify:}")
+    private String difyBaseUrl;
+    @Value("${proxyBaseUrl.labelStudio:}")
+    private String labelStudioBaseUrl;
+    private String difylogin = "/dify/console/api/login";
+    private String labelloginGet = "/labelstudio/labelstudio/user/login/";
+    private String labelloginIgdpLogin = "/labelstudio/user/user-login-igdp/";
     private final RestTemplate restTemplate;
 
     public ProxyServiceImpl(IDifyUserReleationMapper difyUserReleationMapper, RestTemplateBuilder restTemplateBuilder) {
@@ -76,7 +80,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         String url = rebuildUlr(httpServletRequest);
 
         ResponseEntity<Resource> responseEntity;
-        url = difyAddress.concat(url.replace("/igdp/", "/"));
+        url = difyBaseUrl.concat(url.replace("/igdp/", "/"));
         logger.error("========url======{}", url);
 
         return difyProxyHttp(httpServletRequest, response, url);
@@ -88,7 +92,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
 
     public void draftRun(HttpServletRequest httpServletRequest, HttpServletResponse response, SseEmitter emitter) {
         String url = rebuildUlr(httpServletRequest);
-        url = difyAddress.concat(url.replace("/igdp/", "/"));
+        url = difyBaseUrl.concat(url.replace("/igdp/", "/"));
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(1000, TimeUnit.SECONDS)
                 .writeTimeout(1000, TimeUnit.SECONDS)
@@ -131,7 +135,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                 loginJson.putOnce("email", "yymaas@inspur.com");
                 loginJson.putOnce("password", "!QAZ2wsx.");
                 loginJson.putOnce("remember_me", true);
-                HttpResponse response1 = HttpUtil.createPost(difylogin)
+                HttpResponse response1 = HttpUtil.createPost(difyBaseUrl+difylogin)
                         .body(loginJson.toString())
                         .execute();
                 if (response1.isOk()) {
@@ -148,7 +152,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         String url = rebuildUlr(httpServletRequest);
 
         ResponseEntity<Resource> responseEntity;
-        url = difyAddress.concat(url.replace("/igdp/", "/"));
+        url = difyBaseUrl.concat(url.replace("/igdp/", "/"));
         logger.error("========url======{}", url);
 
         return labelStudioProxyHttp(httpServletRequest, response, url);
@@ -157,13 +161,13 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     @Override
     public Object labelStudioProxyLogin(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         LoginUser user = LoginHelper.getLoginUser();
-        cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelloginGet);
+        cn.hutool.http.HttpRequest request = cn.hutool.http.HttpRequest.get(labelStudioBaseUrl+labelloginGet);
         // 发送请求并获取登录页返回的seesionid和 csrftoken
         HttpResponse response = request.execute();
 
         List<String> setCookie = response.headers().get("Set-Cookie");
         System.out.println("Set-Cookie: " + setCookie);
-        HttpRequest loginRequest = HttpRequest.post(labelloginIgdpLogin);
+        HttpRequest loginRequest = HttpRequest.post(labelStudioBaseUrl+labelloginIgdpLogin);
         Map<String, Object> params = new HashMap<>();
         params.put("email", user.getUsername() + "@inspur.com");
         params.put("username", user.getUsername());
@@ -268,7 +272,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                 loginJson.putOnce("email", "yymaas@inspur.com");
                 loginJson.putOnce("password", "!QAZ2wsx.");
                 loginJson.putOnce("remember_me", true);
-                HttpResponse response1 = HttpUtil.createPost(difylogin)
+                HttpResponse response1 = HttpUtil.createPost(difyBaseUrl+difylogin)
                         .body(loginJson.toString())
                         .execute();
                 if (response1.isOk()) {

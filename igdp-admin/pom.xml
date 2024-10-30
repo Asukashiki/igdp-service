@@ -74,20 +74,7 @@
             <artifactId>DmJdbcDriver18</artifactId>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>com.oscarjdbc</groupId>-->
-        <!--            <artifactId>oscarJDBC8</artifactId>-->
-        <!--            <version>1.0</version>-->
-        <!--            <scope>system</scope>-->
-        <!--            <systemPath>${basedir}/src/main/resources/lib/oscarJDBC8.jar</systemPath>-->
-        <!--        </dependency>-->
 
-
-        <!--        <dependency>-->
-        <!--            <groupId>com.alibaba.boot</groupId>-->
-        <!--            <artifactId>nacos-config-spring-boot-starter</artifactId>-->
-        <!--            <version>0.2.7</version>-->
-        <!--        </dependency>-->
 
 
         <!-- 核心模块-->
@@ -116,18 +103,7 @@
             <groupId>com.inspur</groupId>
             <artifactId>igdp-aiagent-square</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.inspur</groupId>-->
-<!--            <artifactId>igdp-proxy-square</artifactId>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>com.inspur</groupId>
-            <artifactId>igdp-data-warehourse</artifactId>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.inspur</groupId>-->
-<!--            <artifactId>igdp-data-treating</artifactId>-->
-<!--        </dependency>-->
+
 
         <dependency>
             <groupId>com.inspur</groupId>
@@ -181,7 +157,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>yy-service</finalName>
         <resources>
             <!-- 指定 src/main/resources下所有文件及文件夹为资源文件 -->
             <resource>

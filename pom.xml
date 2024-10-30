@@ -9,7 +9,7 @@
     <version>3.8.7</version>
 
     <name>igdp</name>
-    <description>运营平台数字底座</description>
+    <description>焱宇行业大模型平台数字底座</description>
     
     <properties>
         <igdp.version>3.8.7</igdp.version>
@@ -242,12 +242,7 @@
                 <version>${igdp.version}</version>
             </dependency>
 
-            <!-- work-order -->
-<!--            <dependency>-->
-<!--                <groupId>com.inspur</groupId>-->
-<!--                <artifactId>igdp-proxy-square</artifactId>-->
-<!--                <version>${igdp.version}</version>-->
-<!--            </dependency>-->
+
 
             <dependency>
                 <groupId>com.inspur</groupId>
@@ -255,17 +250,8 @@
                 <version>${igdp.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.inspur</groupId>
-                <artifactId>igdp-data-warehourse</artifactId>
-                <version>${igdp.version}</version>
-            </dependency>
 
-<!--            <dependency>-->
-<!--                <groupId>com.inspur</groupId>-->
-<!--                <artifactId>igdp-data-treating</artifactId>-->
-<!--                <version>${igdp.version}</version>-->
-<!--            </dependency>-->
+
 
 <!--            文件存储模块-->
             <dependency>
@@ -284,12 +270,8 @@
         <module>igdp-generator</module>
         <module>igdp-common</module>
         <module>igdp-uc-interface-forward</module>
-<!--        <module>igdp-proxy-square</module>-->
         <module>igdp-aiagent-square</module>
-        <module>igdp-data-warehourse</module>
-<!--        <module>igdp-work-order</module>-->
-<!--        <module>igdp-assets-monitor</module>-->
-<!--        <module>igdp-data-treating</module>-->
+
         <module>igdp-doc</module>
     </modules>
     <packaging>pom</packaging>
