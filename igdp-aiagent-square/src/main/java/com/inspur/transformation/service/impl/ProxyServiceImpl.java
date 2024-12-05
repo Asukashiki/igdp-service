@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, DifyUserRelationEntity> implements IProxyService {
     private static Logger logger = LoggerFactory.getLogger(ProxyServiceImpl.class);
     private final IDifyUserReleationMapper difyUserReleationMapper;
-    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzMwMDIxODA5LCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.IwxE5w3fpP4yY6P1bPGbQrRfFStwINrRi-tGNylVH5Q";
+    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzM1NzE4NzY5LCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.4v0H5eHSJ4HEVMKBGN8jjcS-lLyLRQ_YlwCz96TTpc8";
     @Value("${proxyBaseUrl.dify:}")
     private String difyBaseUrl;
     @Value("${proxyBaseUrl.labelStudio:}")

@@ -35,7 +35,19 @@ public class ProxyController {
 
         return emitter;
     }
+    @PostMapping(value = "/dify/**/chat-messages", produces = "text/event-stream;charset=UTF-8")
+    public SseEmitter chatMessage(HttpServletRequest request, HttpServletResponse response) {
+        SseEmitter emitter = new SseEmitter();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                transfomationService.draftRun(request, response, emitter);
+            }
+        }).start();
 
+
+        return emitter;
+    }
     @RequestMapping(value = "/dify/**")
     public Object commit(HttpServletRequest request, HttpServletResponse response) {
 
