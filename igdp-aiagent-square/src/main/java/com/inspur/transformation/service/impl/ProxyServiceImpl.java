@@ -267,6 +267,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
 
         } catch (Exception e) {
             String errmsg = e.getMessage();
+
             if (errmsg.startsWith("401")) {
                 JSONObject loginJson = new JSONObject();
                 loginJson.putOnce("email", "yymaas@inspur.com");
@@ -280,6 +281,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                     difyProxy(request, response);
                 }
             }
+            logger.error("=================== errmsg :   {}",errmsg);
             errmsg = errmsg.split("\\{<EOL>")[1];
             errmsg = errmsg.replace("<EOL>", "");
             errmsg = "{" + errmsg;
@@ -296,7 +298,11 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             return resMap;
         }
         logger.error("============response body============:" + responseEntity.getBody().toString());
-        return com.alibaba.fastjson2.JSONObject.parseObject(responseEntity.getBody().toString(), Map.class);
+        logger.error("============response body body============:" + responseEntity.getBody());
+        logger.error("============response body status============:" + responseEntity.getStatusCode());
+        logger.error("=================== result :   {}",responseEntity.getBody().toString());
+        logger.error("=================== baseUrl :   {}",difyBaseUrl);
+        return com.alibaba.fastjson2.JSONObject.parse(responseEntity.getBody().toString());
     }
 
     private void putHeadersMap(HttpServletResponse response, Map<String, List<String>> headers) {
