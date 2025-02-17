@@ -62,10 +62,8 @@ public class MetaVo
         this.title = title;
         this.icon = icon;
         this.noCache = noCache;
-        if (StringUtils.ishttp(link))
-        {
-            this.link = link;
-        }
+        this.link = link;
+
     }
 
 }
