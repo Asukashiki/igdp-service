@@ -147,6 +147,8 @@ public class SysMenuServiceImpl extends MPJBaseServiceImpl<SysMenuMapper, SysMen
                             SysApp app = appMap.get(menu.getAppId());
                             if (null != app && StrUtil.isNotEmpty(app.getAppServer())) {
                                 menu.setLink(app.getAppServer() + menu.getLink());
+                            }else if(menu.getLink().startsWith("/")){
+                                menu.setLink( menu.getLink());
                             }
                         }
                     }
