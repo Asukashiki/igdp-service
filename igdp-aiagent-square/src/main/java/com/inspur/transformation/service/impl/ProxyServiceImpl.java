@@ -20,6 +20,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSources;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -277,6 +278,15 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                 HttpResponse response1 = HttpUtil.createPost(difyBaseUrl+difylogin)
                         .body(loginJson.toString())
                         .execute();
+
+                logger.error("==============HttpResponse  status  {}",response1.getStatus());
+                // 如果响应包含实体，则打印实体内容
+                if (response1.body() != null) {
+                    logger.error("Response Content:");
+                    logger.error(response1.body());
+                } else {
+                    logger.error("Response content is null.");
+                }
                 if (response1.isOk()) {
                     apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
                     difyProxy(request, response);
