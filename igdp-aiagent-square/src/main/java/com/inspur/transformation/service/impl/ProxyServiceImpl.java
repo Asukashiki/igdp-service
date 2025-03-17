@@ -244,7 +244,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             return null;
         }
         logger.error("============response body============:" + responseEntity.getBody().toString());
-        return com.alibaba.fastjson2.JSONObject.parse(responseEntity.getBody().toString());
+        return new HashMap();
     }
 
     private Map difyProxyHttp(HttpServletRequest request, HttpServletResponse response, String url) {
@@ -282,6 +282,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                     difyProxy(request, response);
                 }
             }
+            logger.error("==============error url {}",url);
             logger.error("=================== errmsg :   {}",errmsg);
             errmsg = errmsg.split("\\{<EOL>")[1];
             errmsg = errmsg.replace("<EOL>", "");
