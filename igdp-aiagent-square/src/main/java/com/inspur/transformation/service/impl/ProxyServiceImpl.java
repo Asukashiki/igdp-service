@@ -309,7 +309,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             throw new RuntimeException(e);
         }
         logger.error("=================== baseUrl :   {}",difyBaseUrl);
-        return com.alibaba.fastjson2.JSONObject.parse(responseEntity.getBody().toString());
+        return new HashMap<>();
     }
 
     private void putHeadersMap(HttpServletResponse response, Map<String, List<String>> headers) {
