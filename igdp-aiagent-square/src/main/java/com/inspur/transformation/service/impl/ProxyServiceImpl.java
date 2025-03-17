@@ -43,6 +43,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -300,7 +301,12 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
         logger.error("============response body============:" + responseEntity.getBody().toString());
         logger.error("============response body body============:" + responseEntity.getBody());
         logger.error("============response body status============:" + responseEntity.getStatusCode());
-        logger.error("=================== result :   {}",responseEntity.getBody().toString());
+        try {
+            logger.error("=================== result :   {}", StreamUtils.copyToString(responseEntity.getBody().getInputStream(), StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
         logger.error("=================== baseUrl :   {}",difyBaseUrl);
         return com.alibaba.fastjson2.JSONObject.parse(responseEntity.getBody().toString());
     }
