@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, DifyUserRelationEntity> implements IProxyService {
     private static Logger logger = LoggerFactory.getLogger(ProxyServiceImpl.class);
     private final IDifyUserReleationMapper difyUserReleationMapper;
-    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzM1NzE4NzY5LCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.4v0H5eHSJ4HEVMKBGN8jjcS-lLyLRQ_YlwCz96TTpc8";
+    private String apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiN2JkYTU1YTMtNWFhNS00ZTdkLWIxZmYtNDJlMDIwZGE3NDNmIiwiZXhwIjoxNzQ0OTY1MzQwLCJpc3MiOiJTRUxGX0hPU1RFRCIsInN1YiI6IkNvbnNvbGUgQVBJIFBhc3Nwb3J0In0.52yc5cxmEVp0aatGDNf-rwA5K3Lcjm1M8AqkW0_l0PI";
     @Value("${proxyBaseUrl.dify:}")
     private String difyBaseUrl;
     @Value("${proxyBaseUrl.labelStudio:}")
@@ -114,6 +114,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
 
             requestBody = RequestBody.create(okhttp3.MediaType.parse("application/json;charset=utf-8"), body);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
         Request request = new Request.Builder()
@@ -257,6 +258,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             requestEntity = buildRequestEntity(url, request);
 
             responseEntity = restTemplate.exchange(requestEntity, Resource.class);
+            logger.error("=================== url：{} ",url);
             putResponseHeader(response, responseEntity.getHeaders());
             ServletOutputStream outputStream = response.getOutputStream();
             InputStream inputStream = responseEntity.getBody().getInputStream();
@@ -268,8 +270,10 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
 
 
         } catch (Exception e) {
+            e.printStackTrace();
             String errmsg = e.getMessage();
-
+            logger.error("errmsg 278================================ {}    ",errmsg);
+            logger.error("apiKey================================ {}    ",apiKey);
             if (errmsg.startsWith("401")) {
                 JSONObject loginJson = new JSONObject();
                 loginJson.putOnce("email", "yymaas@inspur.com");
@@ -279,7 +283,8 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                         .body(loginJson.toString())
                         .execute();
 
-                logger.error("==============HttpResponse  status  {}",response1.getStatus());
+                logger.error("==============401 HttpResponse  status  {}",response1.getStatus());
+                logger.error("==============401 HttpResponse  body  {}",response1.body());
                 // 如果响应包含实体，则打印实体内容
                 if (response1.body() != null) {
                     logger.error("Response Content:");
@@ -288,11 +293,14 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                     logger.error("Response content is null.");
                 }
                 if (response1.isOk()) {
+                    logger.error("==============apyKey 赋值");
                     apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
+                    logger.error("==============apyKey 新,{}",apiKey);
                     difyProxy(request, response);
                 }
             }
             logger.error("==============error url {}",url);
+            logger.error("==============error status {}",response.getStatus());
             logger.error("=================== errmsg :   {}",errmsg);
             errmsg = errmsg.split("\\{<EOL>")[1];
             errmsg = errmsg.replace("<EOL>", "");
@@ -344,20 +352,24 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     private RequestEntity buildRequestEntity(String url, HttpServletRequest request) throws IOException {
         //获取 所有heads
         HttpHeaders headers = parseHeader(request);
+        headers.remove("Authorization");
+        headers.add("Authorization", "Bearer " + apiKey);
+        //这里获取不到 form-data 中数据，只能获取,requestBody, form-urlencoded-www  参数
+        logger.error("Headers==========  {}",headers);
+        byte[] body = parseBody(request);
+        logger.error("request: {}", new String(body));
         //单独处理文件上传
         if (isMultipart(request)) {
             RequestEntity formData = getFormDataEntity(url, request, headers);
             if (formData != null) {
                 return formData;
             }
-            throw new RuntimeException("");
+
         }
-        headers.remove("Authorization");
-        headers.add("Authorization", "Bearer " + apiKey);
+
 //        headers.add("X-WORKSPACE-ID" , workspaceId);
-        //这里获取不到 form-data 中数据，只能获取,requestBody, form-urlencoded-www参数
-        byte[] body = parseBody(request);
-        logger.error("request: {}", new String(body));
+
+
         return new RequestEntity(body, headers, HttpMethod.resolve(request.getMethod()), URI.create(url));
     }
 
@@ -444,9 +456,30 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
     }
 
     private void putResponseHeader(HttpServletResponse response, HttpHeaders headers) {
+        // 创建一个新的 HttpHeaders 对象用于存储清理后的头信息
+        HttpHeaders cleanedHeaders = new HttpHeaders();
+
+        // 遍历原始的 HttpHeaders 对象中的所有头信息
         headers.forEach((k, v) -> {
-            response.setHeader(k, v.stream().collect(Collectors.joining(", ")));
+            if (!k.equalsIgnoreCase("Transfer-Encoding")) {
+                // 如果不是 Transfer-Encoding 头，则直接添加到 cleanedHeaders 中
+                cleanedHeaders.put(k, v);
+            } else {
+                // 如果是 Transfer-Encoding 头，则只保留第一个值
+                if (!v.isEmpty()) {
+//                    cleanedHeaders.set(k, v.get(0));
+                }
+            }
         });
+        logger.error("=====headers=========================={}", headers);
+        logger.error("=====cleanedHeaders==================={}", cleanedHeaders);
+        // 将清理后的头信息设置到 HttpServletResponse 中
+        cleanedHeaders.forEach((key, valueList) -> {
+            String value = valueList.stream().collect(Collectors.joining(", "));
+            response.setHeader(key, value);
+        });
+
+        // 设置额外的响应头 X-Frame-Options
         response.setHeader("X-Frame-Options", "SAMEORIGIN");
     }
 

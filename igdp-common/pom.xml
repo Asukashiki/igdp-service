@@ -85,7 +85,11 @@
             <artifactId>thumbnailator</artifactId>
             <version>0.4.17</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.23</version> <!-- 请使用最新的稳定版本 -->
+        </dependency>
 
 
         <!-- pagehelper 分页插件 -->
