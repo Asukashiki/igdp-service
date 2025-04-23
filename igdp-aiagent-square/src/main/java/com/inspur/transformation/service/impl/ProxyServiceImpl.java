@@ -294,7 +294,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
                 }
                 if (response1.isOk()) {
                     logger.error("==============apyKey 赋值");
-                    apiKey = JSONUtil.parseObj(response1.body()).getStr("data");
+                    apiKey = JSONUtil.parseObj(response1.body()).getJSONObject("data").getStr("access_token");
                     logger.error("==============apyKey 新,{}",apiKey);
                     difyProxy(request, response);
                 }
