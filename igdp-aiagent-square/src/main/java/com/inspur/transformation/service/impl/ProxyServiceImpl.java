@@ -258,6 +258,9 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             requestEntity = buildRequestEntity(url, request);
 
             responseEntity = restTemplate.exchange(requestEntity, Resource.class);
+            // 关键修改：设置HTTP状态码为后端返回的状态码
+            int statusCode = responseEntity.getStatusCodeValue();
+            response.setStatus(statusCode);
             logger.error("=================== url：{} ",url);
             putResponseHeader(response, responseEntity.getHeaders());
             ServletOutputStream outputStream = response.getOutputStream();
