@@ -48,6 +48,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -274,6 +276,7 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
 
         } catch (Exception e) {
             e.printStackTrace();
+
             String errmsg = e.getMessage();
             logger.error("errmsg 278================================ {}    ",errmsg);
             logger.error("apiKey================================ {}    ",apiKey);
@@ -305,13 +308,12 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             logger.error("==============error url {}",url);
             logger.error("==============error status {}",response.getStatus());
             logger.error("=================== errmsg :   {}",errmsg);
-            errmsg = errmsg.split("\\{<EOL>")[1];
-            errmsg = errmsg.replace("<EOL>", "");
-            errmsg = "{" + errmsg;
-            JSONObject jsonObject = JSONUtil.parseObj(errmsg);
+            int status  = extractHttpStatusCode(errmsg);
+            String responseString  = extractJsonBody(errmsg);
+            JSONObject jsonObject = JSONUtil.parseObj(responseString);
             Map resMap = com.alibaba.fastjson2.JSONObject.parseObject(jsonObject.toString(), Map.class);
 
-            if (errmsg.startsWith("400")) {
+            if (status == 400) {
                 response.setStatus(400);
                 return resMap;
             } else {
@@ -341,14 +343,42 @@ public class ProxyServiceImpl extends ServiceImpl<IDifyUserReleationMapper, Dify
             }
         });
     }
+    // 提取 HTTP 状态码
+    public static Integer extractHttpStatusCode(String response) {
+        Pattern pattern = Pattern.compile("(\\d{3})\\s+\\w+");
+        Matcher matcher = pattern.matcher(response.split(":")[0].trim());
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return null;
+    }
 
+    // 提取 JSON 主体
+    public static String extractJsonBody(String response) {
+        int startIndex = response.indexOf("{");
+        int endIndex = response.lastIndexOf("}") + 1;
+        if (startIndex != -1 && endIndex != -1) {
+            String jsonContent = response.substring(startIndex, endIndex)
+                    .replace("\\", "") // 移除转义字符
+                    .replaceAll("<EOL>", "") // 移除人工标记的换行符
+                    .replaceAll("^\\s+", "") // 移除行首空格
+                    .replaceAll("\\s+$", ""); // 移除行尾空格
+            return jsonContent;
+        }
+        return null;
+    }
     public static void main(String[] args) {
-        String msg = "415 UNSUPPORTED MEDIA TYPE: \"{<EOL>    \"code\": \"unsupported_media_type\",<EOL>    \"message\": \"Did not attempt to load JSON data because the request Content-Type was not 'application/json'.\",<EOL>    \"status\": 415<EOL>}<EOL>\"";
-        msg = msg.split("\\{<EOL>")[1];
-        msg = msg.replace("<EOL>", "");
-        msg = "{" + msg;
-        JSONUtil.parseObj(msg);
-        System.out.println(msg);
+        String response = "415 UNSUPPORTED MEDIA TYPE: \"{<EOL>    \"code\": \"unsupported_media_type\",<EOL>    \"message\": \"Did not attempt to load JSON data because the request Content-Type was not 'application/json'.\",<EOL>    \"status\": 415<EOL>}<EOL>\"";
+
+//        String response = "400 BAD REQUEST: \"{\\\"code\\\": \\\"draft_workflow_not_exist\\\", \\\"message\\\": \\\"Draft workflow need to be initialized.\\\", \\\"status\\\": 400}<EOL>\"";
+
+        // 提取 HTTP 状态码的方法
+        Integer httpStatusCode = extractHttpStatusCode(response);
+        System.out.println("HTTP 状态码: " + httpStatusCode);
+
+        // 提取 JSON 字符串的方法
+        String jsonString = extractJsonBody(response);
+        System.out.println("JSON 内容:\n" + jsonString);
 
     }
 
