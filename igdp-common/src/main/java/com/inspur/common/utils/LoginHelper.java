@@ -32,7 +32,8 @@ public class LoginHelper {
         }
         StpUtil.login(loginUser.getUserId(),
                 model.setExtra(USER_ID_KEY, loginUser.getUserId())
-                        .setExtra(DEPT_ID_KEY, loginUser.getDeptId()));
+                        .setExtra(DEPT_ID_KEY, loginUser.getDeptId())
+                        );
         StpUtil.getSession().set(LOGIN_USER_KEY, loginUser);
     }
 

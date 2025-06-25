@@ -11,6 +11,10 @@ import lombok.Data;
  */
 @Data
 public class SsoInfo {
+    /**
+     * 应用 ID
+     */
+    private String appId;
     private String name;
 
     /**
