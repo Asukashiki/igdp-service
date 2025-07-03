@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.domain.TreeSelect;
 import com.inspur.common.core.domain.entity.SysDept;
+import com.inspur.common.core.domain.entity.SysMenu;
 import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.core.domain.entity.SysUser;
 import com.inspur.common.core.domain.model.LoginUser;
@@ -12,6 +13,8 @@ import com.inspur.system.service.ISysDeptService;
 import com.inspur.system.service.ISysRoleService;
 import com.inspur.system.service.ISysUserService;
 import com.inspur.ucif.service.IAccountStrategy;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -23,6 +26,8 @@ import java.util.List;
  * @ClassName GzzfwAccountStrategy
  * @date 2024/5/28 16:42
  */
+@Service("gdzfwAccountStrategy")
+@ConditionalOnProperty(name = "sys.account-select-type", havingValue = "gdzfw")
 public class GdzfwAccountStrategy implements IAccountStrategy {
 
     @Resource
@@ -92,6 +97,11 @@ public class GdzfwAccountStrategy implements IAccountStrategy {
 
     @Override
     public List<TreeSelect> getDeptUserTreeList() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<SysMenu> getMenuTree(String token) {
         return Collections.emptyList();
     }
 }

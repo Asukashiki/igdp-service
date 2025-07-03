@@ -2,6 +2,7 @@ package com.inspur.ucif.service.impl;
 
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
@@ -10,6 +11,8 @@ import com.inspur.common.config.SsoConfig;
 import com.inspur.common.constant.ApiConstants;
 import com.inspur.common.constant.Constants;
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.core.domain.entity.SysMenu;
+import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.core.domain.entity.SysUser;
 import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.common.core.domain.model.SsoInfo;
@@ -17,20 +20,23 @@ import com.inspur.common.utils.LoginHelper;
 import com.inspur.framework.manager.AsyncManager;
 import com.inspur.framework.manager.factory.AsyncFactory;
 import com.inspur.framework.web.service.SysLoginService;
+import com.inspur.system.service.ISysMenuService;
 import com.inspur.system.service.ISysUserService;
+import com.inspur.ucif.constant.GrantTypeConstants;
 import com.inspur.ucif.domain.OauthPayload;
 import com.inspur.ucif.domain.TokenDto;
 import com.inspur.ucif.service.IAuthStrategy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 系统内置用户认证对接
@@ -43,7 +49,7 @@ import java.util.Objects;
 @RefreshScope
 public class BspAuthStrategy implements IAuthStrategy {
 
-    private static final String DEFAULT_GRANT_TYPE = "bsp";
+
 
     private static final String SSO_RESPONSE_CODE = "code";
     private static final Integer SSO_CODE_SUCCESS = 200;
@@ -56,6 +62,10 @@ public class BspAuthStrategy implements IAuthStrategy {
     private SysLoginService sysLoginService;
     @Resource
     private SsoConfig ssoConfig;
+    @Resource
+    private BspAccountStrategy bspAccountStrategy;
+    @Resource
+    private ISysMenuService sysMenuService;
 
     /**
      * 单点登录 code换取token
@@ -65,7 +75,7 @@ public class BspAuthStrategy implements IAuthStrategy {
      */
     @Override
     public AjaxResult loginWithCode(OauthPayload oauthPayload) {
-        SsoInfo ssoInfo = ssoConfig.getSsoInfo(DEFAULT_GRANT_TYPE);
+        SsoInfo ssoInfo = ssoConfig.getSsoInfo(GrantTypeConstants.BSP_GRANT_TYPE);
         if (null == ssoInfo) {
             return AjaxResult.error("配置信息ssoInf有误");
         }
@@ -83,7 +93,7 @@ public class BspAuthStrategy implements IAuthStrategy {
 
     @Override
     public AjaxResult loginWithPassword(OauthPayload payload) {
-        SsoInfo ssoInfo = ssoConfig.getSsoInfo(DEFAULT_GRANT_TYPE);
+        SsoInfo ssoInfo = ssoConfig.getSsoInfo(GrantTypeConstants.BSP_GRANT_TYPE);
         if (null == ssoInfo) {
             return AjaxResult.error("配置信息ssoInf有误");
         }
@@ -138,14 +148,66 @@ public class BspAuthStrategy implements IAuthStrategy {
             throw new RuntimeException("获取用户信息失败");
         }
         
+        // 转换为SysUser对象
+        SysUser sysUser = convertToSysUser(userJo);
         LoginUser loginUser = new LoginUser();
+        loginUser.setUser(sysUser);
         loginUser.setUserId(userJo.getString("id"));
         loginUser.setUsername(userJo.getString("username"));
         loginUser.setToken(token);
         loginUser.setDeptId(userJo.getString("organCode"));
         loginUser.setDeptName(userJo.getString("organName"));
         loginUser.setNickname(userJo.getString("name"));
+        // 设置角色列表
+        String roleStr = userJo.getString("role");
+        if (StringUtils.isNotBlank(roleStr)) {
+            loginUser.setRoles(new HashSet<>(StrUtil.split(roleStr, StrUtil.C_COMMA)));
+        }
         return loginUser;
+    }
+
+    /**
+     * 将用户中心返回的用户信息转换为SysUser对象
+     * 
+     * @param userJo 用户中心返回的用户JSON对象
+     * @return SysUser对象
+     */
+    private SysUser convertToSysUser(JSONObject userJo) {
+        SysUser sysUser = new SysUser();
+        
+        // 设置用户ID
+        sysUser.setUserId(userJo.getString("id"));
+        
+        // 设置用户名
+        sysUser.setUserName(userJo.getString("username"));
+        
+        // 设置昵称
+        sysUser.setNickName(userJo.getString("name"));
+        
+        // 设置部门ID
+        sysUser.setDeptId(userJo.getString("organCode"));
+        // 设置部门名称
+        sysUser.setDeptName(userJo.getString("organName"));
+        
+        // 设置手机号
+        String mobile = userJo.getString("mobile");
+        if (StringUtils.isNotBlank(mobile)) {
+            sysUser.setPhoneNumber(mobile);
+        }
+        
+        // 设置邮箱
+        String email = userJo.getString("email");
+        if (StringUtils.isNotBlank(email)) {
+            sysUser.setEmail(email);
+        }
+        
+        // 设置状态（默认正常）
+        sysUser.setStatus("0");
+        
+        // 设置删除标志（默认存在）
+        sysUser.setDelFlag("0");
+     
+        return sysUser;
     }
 
     @Override
@@ -155,7 +217,7 @@ public class BspAuthStrategy implements IAuthStrategy {
 
     @Override
     public AjaxResult refreshToken(String refreshToken) {
-        SsoInfo ssoInfo = ssoConfig.getSsoInfo(DEFAULT_GRANT_TYPE);
+        SsoInfo ssoInfo = ssoConfig.getSsoInfo(GrantTypeConstants.BSP_GRANT_TYPE);
         if (null == ssoInfo) {
             return AjaxResult.error("配置信息ssoInf有误");
         }
@@ -180,7 +242,7 @@ public class BspAuthStrategy implements IAuthStrategy {
 
     @Override
     public AjaxResult logout(String token) {
-        SsoInfo ssoInfo = ssoConfig.getSsoInfo(DEFAULT_GRANT_TYPE);
+        SsoInfo ssoInfo = ssoConfig.getSsoInfo(GrantTypeConstants.BSP_GRANT_TYPE);
         if (null == ssoInfo) {
             return AjaxResult.error("配置信息ssoInf有误");
         }
@@ -229,20 +291,24 @@ public class BspAuthStrategy implements IAuthStrategy {
      */
     private void handleLocalLogin(TokenDto tokenDto, SsoInfo ssoInfo) {
         LoginUser currentUser = getCurrentUser(tokenDto.getAccessToken(), ssoInfo);
-        // 本地存储token以及用户信息
-        SysUser sysUser = userService.selectUserById(currentUser.getUserId());
-        if (null == sysUser) {
-            sysUser = userService.registerByLoginUser(currentUser);
+
+        // 从 BSP获取当前用户信息
+        List<SysMenu> menuTree = bspAccountStrategy.getMenuTree(tokenDto.getAccessToken());
+        // 从菜单中读取用户权限
+        Set<String> permissions = sysMenuService.selectMenuPermsByMenuTree(menuTree);
+        
+        // 设置用户权限
+        if (Objects.nonNull(permissions) && !permissions.isEmpty()) {
+            currentUser.setPermissions(permissions);
         }
-        LoginUser loginUser = sysLoginService.buildLoginUser(sysUser);
+        
         SaLoginModel saLoginModel = new SaLoginModel();
         //设置token与oauth2响应token一致
         saLoginModel.setToken(tokenDto.getAccessToken());
         saLoginModel.setTimeout(tokenDto.getExpiresIn());
-        LoginHelper.login(loginUser, saLoginModel);
-        sysLoginService.recordLoginInfo(sysUser.getUserId());
+        LoginHelper.login(currentUser, saLoginModel);
+        sysLoginService.recordLoginInfo(currentUser.getUserId());
     }
-
 
     private TokenDto handleFromOauth2(String tokenData) {
         if (StringUtils.isEmpty(tokenData)) {
@@ -288,4 +354,5 @@ public class BspAuthStrategy implements IAuthStrategy {
         }
         return headers;
     }
+
 }

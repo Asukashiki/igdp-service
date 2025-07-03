@@ -146,7 +146,11 @@ public interface ISysMenuService extends MPJBaseService<SysMenu> {
 
 
     /**
-     * 根据AppId获取菜单信息
-     * */
+     * 根据菜单树获取权限列表
+     *
+     * @param menuList
+     * @return 权限列表
+     */
+    Set<String> selectMenuPermsByMenuTree(List<SysMenu> menuList);
 
 }

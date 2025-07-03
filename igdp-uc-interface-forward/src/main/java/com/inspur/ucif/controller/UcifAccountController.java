@@ -1,11 +1,17 @@
 package com.inspur.ucif.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.lang.Assert;
 import com.inspur.common.config.SystemConfig;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.domain.entity.SysDept;
+import com.inspur.common.core.domain.entity.SysMenu;
 import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.core.domain.entity.SysUser;
+import com.inspur.common.core.domain.model.LoginUser;
+import com.inspur.common.utils.LoginHelper;
+import com.inspur.system.service.ISysMenuService;
 import com.inspur.ucif.service.IAccountStrategy;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author liyunlong
@@ -26,6 +34,8 @@ public class UcifAccountController extends BaseController {
 
     @Resource
     private IAccountStrategy accountStrategy;
+    @Resource
+    private ISysMenuService menuService;
 
     /**
      * 获取组织树
@@ -109,5 +119,43 @@ public class UcifAccountController extends BaseController {
         return success(accountStrategy.getDeptUserTreeList());
     }
 
+    /**
+     * 获取用户信息
+     *
+     * @return 用户信息
+     */
+    @GetMapping("/getInfo")
+    public AjaxResult getInfo() {
+        LoginUser loginUser = LoginHelper.getLoginUser();
+        Assert.notNull(loginUser, "未获取到登录用户");
+        SysUser user = loginUser.getUser();
+        // 角色集合
+        Set<String> roles = loginUser.getRoles();
+        // 权限集合
+        Set<String> permissions = loginUser.getPermissions();
+        AjaxResult ajax = AjaxResult.success();
+        ajax.put("user", user);
+        ajax.put("roles", roles);
+        ajax.put("permissions", permissions);
+        return ajax;
+    }
 
+    /**
+     * 获取路由信息
+     *
+     * @return 路由信息
+     */
+    @GetMapping("/getRouters")
+    public AjaxResult getRouters() {
+        String token = StpUtil.getTokenValue();
+        List<SysMenu> menus = accountStrategy.getInstance(SystemConfig.getAccountSelectType()).getMenuTree(token);
+        return AjaxResult.success(menuService.buildMenus(menus));
+    }
+
+    @GetMapping("/getMenu")
+    public AjaxResult getMenu() {
+        String token = StpUtil.getTokenValue();
+        List<SysMenu> menuTree = accountStrategy.getMenuTree(token);
+        return AjaxResult.success(menuTree);
+    }
 }

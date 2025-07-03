@@ -499,4 +499,36 @@ public class SysMenuServiceImpl extends MPJBaseServiceImpl<SysMenuMapper, SysMen
         return StringUtils.replaceEach(path, new String[]{Constants.HTTP, Constants.HTTPS, Constants.WWW, ".", ":"},
                 new String[]{"", "", "", "/", "/"});
     }
+
+    @Override
+    public Set<String> selectMenuPermsByMenuTree(List<SysMenu> menuList) {
+        Set<String> permissions = new HashSet<>();
+        if (Objects.isNull(menuList) || menuList.isEmpty()) {
+            return permissions;
+        }
+        
+        for (SysMenu menu : menuList) {
+            // 提取当前菜单的权限
+            String perms = menu.getPerms();
+            if (StringUtils.isNotBlank(perms)) {
+                // 处理逗号分割的权限字符串
+                String[] permArray = perms.split(StrUtil.COMMA);
+                for (String perm : permArray) {
+                    String trimmedPerm = perm.trim();
+                    if (StringUtils.isNotBlank(trimmedPerm)) {
+                        permissions.add(trimmedPerm);
+                    }
+                }
+            }
+            
+            // 递归处理子菜单
+            List<SysMenu> children = menu.getChildren();
+            if (Objects.nonNull(children) && !children.isEmpty()) {
+                Set<String> childPermissions = selectMenuPermsByMenuTree(children);
+                permissions.addAll(childPermissions);
+            }
+        }
+        
+        return permissions;
+    }
 }

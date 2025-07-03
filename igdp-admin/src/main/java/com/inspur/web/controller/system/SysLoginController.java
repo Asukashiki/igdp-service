@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.Set;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import com.inspur.common.config.SystemConfig;
+import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.framework.manager.AsyncManager;
 import com.inspur.framework.manager.factory.AsyncFactory;
 import com.inspur.system.service.ISysRoleWorkbenchItemService;
 import com.inspur.system.service.ISysWorkbenchItemService;
+import com.inspur.ucif.service.IAccountStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +48,8 @@ public class SysLoginController {
 
     @Resource
     private ISysWorkbenchItemService workbenchItemService;
+    @Resource
+    private IAccountStrategy accountStrategy;
 
     /**
      * 登录方法
@@ -61,19 +67,53 @@ public class SysLoginController {
         return ajax;
     }
 
+//    /**
+//     * 获取用户信息
+//     *
+//     * @return 用户信息
+//     */
+//    @GetMapping("getInfo")
+//    public AjaxResult getInfo() {
+//        SysUser user = LoginHelper.getLoginUser().getUser();
+//        // 角色集合
+//        Set<String> roles = permissionService.getRolePermission(user);
+//        // 权限集合
+//        Set<String> permissions = permissionService.getMenuPermission(user);
+//        AjaxResult ajax = AjaxResult.success();
+//        ajax.put("user", user);
+//        ajax.put("roles", roles);
+//        ajax.put("permissions", permissions);
+//        return ajax;
+//    }
+//
+//    /**
+//     * 获取路由信息
+//     *
+//     * @return 路由信息
+//     */
+//    @GetMapping("getRouters")
+//    public AjaxResult getRouters() {
+//        String userId = LoginHelper.getUserId();
+//        List<SysMenu> menus = menuService.selectMenuTreeByUserId(userId);
+//        return AjaxResult.success(menuService.buildMenus(menus));
+//    }
     /**
      * 获取用户信息
      *
      * @return 用户信息
      */
-    @GetMapping("getInfo")
+    @GetMapping("/getInfo")
     public AjaxResult getInfo() {
-        SysUser user = LoginHelper.getLoginUser().getUser();
+        LoginUser loginUser = LoginHelper.getLoginUser();
+        Assert.notNull(loginUser, "未获取到登录用户");
+        SysUser user = loginUser.getUser();
         // 角色集合
-        Set<String> roles = permissionService.getRolePermission(user);
+        Set<String> roles = loginUser.getRoles();
         // 权限集合
-        Set<String> permissions = permissionService.getMenuPermission(user);
+        Set<String> permissions = loginUser.getPermissions();
         AjaxResult ajax = AjaxResult.success();
+        roles.add("superAdmin");
+        roles.add("admin");
         ajax.put("user", user);
         ajax.put("roles", roles);
         ajax.put("permissions", permissions);
@@ -85,12 +125,13 @@ public class SysLoginController {
      *
      * @return 路由信息
      */
-    @GetMapping("getRouters")
+    @GetMapping("/getRouters")
     public AjaxResult getRouters() {
-        String userId = LoginHelper.getUserId();
-        List<SysMenu> menus = menuService.selectMenuTreeByUserId(userId);
+        String token = StpUtil.getTokenValue();
+        List<SysMenu> menus = accountStrategy.getInstance(SystemConfig.getAccountSelectType()).getMenuTree(token);
         return AjaxResult.success(menuService.buildMenus(menus));
     }
+
 
     /**
      * 获取工作台内容

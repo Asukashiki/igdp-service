@@ -4,6 +4,7 @@ import com.github.pagehelper.Page;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.domain.TreeSelect;
 import com.inspur.common.core.domain.entity.SysDept;
+import com.inspur.common.core.domain.entity.SysMenu;
 import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.core.domain.entity.SysUser;
 import com.inspur.common.core.domain.model.LoginUser;
@@ -103,5 +104,11 @@ public interface IAccountStrategy {
      * @return 部门树信息集合，包含用户在内
      * */
     List<TreeSelect> getDeptUserTreeList();
+
+    /**
+     * 获取菜单树结构信息
+     * @return
+     */
+    List<SysMenu> getMenuTree(String token);
 
 }

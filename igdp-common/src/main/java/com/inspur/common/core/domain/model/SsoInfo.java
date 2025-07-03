@@ -53,4 +53,8 @@ public class SsoInfo {
     private String logoutApi;
 
     private String checkTokenApi;
+    /**
+     * 获取菜单信息接口
+     */
+    private String getMenuByUserApi;
 }
