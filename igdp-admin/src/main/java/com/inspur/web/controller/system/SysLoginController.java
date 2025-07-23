@@ -14,6 +14,7 @@ import com.inspur.system.service.ISysRoleWorkbenchItemService;
 import com.inspur.system.service.ISysWorkbenchItemService;
 import com.inspur.ucif.service.IAccountStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -112,8 +113,11 @@ public class SysLoginController {
         // 权限集合
         Set<String> permissions = loginUser.getPermissions();
         AjaxResult ajax = AjaxResult.success();
-        roles.add("superAdmin");
-        roles.add("admin");
+        // 如果是有 admin 权限，则返回所有权限字符
+        if (!CollectionUtils.isEmpty(roles) && roles.contains(Constants.SUPER_ADMIN)) {
+            permissions.clear();
+            permissions.add(Constants.ALL_PERMISSION);
+        }
         ajax.put("user", user);
         ajax.put("roles", roles);
         ajax.put("permissions", permissions);
