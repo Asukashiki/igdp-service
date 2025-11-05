@@ -1,5 +1,6 @@
 package com.inspur.web.controller.system;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -115,7 +116,11 @@ public class SysLoginController {
         AjaxResult ajax = AjaxResult.success();
         // 如果是有 admin 权限，则返回所有权限字符
         if (!CollectionUtils.isEmpty(roles) && roles.contains(Constants.SUPER_ADMIN)) {
-            permissions.clear();
+            if(ObjectUtil.isEmpty(permissions)){
+                permissions = new HashSet<String>();
+            }else {
+                permissions.clear();
+            }
             permissions.add(Constants.ALL_PERMISSION);
         }
         ajax.put("user", user);
