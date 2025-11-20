@@ -12,7 +12,7 @@ spring:
         password: '!QAZ2wsx.'
 #        namespace: 52ef02ec-772c-4268-a8cc-d97673be3c21
 #        namespace: e50d707b-4890-49af-808f-082edf51752b
-        namespace: yy-dev-dev
+        namespace: smart_agriculture
 #        namespace: igdp-v3-highgo-dev
 #        namespace: igdp-v3-dm-local
         file-extension: yml
