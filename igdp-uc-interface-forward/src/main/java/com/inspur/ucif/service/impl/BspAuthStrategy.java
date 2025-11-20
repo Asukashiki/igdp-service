@@ -29,6 +29,7 @@ import com.inspur.ucif.service.IAuthStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 @Service("bspAuthStrategy")
 @Slf4j
 @RefreshScope
+@ConditionalOnProperty(name = "sys.account-select-type", havingValue = "bsp")
 public class BspAuthStrategy implements IAuthStrategy {
 
 
@@ -122,32 +124,32 @@ public class BspAuthStrategy implements IAuthStrategy {
         // 添加 appId 参数
         Map<String, Object> params = new HashMap<>(1);
         params.put("appId", ssoInfo.getAppId());
-        
+
         String result = HttpRequest.get(currentUserUrl)
                 .addHeaders(headers)
                 .form(params)
                 .execute()
                 .body();
         log.info("调用用户中心当前登录用户响应内容：{}", result);
-        
+
         JSONObject retJo = JSON.parseObject(result);
         if (Objects.isNull(retJo)) {
             log.error("调用用户中心返回数据为空");
             throw new RuntimeException("获取用户信息失败");
         }
-        
+
         JSONObject data = retJo.getJSONObject("data");
         if (Objects.isNull(data)) {
             log.error("调用用户中心返回的data为空");
             throw new RuntimeException("获取用户信息失败");
         }
-        
+
         JSONObject userJo = data.getJSONObject("user");
         if (Objects.isNull(userJo)) {
             log.error("调用用户中心返回的user数据为空");
             throw new RuntimeException("获取用户信息失败");
         }
-        
+
         // 转换为SysUser对象
         SysUser sysUser = convertToSysUser(userJo);
         LoginUser loginUser = new LoginUser();
@@ -168,45 +170,45 @@ public class BspAuthStrategy implements IAuthStrategy {
 
     /**
      * 将用户中心返回的用户信息转换为SysUser对象
-     * 
+     *
      * @param userJo 用户中心返回的用户JSON对象
      * @return SysUser对象
      */
     private SysUser convertToSysUser(JSONObject userJo) {
         SysUser sysUser = new SysUser();
-        
+
         // 设置用户ID
         sysUser.setUserId(userJo.getString("id"));
-        
+
         // 设置用户名
         sysUser.setUserName(userJo.getString("username"));
-        
+
         // 设置昵称
         sysUser.setNickName(userJo.getString("name"));
-        
+
         // 设置部门ID
         sysUser.setDeptId(userJo.getString("organCode"));
         // 设置部门名称
         sysUser.setDeptName(userJo.getString("organName"));
-        
+
         // 设置手机号
         String mobile = userJo.getString("mobile");
         if (StringUtils.isNotBlank(mobile)) {
             sysUser.setPhoneNumber(mobile);
         }
-        
+
         // 设置邮箱
         String email = userJo.getString("email");
         if (StringUtils.isNotBlank(email)) {
             sysUser.setEmail(email);
         }
-        
+
         // 设置状态（默认正常）
         sysUser.setStatus("0");
-        
+
         // 设置删除标志（默认存在）
         sysUser.setDelFlag("0");
-     
+
         return sysUser;
     }
 
@@ -296,12 +298,12 @@ public class BspAuthStrategy implements IAuthStrategy {
         List<SysMenu> menuTree = bspAccountStrategy.getMenuTree(tokenDto.getAccessToken());
         // 从菜单中读取用户权限
         Set<String> permissions = sysMenuService.selectMenuPermsByMenuTree(menuTree);
-        
+
         // 设置用户权限
         if (Objects.nonNull(permissions) && !permissions.isEmpty()) {
             currentUser.setPermissions(permissions);
         }
-        
+
         SaLoginModel saLoginModel = new SaLoginModel();
         //设置token与oauth2响应token一致
         saLoginModel.setToken(tokenDto.getAccessToken());
