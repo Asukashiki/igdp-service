@@ -30,7 +30,7 @@ public class LandInfoController {
     /**
      * 添加土地信息
      */
-    @PostMapping
+    @PostMapping("/add")
     public boolean addLandInfo(@RequestBody LandInfo landInfo) {
         return landInfoService.addLandInfo(landInfo);
     }
@@ -38,7 +38,7 @@ public class LandInfoController {
     /**
      * 更新土地信息
      */
-    @PutMapping
+    @PostMapping("/update")
     public boolean updateLandInfo(@RequestBody LandInfo landInfo) {
         return landInfoService.updateLandInfo(landInfo);
     }
@@ -46,7 +46,7 @@ public class LandInfoController {
     /**
      * 删除土地信息
      */
-    @DeleteMapping("/{landId}")
+    @PostMapping("/delete/{landId}")
     public boolean deleteLandInfo(@PathVariable Long landId) {
         return landInfoService.deleteLandInfo(landId);
     }

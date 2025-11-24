@@ -28,7 +28,7 @@ public class UserController {
     /**
      * 更新用户信息
      */
-    @PutMapping
+    @PostMapping("/update")
     public boolean updateUser(@RequestBody User user) {
         return userService.updateUser(user);
     }
@@ -36,7 +36,7 @@ public class UserController {
     /**
      * 修改密码
      */
-    @PutMapping("/{userId}/password")
+    @PostMapping("/{userId}/password")
     public boolean updatePassword(@PathVariable Long userId, @RequestParam String newPassword) {
         return userService.updatePassword(userId, newPassword);
     }
