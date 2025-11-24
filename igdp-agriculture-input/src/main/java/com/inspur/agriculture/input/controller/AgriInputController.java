@@ -5,9 +5,6 @@ import com.github.pagehelper.PageInfo;
 import com.inspur.agriculture.input.domain.AgriInput;
 import com.inspur.agriculture.input.service.IAgriInputService;
 import com.inspur.common.core.domain.AjaxResult;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +17,6 @@ import java.util.Map;
  *
  * @author igdp
  */
-@Api(tags = "农业投入品管理")
 @RestController
 @RequestMapping("/agriculture/input")
 public class AgriInputController {
@@ -30,18 +26,27 @@ public class AgriInputController {
 
     /**
      * 查询投入品列表（分页）
+     *
+     * @param inputName    投入品名称
+     * @param type         投入品类型
+     * @param registerCode 登记批号
+     * @param inputSku     SKU编码
+     * @param status       状态
+     * @param keyword      关键词搜索
+     * @param page         页码
+     * @param pageSize     每页数量
+     * @return 投入品列表
      */
-    @ApiOperation("查询投入品列表")
     @GetMapping("/list")
     public AjaxResult list(
-            @ApiParam("投入品名称") @RequestParam(required = false) String inputName,
-            @ApiParam("投入品类型") @RequestParam(required = false) String type,
-            @ApiParam("登记批号") @RequestParam(required = false) String registerCode,
-            @ApiParam("SKU编码") @RequestParam(required = false) String inputSku,
-            @ApiParam("状态") @RequestParam(required = false) String status,
-            @ApiParam("关键词搜索") @RequestParam(required = false) String keyword,
-            @ApiParam("页码") @RequestParam(defaultValue = "1") Integer page,
-            @ApiParam("每页数量") @RequestParam(defaultValue = "10") Integer pageSize
+            @RequestParam(required = false) String inputName,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String registerCode,
+            @RequestParam(required = false) String inputSku,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize
     ) {
         AgriInput agriInput = new AgriInput();
         agriInput.setInputName(inputName);
@@ -73,12 +78,12 @@ public class AgriInputController {
 
     /**
      * 获取投入品详情
+     *
+     * @param id 投入品ID
+     * @return 投入品详情
      */
-    @ApiOperation("获取投入品详情")
     @GetMapping("/{id}")
-    public AjaxResult getInfo(
-            @ApiParam("投入品ID") @PathVariable("id") Long id
-    ) {
+    public AjaxResult getInfo(@PathVariable("id") Long id) {
         AgriInput agriInput = agriInputService.selectInputById(id);
         if (agriInput == null) {
             return AjaxResult.error("投入品不存在");
@@ -88,8 +93,10 @@ public class AgriInputController {
 
     /**
      * 新增投入品
+     *
+     * @param agriInput 投入品信息
+     * @return 操作结果
      */
-    @ApiOperation("新增投入品")
     @PostMapping
     public AjaxResult add(@RequestBody AgriInput agriInput) {
         // 参数校验
@@ -117,13 +124,13 @@ public class AgriInputController {
 
     /**
      * 修改投入品
+     *
+     * @param id        投入品ID
+     * @param agriInput 投入品信息
+     * @return 操作结果
      */
-    @ApiOperation("修改投入品")
     @PutMapping("/{id}")
-    public AjaxResult edit(
-            @ApiParam("投入品ID") @PathVariable("id") Long id,
-            @RequestBody AgriInput agriInput
-    ) {
+    public AjaxResult edit(@PathVariable("id") Long id, @RequestBody AgriInput agriInput) {
         // 检查投入品是否存在
         AgriInput existInput = agriInputService.selectInputById(id);
         if (existInput == null) {
@@ -140,12 +147,12 @@ public class AgriInputController {
 
     /**
      * 删除投入品
+     *
+     * @param id 投入品ID
+     * @return 操作结果
      */
-    @ApiOperation("删除投入品")
     @DeleteMapping("/{id}")
-    public AjaxResult remove(
-            @ApiParam("投入品ID") @PathVariable("id") Long id
-    ) {
+    public AjaxResult remove(@PathVariable("id") Long id) {
         int rows = agriInputService.deleteInputById(id);
         if (rows > 0) {
             return AjaxResult.success("删除成功");
@@ -155,8 +162,10 @@ public class AgriInputController {
 
     /**
      * 批量删除投入品
+     *
+     * @param ids 投入品ID数组
+     * @return 操作结果
      */
-    @ApiOperation("批量删除投入品")
     @DeleteMapping("/batch")
     public AjaxResult removeBatch(@RequestBody Long[] ids) {
         if (ids == null || ids.length == 0) {
@@ -172,8 +181,9 @@ public class AgriInputController {
 
     /**
      * 获取投入品统计信息
+     *
+     * @return 统计信息
      */
-    @ApiOperation("获取投入品统计信息")
     @GetMapping("/statistics")
     public AjaxResult getStatistics() {
         Map<String, Object> statistics = agriInputService.getInputStatistics();
@@ -182,13 +192,17 @@ public class AgriInputController {
 
     /**
      * 导出投入品数据
+     *
+     * @param inputName 投入品名称
+     * @param type      投入品类型
+     * @param keyword   关键词搜索
+     * @return 投入品数据
      */
-    @ApiOperation("导出投入品数据")
     @GetMapping("/export")
     public AjaxResult export(
-            @ApiParam("投入品名称") @RequestParam(required = false) String inputName,
-            @ApiParam("投入品类型") @RequestParam(required = false) String type,
-            @ApiParam("关键词搜索") @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String inputName,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String keyword
     ) {
         AgriInput agriInput = new AgriInput();
         agriInput.setInputName(inputName);

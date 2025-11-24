@@ -25,7 +25,6 @@ A multi-module Spring Boot application built on the RuoYi-Vue framework v3.8.7, 
 - **Configuration**: Nacos for centralized configuration management
 - **Databases**: MySQL, HighGo (瀚高), DM8 (达梦)
 - **Caching**: Redis with Jackson serialization
-- **API Documentation**: Swagger 3.0.0
 - **File Storage**: MinIO 8.2.2
 - **Messaging**: RocketMQ (optional, currently disabled)
 - **Utilities**: Hutool 5.8.27, Fastjson2 2.0.43
@@ -41,7 +40,7 @@ A multi-module Spring Boot application built on the RuoYi-Vue framework v3.8.7, 
 
 - **igdp-framework**: Core framework layer
   - Aspectj: AOP functionality for logging, permissions, etc.
-  - Config: Spring configuration classes (security, thread pool, Swagger, etc.)
+  - Config: Spring configuration classes (security, thread pool, etc.)
   - Datasource: Dynamic datasource switching
   - Interceptor: Request interceptors
   - Manager: Async task manager, cache management
@@ -199,10 +198,7 @@ mvn spring-boot:run -Dspring-boot.run.fork=false
 - Customizable for project-specific needs
 
 ## API Documentation
-
-- **Swagger UI**: Access at `/swagger-ui/` or `/swagger-ui/index.html` when application is running
-- **Configuration**: `com.inspur.framework.config.SwaggerConfig`
-- Annotations used: `@Api`, `@ApiOperation`, `@ApiModel`, `@ApiModelProperty`
+- Annotations are sufficient for the document
 
 ## Common Development Patterns
 
@@ -219,7 +215,6 @@ mvn spring-boot:run -Dspring-boot.run.fork=false
 2. Use `@RestController` and `@RequestMapping`
 3. Add `@RequiresPermissions` or `@SaCheckPermission` for authorization
 4. Return `AjaxResult` or `R` for standardized responses
-5. Add `@ApiOperation` for Swagger documentation
 6. Create corresponding service interface and implementation
 
 ### Database Queries
