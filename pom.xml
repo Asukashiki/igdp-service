@@ -10,7 +10,7 @@
 
     <name>igdp</name>
     <description>焱宇行业大模型平台数字底座</description>
-    
+
     <properties>
         <igdp.version>3.8.7</igdp.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -259,6 +259,12 @@
                 <artifactId>igdp-doc</artifactId>
                 <version>${igdp.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-farmland-management</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -271,8 +277,9 @@
         <module>igdp-common</module>
         <module>igdp-uc-interface-forward</module>
         <module>igdp-aiagent-square</module>
-
         <module>igdp-doc</module>
+
+        <module>igdp-farmland-management</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -107,6 +107,11 @@
 
         <dependency>
             <groupId>com.inspur</groupId>
+            <artifactId>igdp-farmland-management</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.inspur</groupId>
             <artifactId>igdp-doc</artifactId>
         </dependency>
         <dependency>
