@@ -259,6 +259,13 @@
                 <artifactId>igdp-doc</artifactId>
                 <version>${igdp.version}</version>
             </dependency>
+
+            <!-- 农业投入品管理模块-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-agriculture-input</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -271,7 +278,7 @@
         <module>igdp-common</module>
         <module>igdp-uc-interface-forward</module>
         <module>igdp-aiagent-square</module>
-
+        <module>igdp-agriculture-input</module>
         <module>igdp-doc</module>
     </modules>
     <packaging>pom</packaging>
