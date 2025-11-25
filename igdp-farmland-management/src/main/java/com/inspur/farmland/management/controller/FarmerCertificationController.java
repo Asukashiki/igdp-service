@@ -1,5 +1,6 @@
 package com.inspur.farmland.management.controller;
 
+import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.farmland.management.bean.entity.FarmerCertification;
 import com.inspur.farmland.management.service.IFarmerCertificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,32 +24,45 @@ public class FarmerCertificationController {
      * 根据用户ID查询认证状态
      */
     @GetMapping("/user/{userId}")
-    public FarmerCertification getCertificationByUserId(@PathVariable String userId) {
-        return farmerCertificationService.getCertificationByUserId(userId);
+    public AjaxResult getCertificationByUserId(@PathVariable String userId) {
+        FarmerCertification certification = farmerCertificationService.getCertificationByUserId(userId);
+        if (certification == null) {
+            return AjaxResult.error("未找到认证信息");
+        }
+        return AjaxResult.success(certification);
     }
 
     /**
      * 获取待审批列表
      */
     @GetMapping("/pending")
-    public List<FarmerCertification> getPendingCertifications() {
-        return farmerCertificationService.getPendingCertifications();
+    public AjaxResult getPendingCertifications() {
+        List<FarmerCertification> list = farmerCertificationService.getPendingCertifications();
+        return AjaxResult.success(list);
     }
 
     /**
      * 审批通过
      */
     @PostMapping("/{certId}/approve")
-    public boolean approveCertification(@PathVariable Long certId, @RequestParam String approverId) {
-        return farmerCertificationService.approveCertification(certId, approverId);
+    public AjaxResult approveCertification(@PathVariable Long certId, @RequestParam String approverId) {
+        boolean result = farmerCertificationService.approveCertification(certId, approverId);
+        if (result) {
+            return AjaxResult.success("审批通过成功");
+        }
+        return AjaxResult.error("审批通过失败");
     }
 
     /**
      * 审批驳回
      */
     @PostMapping("/{certId}/reject")
-    public boolean rejectCertification(@PathVariable Long certId, @RequestParam String approverId, 
+    public AjaxResult rejectCertification(@PathVariable Long certId, @RequestParam String approverId,
                                       @RequestParam String rejectReason) {
-        return farmerCertificationService.rejectCertification(certId, approverId, rejectReason);
+        boolean result = farmerCertificationService.rejectCertification(certId, approverId, rejectReason);
+        if (result) {
+            return AjaxResult.success("审批驳回成功");
+        }
+        return AjaxResult.error("审批驳回失败");
     }
 }
