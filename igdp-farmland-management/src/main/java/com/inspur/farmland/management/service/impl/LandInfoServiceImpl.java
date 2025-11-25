@@ -16,7 +16,7 @@ import java.util.List;
 public class LandInfoServiceImpl extends ServiceImpl<LandInfoMapper, LandInfo> implements ILandInfoService {
 
     @Override
-    public List<LandInfo> getLandsByUserId(Long userId) {
+    public List<LandInfo> getLandsByUserId(String userId) {
         return this.lambdaQuery()
                 .eq(LandInfo::getFarmerUserId, userId)
                 .list();

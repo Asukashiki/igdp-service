@@ -13,11 +13,11 @@ public interface IFarmerCertificationService extends IService<FarmerCertificatio
 
     /**
      * 根据用户ID查询认证状态
-     * 
+     *
      * @param userId 用户ID
      * @return 认证信息
      */
-    FarmerCertification getCertificationByUserId(Long userId);
+    FarmerCertification getCertificationByUserId(String userId);
 
     /**
      * 获取待审批列表
@@ -33,7 +33,7 @@ public interface IFarmerCertificationService extends IService<FarmerCertificatio
      * @param approverId 审批人ID
      * @return 是否成功
      */
-    boolean approveCertification(Long certId, Long approverId);
+    boolean approveCertification(Long certId, String approverId);
 
     /**
      * 审批驳回
@@ -43,5 +43,5 @@ public interface IFarmerCertificationService extends IService<FarmerCertificatio
      * @param rejectReason 驳回原因
      * @return 是否成功
      */
-    boolean rejectCertification(Long certId, Long approverId, String rejectReason);
+    boolean rejectCertification(Long certId, String approverId, String rejectReason);
 }

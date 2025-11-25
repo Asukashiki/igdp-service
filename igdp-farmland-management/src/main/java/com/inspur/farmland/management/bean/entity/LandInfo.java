@@ -8,7 +8,7 @@ import java.util.Date;
 
 /**
  * 土地信息实体类
- * 
+ *
  * @author inspur
  */
 @Data
@@ -58,11 +58,11 @@ public class LandInfo implements Serializable {
 
     /** 关联农民用户ID */
     @TableField("FARMER_USER_ID")
-    private Long farmerUserId;
+    private String farmerUserId;
 
     /** 创建人ID */
     @TableField("CREATE_BY")
-    private Long createBy;
+    private String createBy;
 
     /** 创建时间 */
     @TableField("CREATE_TIME")

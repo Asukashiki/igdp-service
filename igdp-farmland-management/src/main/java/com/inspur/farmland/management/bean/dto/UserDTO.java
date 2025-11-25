@@ -6,7 +6,7 @@ import java.util.Date;
 
 /**
  * 用户DTO
- * 
+ *
  * @author inspur
  */
 @Data
@@ -14,7 +14,7 @@ public class UserDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long id;
+    private String id;
 
     private String userName;
 

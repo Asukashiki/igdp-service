@@ -7,7 +7,7 @@ import java.util.Date;
 
 /**
  * 土地信息VO
- * 
+ *
  * @author inspur
  */
 @Data
@@ -17,7 +17,7 @@ public class LandInfoVO implements Serializable {
 
     private Long id;
 
-    private Long userId;
+    private String userId;
 
     private String landName;
 

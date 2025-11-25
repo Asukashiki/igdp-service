@@ -7,7 +7,7 @@ import java.util.Date;
 
 /**
  * 用户实体类
- * 
+ *
  * @author inspur
  */
 @Data
@@ -16,8 +16,8 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 用户ID */
-    @TableId(value = "USER_ID", type = IdType.AUTO)
-    private Long userId;
+    @TableId(value = "USER_ID", type = IdType.ASSIGN_ID)
+    private String userId;
 
     /** 账号（登录名） */
     @TableField("ACCOUNT")

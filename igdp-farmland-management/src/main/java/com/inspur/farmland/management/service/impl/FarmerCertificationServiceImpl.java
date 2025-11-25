@@ -16,7 +16,7 @@ import java.util.List;
 public class FarmerCertificationServiceImpl extends ServiceImpl<FarmerCertificationMapper, FarmerCertification> implements IFarmerCertificationService {
 
     @Override
-    public FarmerCertification getCertificationByUserId(Long userId) {
+    public FarmerCertification getCertificationByUserId(String userId) {
         return this.lambdaQuery()
                 .eq(FarmerCertification::getUserId, userId)
                 .one();
@@ -30,7 +30,7 @@ public class FarmerCertificationServiceImpl extends ServiceImpl<FarmerCertificat
     }
 
     @Override
-    public boolean approveCertification(Long certId, Long approverId) {
+    public boolean approveCertification(Long certId, String approverId) {
         FarmerCertification certification = this.getById(certId);
         if (certification != null) {
             certification.setStatus(1); // 1表示审批通过
@@ -41,7 +41,7 @@ public class FarmerCertificationServiceImpl extends ServiceImpl<FarmerCertificat
     }
 
     @Override
-    public boolean rejectCertification(Long certId, Long approverId, String rejectReason) {
+    public boolean rejectCertification(Long certId, String approverId, String rejectReason) {
         FarmerCertification certification = this.getById(certId);
         if (certification != null) {
             certification.setStatus(2); // 2表示审批驳回

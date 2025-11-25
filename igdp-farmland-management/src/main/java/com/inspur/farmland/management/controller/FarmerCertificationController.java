@@ -23,7 +23,7 @@ public class FarmerCertificationController {
      * 根据用户ID查询认证状态
      */
     @GetMapping("/user/{userId}")
-    public FarmerCertification getCertificationByUserId(@PathVariable Long userId) {
+    public FarmerCertification getCertificationByUserId(@PathVariable String userId) {
         return farmerCertificationService.getCertificationByUserId(userId);
     }
 
@@ -39,7 +39,7 @@ public class FarmerCertificationController {
      * 审批通过
      */
     @PostMapping("/{certId}/approve")
-    public boolean approveCertification(@PathVariable Long certId, @RequestParam Long approverId) {
+    public boolean approveCertification(@PathVariable Long certId, @RequestParam String approverId) {
         return farmerCertificationService.approveCertification(certId, approverId);
     }
 
@@ -47,7 +47,7 @@ public class FarmerCertificationController {
      * 审批驳回
      */
     @PostMapping("/{certId}/reject")
-    public boolean rejectCertification(@PathVariable Long certId, @RequestParam Long approverId, 
+    public boolean rejectCertification(@PathVariable Long certId, @RequestParam String approverId, 
                                       @RequestParam String rejectReason) {
         return farmerCertificationService.rejectCertification(certId, approverId, rejectReason);
     }
