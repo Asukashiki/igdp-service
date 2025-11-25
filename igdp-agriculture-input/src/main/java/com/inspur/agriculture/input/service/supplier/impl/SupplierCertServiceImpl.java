@@ -1,11 +1,13 @@
 package com.inspur.agriculture.input.service.supplier.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.inspur.agriculture.input.domain.oauth.PubUserRole;
 import com.inspur.agriculture.input.domain.supplier.SupplierCert;
 import com.inspur.agriculture.input.domain.supplier.enums.CertStatusEnum;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApplyDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApproveDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
+import com.inspur.agriculture.input.mapper.oauth.PubUserRoleMapper;
 import com.inspur.agriculture.input.mapper.supplier.SupplierCertMapper;
 import com.inspur.agriculture.input.service.supplier.ISupplierCertService;
 import com.inspur.agriculture.input.vo.supplier.ApproveResponseVO;
@@ -32,6 +34,9 @@ public class SupplierCertServiceImpl implements ISupplierCertService {
 
     @Autowired
     private SupplierCertMapper supplierCertMapper;
+
+    @Autowired
+    private PubUserRoleMapper pubUserRoleMapper;
 
     /**
      * 供应商认证申请
@@ -142,7 +147,16 @@ public class SupplierCertServiceImpl implements ISupplierCertService {
             throw new ServiceException("审批操作失败");
         }
 
-        // 5. 封装响应
+        // 5. 审批通过后，向oauth2_bsp.pub_user_role表插入用户角色关联数据
+        if (dto.getAuditResult() == 1) {
+            PubUserRole pubUserRole = new PubUserRole();
+            pubUserRole.setUserCode(String.valueOf(cert.getUserId()));
+            pubUserRole.setRoleCode("supplier");
+            pubUserRole.setAppCode("inputSupply");
+            pubUserRoleMapper.insert(pubUserRole);
+        }
+
+        // 6. 封装响应
         ApproveResponseVO response = new ApproveResponseVO();
         response.setCertId(cert.getCertId());
         response.setStatus(cert.getStatus());

@@ -24,8 +24,8 @@ public class SupplierCertApplyDTO {
 
     /** 统一社会信用代码 */
     @NotBlank(message = "统一社会信用代码不能为空")
-    @Pattern(regexp = "^[0-9A-HJ-NPQRTUWXY]{2}\\d{6}[0-9A-HJ-NPQRTUWXY]{10}$",
-             message = "统一社会信用代码格式错误")
+//    @Pattern(regexp = "^[0-9A-HJ-NPQRTUWXY]{2}\\d{6}[0-9A-HJ-NPQRTUWXY]{10}$",
+//             message = "统一社会信用代码格式错误")
     private String creditCode;
 
     /** 法定代表人/负责人 */
@@ -34,8 +34,8 @@ public class SupplierCertApplyDTO {
 
     /** 法定代表人身份证号 */
     @NotBlank(message = "法定代表人身份证号不能为空")
-    @Pattern(regexp = "^[1-9]\\d{5}(18|19|20)\\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$",
-             message = "身份证号格式错误")
+//    @Pattern(regexp = "^[1-9]\\d{5}(18|19|20)\\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$",
+//             message = "身份证号格式错误")
     private String legalId;
 
     /** 行政区划代码 */
