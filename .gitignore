@@ -45,3 +45,7 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+/.vscode/settings.json
+/.vscode/launch.json
+/.claude/settings.local.json
+/.claude/settings.local.json
