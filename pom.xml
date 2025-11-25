@@ -259,6 +259,13 @@
                 <artifactId>igdp-doc</artifactId>
                 <version>${igdp.version}</version>
             </dependency>
+
+            <!-- 种子企业认证审核模块-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-seed</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -271,8 +278,8 @@
         <module>igdp-common</module>
         <module>igdp-uc-interface-forward</module>
         <module>igdp-aiagent-square</module>
-
         <module>igdp-doc</module>
+        <module>igdp-seed</module>
     </modules>
     <packaging>pom</packaging>
 

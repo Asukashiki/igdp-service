@@ -109,6 +109,13 @@
             <groupId>com.inspur</groupId>
             <artifactId>igdp-doc</artifactId>
         </dependency>
+
+        <!-- 种子企业认证审核模块 -->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-seed</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.snmp4j</groupId>
             <artifactId>snmp4j</artifactId>
