@@ -8,7 +8,6 @@
 
 - Spring Boot 2.7.6
 - MyBatis Plus
-- Swagger 3.0.0
 - PageHelper
 
 ## 功能特性
