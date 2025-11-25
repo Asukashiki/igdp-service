@@ -12,6 +12,14 @@ import java.util.List;
 public interface IFarmerCertificationService extends IService<FarmerCertification> {
 
     /**
+     * 农民认证申请
+     *
+     * @param certification 认证申请信息
+     * @return 是否成功
+     */
+    boolean applyCertification(FarmerCertification certification);
+
+    /**
      * 根据用户ID查询认证状态
      *
      * @param userId 用户ID

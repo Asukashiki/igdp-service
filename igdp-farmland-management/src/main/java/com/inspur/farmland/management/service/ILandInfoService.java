@@ -12,6 +12,14 @@ import java.util.List;
 public interface ILandInfoService extends IService<LandInfo> {
 
     /**
+     * 查询土地信息列表
+     *
+     * @param landInfo 土地信息查询条件
+     * @return 土地列表
+     */
+    List<LandInfo> selectLandList(LandInfo landInfo);
+
+    /**
      * 根据用户ID获取土地列表
      *
      * @param userId 用户ID
