@@ -74,14 +74,6 @@
 }
 ```
 
-```json
-{
-  "code": 500,
-  "msg": "该统一社会信用代码已存在",
-  "data": null
-}
-```
-
 ---
 
 ### 2. 供应商认证审批
@@ -110,18 +102,6 @@ PUT /supplier/cert/approve/20001
   "approverId": 30001,
   "auditResult": 1,
   "auditOpinion": "材料齐全，符合要求"
-}
-```
-
-#### 请求示例（审核驳回）
-
-```json
-PUT /supplier/cert/approve/20001
-
-{
-  "approverId": 30001,
-  "auditResult": 0,
-  "auditOpinion": "营业执照信息与企业名称不一致"
 }
 ```
 
@@ -156,24 +136,6 @@ PUT /supplier/cert/approve/20001
     "approverId": 30001,
     "rejectReason": "营业执照信息与企业名称不一致"
   }
-}
-```
-
-#### 错误示例
-
-```json
-{
-  "code": 500,
-  "msg": "认证记录不存在",
-  "data": null
-}
-```
-
-```json
-{
-  "code": 500,
-  "msg": "该认证记录不是审核中状态，无法审批",
-  "data": null
 }
 ```
 
@@ -221,37 +183,35 @@ GET /supplier/cert/status/10001
 }
 ```
 
-#### 错误示例
-
-```json
-{
-  "code": 500,
-  "msg": "未找到认证记录",
-  "data": null
-}
-```
-
 ---
 
-### 4. 查询待审核列表（分页）
+### 4. 查询待审核列表（带筛选）
 
 #### 接口信息
 - **接口路径**: `/supplier/cert/audit/list`
 - **请求方法**: `GET`
-- **接口描述**: 查询待审核的供应商认证申请列表
+- **接口描述**: 查询待审核的供应商认证申请列表（支持多条件筛选）
 - **使用对象**: 系统审核人员（管理员）
 
-#### 请求参数
+#### 请求参数（Query参数）
 
 | 字段名 | 数据类型 | 是否必填 | 描述 | 默认值 | 示例值 |
 |--------|---------|---------|------|--------|--------|
 | page | Integer | 否 | 页码 | 1 | 1 |
 | pageSize | Integer | 否 | 每页数量 | 10 | 10 |
+| orgName | String | 否 | 企业名称（模糊查询） | - | 科技 |
+| creditCode | String | 否 | 统一社会信用代码（模糊查询） | - | 91110105 |
+| contactName | String | 否 | 联系人姓名（模糊查询） | - | 李四 |
+| contactPhone | String | 否 | 联系人手机（模糊查询） | - | 138 |
+| adCode | String | 否 | 行政区划代码（精确查询） | - | 110105 |
+| applyTimeStart | String | 否 | 申请开始时间 | - | 2025-11-01 00:00:00 |
+| applyTimeEnd | String | 否 | 申请结束时间 | - | 2025-11-30 23:59:59 |
+| keyword | String | 否 | 关键词（搜索企业名称/信用代码/联系人） | - | XX科技 |
 
 #### 请求示例
 
 ```
-GET /supplier/cert/audit/list?page=1&pageSize=10
+GET /supplier/cert/audit/list?page=1&pageSize=10&orgName=科技&keyword=XX
 ```
 
 #### 响应示例（成功）
@@ -279,12 +239,7 @@ GET /supplier/cert/audit/list?page=1&pageSize=10
         "approverId": null,
         "approveTime": null,
         "auditOpinion": null,
-        "rejectReason": null,
-        "createPeople": "system",
-        "createTime": "2025-11-25 14:30:00",
-        "updatePeople": null,
-        "updateTime": null,
-        "delFlag": "0"
+        "rejectReason": null
       }
     ],
     "total": 1,
@@ -296,7 +251,80 @@ GET /supplier/cert/audit/list?page=1&pageSize=10
 
 ---
 
-### 5. 查询认证详情
+### 5. 查询供应商认证列表（带筛选）
+
+#### 接口信息
+- **接口路径**: `/supplier/cert/list`
+- **请求方法**: `GET`
+- **接口描述**: 查询供应商认证列表（支持多条件筛选，包含所有状态的记录）
+- **使用对象**: 系统管理员
+
+#### 请求参数（Query参数）
+
+| 字段名 | 数据类型 | 是否必填 | 描述 | 默认值 | 示例值 |
+|--------|---------|---------|------|--------|--------|
+| page | Integer | 否 | 页码 | 1 | 1 |
+| pageSize | Integer | 否 | 每页数量 | 10 | 10 |
+| orgName | String | 否 | 企业名称（模糊查询） | - | 科技 |
+| creditCode | String | 否 | 统一社会信用代码（模糊查询） | - | 91110105 |
+| contactName | String | 否 | 联系人姓名（模糊查询） | - | 李四 |
+| contactPhone | String | 否 | 联系人手机（模糊查询） | - | 138 |
+| status | Integer | 否 | 认证状态（0-未通过/1-审核中/2-已通过） | - | 2 |
+| adCode | String | 否 | 行政区划代码（精确查询） | - | 110105 |
+| applyTimeStart | String | 否 | 申请开始时间 | - | 2025-11-01 00:00:00 |
+| applyTimeEnd | String | 否 | 申请结束时间 | - | 2025-11-30 23:59:59 |
+| approveTimeStart | String | 否 | 审批开始时间 | - | 2025-11-01 00:00:00 |
+| approveTimeEnd | String | 否 | 审批结束时间 | - | 2025-11-30 23:59:59 |
+| keyword | String | 否 | 关键词（搜索企业名称/信用代码/联系人） | - | XX科技 |
+
+#### 请求示例
+
+```
+GET /supplier/cert/list?page=1&pageSize=10&status=2&keyword=科技
+```
+
+#### 响应示例（成功）
+
+```json
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": {
+    "list": [
+      {
+        "certId": 20002,
+        "userId": 10002,
+        "orgName": "示例农业科技公司",
+        "creditCode": "91110105MA01G56789",
+        "legalPerson": "王五",
+        "legalId": "110101199101021234",
+        "adCode": "110105",
+        "businessScope": "农业技术研发、农资销售",
+        "licensePath": "/uploads/licenses/sample_license.jpg",
+        "contactName": "赵六",
+        "contactPhone": "13900139000",
+        "applyTime": "2025-11-23 14:30:00",
+        "status": 2,
+        "approverId": 30001,
+        "approveTime": "2025-11-24 10:15:00",
+        "auditOpinion": "材料齐全，符合要求",
+        "rejectReason": null,
+        "createPeople": "system",
+        "createTime": "2025-11-23 14:30:00",
+        "updatePeople": "admin",
+        "updateTime": "2025-11-24 10:15:00"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+}
+```
+
+---
+
+### 6. 查询认证详情
 
 #### 接口信息
 - **接口路径**: `/supplier/cert/{certId}`
@@ -349,16 +377,6 @@ GET /supplier/cert/20001
 }
 ```
 
-#### 错误示例
-
-```json
-{
-  "code": 500,
-  "msg": "认证记录不存在",
-  "data": null
-}
-```
-
 ---
 
 ## 数据字典
@@ -387,6 +405,34 @@ GET /supplier/cert/20001
 
 ---
 
+## 筛选功能说明
+
+### 1. 模糊查询字段
+以下字段支持模糊匹配（LIKE查询）：
+- `orgName`: 企业/组织名称
+- `creditCode`: 统一社会信用代码
+- `contactName`: 联系人姓名
+- `contactPhone`: 联系人手机
+
+### 2. 精确查询字段
+以下字段需要精确匹配：
+- `status`: 认证状态
+- `adCode`: 行政区划代码
+
+### 3. 时间范围查询
+- `applyTimeStart` + `applyTimeEnd`: 申请时间范围
+- `approveTimeStart` + `approveTimeEnd`: 审批时间范围
+
+### 4. 关键词搜索
+`keyword` 参数会同时搜索以下字段：
+- 企业/组织名称
+- 统一社会信用代码
+- 联系人姓名
+
+使用关键词时，会忽略其他单独的查询字段（orgName、creditCode、contactName）
+
+---
+
 ## 业务流程说明
 
 ### 供应商认证申请流程
@@ -399,7 +445,7 @@ GET /supplier/cert/20001
 
 ### 供应商认证审批流程
 
-1. 审核人员查看待审核列表
+1. 审核人员查看待审核列表（可使用筛选条件）
 2. 审核人员查看认证详情
 3. 审核人员判断资料是否符合要求
 4. 若符合，选择"通过"，填写审核意见
@@ -438,3 +484,7 @@ GET /supplier/cert/20001
 4. **逻辑删除**：
    - 删除操作为逻辑删除，delFlag设置为'2'
    - 查询时需过滤已删除记录（delFlag='0'）
+
+5. **筛选优先级**：
+   - 当使用 `keyword` 参数时，会覆盖 `orgName`、`creditCode`、`contactName` 参数
+   - 所有筛选条件为 AND 关系（同时满足）

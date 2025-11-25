@@ -5,6 +5,7 @@ import com.inspur.agriculture.input.domain.supplier.SupplierCert;
 import com.inspur.agriculture.input.domain.supplier.enums.CertStatusEnum;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApplyDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApproveDTO;
+import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
 import com.inspur.agriculture.input.mapper.supplier.SupplierCertMapper;
 import com.inspur.agriculture.input.service.supplier.ISupplierCertService;
 import com.inspur.agriculture.input.vo.supplier.ApproveResponseVO;
@@ -174,13 +175,31 @@ public class SupplierCertServiceImpl implements ISupplierCertService {
     }
 
     /**
-     * 查询待审核列表（分页）
+     * 查询待审核列表（分页，带筛选条件）
      *
+     * @param queryDTO 查询条件
      * @return 待审核列表
      */
     @Override
-    public List<SupplierCert> getAuditTodoList() {
-        return supplierCertMapper.selectAuditList(CertStatusEnum.AUDITING.getCode());
+    public List<SupplierCert> getAuditTodoList(SupplierCertQueryDTO queryDTO) {
+        if (queryDTO == null) {
+            queryDTO = new SupplierCertQueryDTO();
+        }
+        return supplierCertMapper.selectAuditListWithConditions(queryDTO);
+    }
+
+    /**
+     * 查询供应商认证列表（分页，带筛选条件）
+     *
+     * @param queryDTO 查询条件
+     * @return 认证列表
+     */
+    @Override
+    public List<SupplierCert> getCertList(SupplierCertQueryDTO queryDTO) {
+        if (queryDTO == null) {
+            queryDTO = new SupplierCertQueryDTO();
+        }
+        return supplierCertMapper.selectCertListWithConditions(queryDTO);
     }
 
     /**

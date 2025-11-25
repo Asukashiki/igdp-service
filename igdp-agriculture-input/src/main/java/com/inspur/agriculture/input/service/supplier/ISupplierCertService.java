@@ -3,6 +3,7 @@ package com.inspur.agriculture.input.service.supplier;
 import com.inspur.agriculture.input.domain.supplier.SupplierCert;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApplyDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApproveDTO;
+import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
 import com.inspur.agriculture.input.vo.supplier.ApproveResponseVO;
 import com.inspur.agriculture.input.vo.supplier.CertApplyResponseVO;
 import com.inspur.agriculture.input.vo.supplier.CertStatusVO;
@@ -42,11 +43,20 @@ public interface ISupplierCertService {
     CertStatusVO getCertStatus(Long userId);
 
     /**
-     * 查询待审核列表（分页）
+     * 查询待审核列表（分页，带筛选条件）
      *
+     * @param queryDTO 查询条件
      * @return 待审核列表
      */
-    List<SupplierCert> getAuditTodoList();
+    List<SupplierCert> getAuditTodoList(SupplierCertQueryDTO queryDTO);
+
+    /**
+     * 查询供应商认证列表（分页，带筛选条件）
+     *
+     * @param queryDTO 查询条件
+     * @return 认证列表
+     */
+    List<SupplierCert> getCertList(SupplierCertQueryDTO queryDTO);
 
     /**
      * 根据认证ID查询详情

@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.inspur.agriculture.input.domain.supplier.SupplierCert;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApplyDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApproveDTO;
+import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
 import com.inspur.agriculture.input.service.supplier.ISupplierCertService;
 import com.inspur.agriculture.input.vo.supplier.ApproveResponseVO;
 import com.inspur.agriculture.input.vo.supplier.CertApplyResponseVO;
@@ -88,21 +89,55 @@ public class SupplierCertController {
     }
 
     /**
-     * 查询待审核列表（分页）
+     * 查询待审核列表（分页，带筛选）
      *
+     * @param queryDTO 查询条件
      * @param page     页码
      * @param pageSize 每页数量
      * @return 待审核列表
      */
     @GetMapping("/audit/list")
     public AjaxResult getAuditList(
+            SupplierCertQueryDTO queryDTO,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize
     ) {
         try {
             // 启动分页
             PageHelper.startPage(page, pageSize);
-            List<SupplierCert> list = supplierCertService.getAuditTodoList();
+            List<SupplierCert> list = supplierCertService.getAuditTodoList(queryDTO);
+            PageInfo<SupplierCert> pageInfo = new PageInfo<>(list);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", pageInfo.getList());
+            result.put("total", pageInfo.getTotal());
+            result.put("page", pageInfo.getPageNum());
+            result.put("pageSize", pageInfo.getPageSize());
+
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 查询供应商认证列表（分页，带筛选）
+     *
+     * @param queryDTO 查询条件
+     * @param page     页码
+     * @param pageSize 每页数量
+     * @return 认证列表
+     */
+    @GetMapping("/list")
+    public AjaxResult getCertList(
+            SupplierCertQueryDTO queryDTO,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        try {
+            // 启动分页
+            PageHelper.startPage(page, pageSize);
+            List<SupplierCert> list = supplierCertService.getCertList(queryDTO);
             PageInfo<SupplierCert> pageInfo = new PageInfo<>(list);
 
             Map<String, Object> result = new HashMap<>();

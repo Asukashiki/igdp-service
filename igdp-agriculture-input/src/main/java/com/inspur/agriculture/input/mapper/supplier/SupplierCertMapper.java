@@ -2,6 +2,7 @@ package com.inspur.agriculture.input.mapper.supplier;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.inspur.agriculture.input.domain.supplier.SupplierCert;
+import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -38,10 +39,18 @@ public interface SupplierCertMapper extends BaseMapper<SupplierCert> {
     SupplierCert selectCertById(@Param("certId") Long certId);
 
     /**
-     * 查询待审核列表
+     * 查询待审核列表（带筛选条件）
      *
-     * @param status 状态
+     * @param queryDTO 查询条件
      * @return 供应商认证集合
      */
-    List<SupplierCert> selectAuditList(@Param("status") Integer status);
+    List<SupplierCert> selectAuditListWithConditions(@Param("query") SupplierCertQueryDTO queryDTO);
+
+    /**
+     * 查询供应商认证列表（带筛选条件）
+     *
+     * @param queryDTO 查询条件
+     * @return 供应商认证集合
+     */
+    List<SupplierCert> selectCertListWithConditions(@Param("query") SupplierCertQueryDTO queryDTO);
 }

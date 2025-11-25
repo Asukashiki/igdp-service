@@ -73,4 +73,81 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by apply_time asc
     </select>
 
+    <select id="selectAuditListWithConditions" resultMap="SupplierCertResult">
+        <include refid="selectSupplierCertVo"/>
+        where status = 1 and del_flag = '0'
+        <if test="query.orgName != null and query.orgName != ''">
+            and org_name like concat('%', #{query.orgName}, '%')
+        </if>
+        <if test="query.creditCode != null and query.creditCode != ''">
+            and credit_code like concat('%', #{query.creditCode}, '%')
+        </if>
+        <if test="query.contactName != null and query.contactName != ''">
+            and contact_name like concat('%', #{query.contactName}, '%')
+        </if>
+        <if test="query.contactPhone != null and query.contactPhone != ''">
+            and contact_phone like concat('%', #{query.contactPhone}, '%')
+        </if>
+        <if test="query.adCode != null and query.adCode != ''">
+            and ad_code = #{query.adCode}
+        </if>
+        <if test="query.applyTimeStart != null">
+            and apply_time &gt;= #{query.applyTimeStart}
+        </if>
+        <if test="query.applyTimeEnd != null">
+            and apply_time &lt;= #{query.applyTimeEnd}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (
+                org_name like concat('%', #{query.keyword}, '%')
+                or credit_code like concat('%', #{query.keyword}, '%')
+                or contact_name like concat('%', #{query.keyword}, '%')
+            )
+        </if>
+        order by apply_time asc
+    </select>
+
+    <select id="selectCertListWithConditions" resultMap="SupplierCertResult">
+        <include refid="selectSupplierCertVo"/>
+        where del_flag = '0'
+        <if test="query.orgName != null and query.orgName != ''">
+            and org_name like concat('%', #{query.orgName}, '%')
+        </if>
+        <if test="query.creditCode != null and query.creditCode != ''">
+            and credit_code like concat('%', #{query.creditCode}, '%')
+        </if>
+        <if test="query.contactName != null and query.contactName != ''">
+            and contact_name like concat('%', #{query.contactName}, '%')
+        </if>
+        <if test="query.contactPhone != null and query.contactPhone != ''">
+            and contact_phone like concat('%', #{query.contactPhone}, '%')
+        </if>
+        <if test="query.status != null">
+            and status = #{query.status}
+        </if>
+        <if test="query.adCode != null and query.adCode != ''">
+            and ad_code = #{query.adCode}
+        </if>
+        <if test="query.applyTimeStart != null">
+            and apply_time &gt;= #{query.applyTimeStart}
+        </if>
+        <if test="query.applyTimeEnd != null">
+            and apply_time &lt;= #{query.applyTimeEnd}
+        </if>
+        <if test="query.approveTimeStart != null">
+            and approve_time &gt;= #{query.approveTimeStart}
+        </if>
+        <if test="query.approveTimeEnd != null">
+            and approve_time &lt;= #{query.approveTimeEnd}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (
+                org_name like concat('%', #{query.keyword}, '%')
+                or credit_code like concat('%', #{query.keyword}, '%')
+                or contact_name like concat('%', #{query.keyword}, '%')
+            )
+        </if>
+        order by create_time desc
+    </select>
+
 </mapper>
