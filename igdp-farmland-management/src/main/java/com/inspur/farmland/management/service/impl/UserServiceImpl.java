@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
     @Override
-    public User getUserById(Long userId) {
+    public User getUserById(String userId) {
         return this.getById(userId);
     }
 
@@ -25,7 +25,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public boolean updatePassword(Long userId, String newPassword) {
+    public boolean updatePassword(String userId, String newPassword) {
         User user = this.getById(userId);
         if (user != null) {
             user.setPassword(newPassword);

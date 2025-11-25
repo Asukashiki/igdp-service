@@ -21,7 +21,7 @@ public class UserController {
      * 根据用户ID获取用户信息
      */
     @GetMapping("/{userId}")
-    public User getUserById(@PathVariable Long userId) {
+    public User getUserById(@PathVariable String userId) {
         return userService.getUserById(userId);
     }
 
@@ -37,7 +37,7 @@ public class UserController {
      * 修改密码
      */
     @PostMapping("/{userId}/password")
-    public boolean updatePassword(@PathVariable Long userId, @RequestParam String newPassword) {
+    public boolean updatePassword(@PathVariable String userId, @RequestParam String newPassword) {
         return userService.updatePassword(userId, newPassword);
     }
 }

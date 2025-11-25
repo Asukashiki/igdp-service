@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.AgriInputMapper">
+
+    <resultMap type="com.inspur.agriculture.input.domain.AgriInput" id="AgriInputResult">
+        <id     property="inputId"              column="input_id"              />
+        <result property="inputName"            column="input_name"            />
+        <result property="type"                 column="type"                  />
+        <result property="inputSku"             column="input_sku"             />
+        <result property="trademark"            column="trademark"             />
+        <result property="registerCode"         column="register_code"         />
+        <result property="productionLicense"    column="production_license"    />
+        <result property="productionStandard"   column="production_standard"   />
+        <result property="producerName"         column="producer_name"         />
+        <result property="producerAddress"      column="producer_address"      />
+        <result property="status"               column="status"                />
+        <result property="createPeople"         column="create_people"         />
+        <result property="createTime"           column="create_time"           />
+        <result property="updatePeople"         column="update_people"         />
+        <result property="updateTime"           column="update_time"           />
+        <result property="delFlag"              column="del_flag"              />
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.input.domain.AgriInput" id="AgriInputWithPropertiesResult" extends="AgriInputResult">
+        <association property="pesticideProperties" column="input_id" javaType="com.inspur.agriculture.input.domain.PesticideProperties" resultMap="PesticidePropertiesResult" />
+        <association property="fertilizerProperties" column="input_id" javaType="com.inspur.agriculture.input.domain.FertilizerProperties" resultMap="FertilizerPropertiesResult" />
+        <association property="seedProperties" column="input_id" javaType="com.inspur.agriculture.input.domain.SeedProperties" resultMap="SeedPropertiesResult" />
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.input.domain.PesticideProperties" id="PesticidePropertiesResult">
+        <id     property="pesticideId"              column="pesticide_id"              />
+        <result property="inputId"                  column="input_id"                  />
+        <result property="totalIngredientContent"   column="total_ingredient_content"  />
+        <result property="toxicityLevel"            column="toxicity_level"            />
+        <result property="targetCrops"              column="target_crops"              />
+        <result property="controlTargets"           column="control_targets"           />
+        <result property="applicationMethod"        column="application_method"        />
+        <result property="dosage"                   column="dosage"                    />
+        <result property="dilutionRatio"            column="dilution_ratio"            />
+        <result property="safetyInterval"           column="safety_interval"           />
+        <result property="precautions"              column="precautions"               />
+        <result property="firstAid"                 column="first_aid"                 />
+        <result property="storageRequirements"      column="storage_requirements"      />
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.input.domain.FertilizerProperties" id="FertilizerPropertiesResult">
+        <id     property="fertilizerId"             column="fertilizer_id"             />
+        <result property="inputId"                  column="input_id"                  />
+        <result property="fertilizerType"           column="fertilizer_type"           />
+        <result property="totalNutrientContent"     column="total_nutrient_content"    />
+        <result property="nitrogenContent"          column="nitrogen_content"          />
+        <result property="phosphorusContent"        column="phosphorus_content"        />
+        <result property="potassiumContent"         column="potassium_content"         />
+        <result property="organicMatterContent"     column="organic_matter_content"    />
+        <result property="mediumTraceElements"      column="medium_trace_elements"     />
+        <result property="phValue"                  column="ph_value"                  />
+        <result property="suitableCrops"            column="suitable_crops"            />
+        <result property="applicationPeriod"        column="application_period"        />
+        <result property="applicationMethod"        column="f_application_method"      />
+        <result property="recommendedDosage"        column="recommended_dosage"        />
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.input.domain.SeedProperties" id="SeedPropertiesResult">
+        <id     property="seedId"                   column="seed_id"                   />
+        <result property="inputId"                  column="input_id"                  />
+        <result property="cropType"                 column="crop_type"                 />
+        <result property="varietyName"              column="variety_name"              />
+        <result property="varietyApprovalCode"      column="variety_approval_code"     />
+        <result property="varietySource"            column="variety_source"            />
+        <result property="purity"                   column="purity"                    />
+        <result property="cleanliness"              column="cleanliness"               />
+        <result property="germinationRate"          column="germination_rate"          />
+        <result property="moistureContent"          column="moisture_content"          />
+    </resultMap>
+
+    <sql id="selectAgriInputVo">
+        select input_id, input_name, type, input_sku, trademark, register_code,
+               production_license, production_standard, producer_name, producer_address,
+               status, create_people, create_time, update_people, update_time, del_flag
+        from agri_input
+    </sql>
+
+    <select id="selectInputListWithProperties" parameterType="com.inspur.agriculture.input.domain.AgriInput" resultMap="AgriInputWithPropertiesResult">
+        select
+            ai.input_id, ai.input_name, ai.type, ai.input_sku, ai.trademark, ai.register_code,
+            ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,
+            ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
+            pp.pesticide_id, pp.total_ingredient_content, pp.toxicity_level, pp.target_crops,
+            pp.control_targets, pp.application_method, pp.dosage, pp.dilution_ratio,
+            pp.safety_interval, pp.precautions, pp.first_aid, pp.storage_requirements,
+            fp.fertilizer_id, fp.fertilizer_type, fp.total_nutrient_content, fp.nitrogen_content,
+            fp.phosphorus_content, fp.potassium_content, fp.organic_matter_content,
+            fp.medium_trace_elements, fp.ph_value, fp.suitable_crops, fp.application_period,
+            fp.application_method as f_application_method, fp.recommended_dosage,
+            sp.seed_id, sp.crop_type, sp.variety_name, sp.variety_approval_code,
+            sp.variety_source, sp.purity, sp.cleanliness, sp.germination_rate, sp.moisture_content
+        from agri_input ai
+        left join agri_pesticide_properties pp on ai.input_id = pp.input_id
+        left join agri_fertilizer_properties fp on ai.input_id = fp.input_id
+        left join agri_seed_properties sp on ai.input_id = sp.input_id
+        where ai.del_flag = '0'
+        <if test="inputName != null and inputName != ''">
+            and ai.input_name like concat('%', #{inputName}, '%')
+        </if>
+        <if test="type != null and type != ''">
+            and ai.type = #{type}
+        </if>
+        <if test="registerCode != null and registerCode != ''">
+            and ai.register_code like concat('%', #{registerCode}, '%')
+        </if>
+        <if test="inputSku != null and inputSku != ''">
+            and ai.input_sku like concat('%', #{inputSku}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            and ai.status = #{status}
+        </if>
+        order by ai.create_time desc
+    </select>
+
+    <select id="selectInputByIdWithProperties" parameterType="Long" resultMap="AgriInputWithPropertiesResult">
+        select
+            ai.input_id, ai.input_name, ai.type, ai.input_sku, ai.trademark, ai.register_code,
+            ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,
+            ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
+            pp.pesticide_id, pp.total_ingredient_content, pp.toxicity_level, pp.target_crops,
+            pp.control_targets, pp.application_method, pp.dosage, pp.dilution_ratio,
+            pp.safety_interval, pp.precautions, pp.first_aid, pp.storage_requirements,
+            fp.fertilizer_id, fp.fertilizer_type, fp.total_nutrient_content, fp.nitrogen_content,
+            fp.phosphorus_content, fp.potassium_content, fp.organic_matter_content,
+            fp.medium_trace_elements, fp.ph_value, fp.suitable_crops, fp.application_period,
+            fp.application_method as f_application_method, fp.recommended_dosage,
+            sp.seed_id, sp.crop_type, sp.variety_name, sp.variety_approval_code,
+            sp.variety_source, sp.purity, sp.cleanliness, sp.germination_rate, sp.moisture_content
+        from agri_input ai
+        left join agri_pesticide_properties pp on ai.input_id = pp.input_id
+        left join agri_fertilizer_properties fp on ai.input_id = fp.input_id
+        left join agri_seed_properties sp on ai.input_id = sp.input_id
+        where ai.input_id = #{inputId} and ai.del_flag = '0'
+    </select>
+
+</mapper>

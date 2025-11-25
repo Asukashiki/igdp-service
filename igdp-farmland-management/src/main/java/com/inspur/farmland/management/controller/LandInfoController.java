@@ -23,7 +23,7 @@ public class LandInfoController {
      * 根据用户ID获取土地列表
      */
     @GetMapping("/user/{userId}")
-    public List<LandInfo> getLandsByUserId(@PathVariable Long userId) {
+    public List<LandInfo> getLandsByUserId(@PathVariable String userId) {
         return landInfoService.getLandsByUserId(userId);
     }
 

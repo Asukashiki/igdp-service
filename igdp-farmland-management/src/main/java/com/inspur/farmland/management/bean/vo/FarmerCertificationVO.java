@@ -6,7 +6,7 @@ import java.util.Date;
 
 /**
  * 农民认证VO
- * 
+ *
  * @author inspur
  */
 @Data
@@ -16,7 +16,7 @@ public class FarmerCertificationVO implements Serializable {
 
     private Long id;
 
-    private Long userId;
+    private String userId;
 
     private String idCardNumber;
 

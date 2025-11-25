@@ -7,7 +7,7 @@ import java.util.Date;
 
 /**
  * 土地信息DTO
- * 
+ *
  * @author inspur
  */
 @Data
@@ -17,7 +17,7 @@ public class LandInfoDTO implements Serializable {
 
     private Long id;
 
-    private Long userId;
+    private String userId;
 
     private String landName;
 

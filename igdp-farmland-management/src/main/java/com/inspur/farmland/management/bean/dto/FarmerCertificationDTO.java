@@ -6,7 +6,7 @@ import java.util.Date;
 
 /**
  * 农民认证DTO
- * 
+ *
  * @author inspur
  */
 @Data
@@ -16,7 +16,7 @@ public class FarmerCertificationDTO implements Serializable {
 
     private Long id;
 
-    private Long userId;
+    private String userId;
 
     private String idCardNumber;
 
@@ -38,7 +38,7 @@ public class FarmerCertificationDTO implements Serializable {
 
     private Integer status;
 
-    private Long approverId;
+    private String approverId;
 
     private String rejectReason;
 

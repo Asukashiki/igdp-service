@@ -13,11 +13,11 @@ public interface ILandInfoService extends IService<LandInfo> {
 
     /**
      * 根据用户ID获取土地列表
-     * 
+     *
      * @param userId 用户ID
      * @return 土地列表
      */
-    List<LandInfo> getLandsByUserId(Long userId);
+    List<LandInfo> getLandsByUserId(String userId);
 
     /**
      * 添加土地信息

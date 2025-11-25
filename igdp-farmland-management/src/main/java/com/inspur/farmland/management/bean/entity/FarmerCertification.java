@@ -7,7 +7,7 @@ import java.util.Date;
 
 /**
  * 农民认证实体类
- * 
+ *
  * @author inspur
  */
 @Data
@@ -21,7 +21,7 @@ public class FarmerCertification implements Serializable {
 
     /** 用户ID */
     @TableField("USER_ID")
-    private Long userId;
+    private String userId;
 
     /** 真实姓名 */
     @TableField("REAL_NAME")
@@ -57,7 +57,7 @@ public class FarmerCertification implements Serializable {
 
     /** 审批人ID */
     @TableField("APPROVER_ID")
-    private Long approverId;
+    private String approverId;
 
     /** 审批时间 */
     @TableField("APPROVE_TIME")

@@ -2,7 +2,7 @@
 
 -- 用户表
 CREATE TABLE `user` (
-  `USER_ID` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  `USER_ID` varchar(32) NOT NULL COMMENT '用户ID',
   `ACCOUNT` varchar(50) NOT NULL COMMENT '账号（登录名）',
   `PASSWORD` varchar(100) NOT NULL COMMENT '密码',
   `USER_NAME` varchar(50) NOT NULL COMMENT '姓名',
@@ -20,7 +20,7 @@ CREATE TABLE `user` (
 -- 农民认证表
 CREATE TABLE `farmer_certification` (
   `CERT_ID` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '认证ID',
-  `USER_ID` bigint(20) NOT NULL COMMENT '用户ID',
+  `USER_ID` varchar(32) NOT NULL COMMENT '用户ID',
   `REAL_NAME` varchar(50) NOT NULL COMMENT '真实姓名',
   `ID_CARD` varchar(18) NOT NULL COMMENT '身份证号',
   `AD_CODE` varchar(20) DEFAULT NULL COMMENT '行政区划代码',
@@ -29,7 +29,7 @@ CREATE TABLE `farmer_certification` (
   `DETAIL_ADDRESS` varchar(200) DEFAULT NULL COMMENT '详细住址',
   `APPLY_TIME` datetime NOT NULL COMMENT '申请时间',
   `STATUS` int(1) DEFAULT '1' COMMENT '认证状态 (1:审核中, 2:已通过, 0:未通过)',
-  `APPROVER_ID` bigint(20) DEFAULT NULL COMMENT '审批人ID',
+  `APPROVER_ID` varchar(32) DEFAULT NULL COMMENT '审批人ID',
   `APPROVE_TIME` datetime DEFAULT NULL COMMENT '审批时间',
   `REJECT_REASON` varchar(200) DEFAULT NULL COMMENT '驳回原因',
   PRIMARY KEY (`CERT_ID`),
@@ -48,8 +48,8 @@ CREATE TABLE `land_info` (
   `CURRENT_STATUS` varchar(20) DEFAULT NULL COMMENT '当前状态',
   `LATITUDE` decimal(10,6) DEFAULT NULL COMMENT '纬度',
   `LONGITUDE` decimal(10,6) DEFAULT NULL COMMENT '经度',
-  `FARMER_USER_ID` bigint(20) NOT NULL COMMENT '关联农民用户ID',
-  `CREATE_BY` bigint(20) DEFAULT NULL COMMENT '创建人ID',
+  `FARMER_USER_ID` varchar(32) NOT NULL COMMENT '关联农民用户ID',
+  `CREATE_BY` varchar(32) DEFAULT NULL COMMENT '创建人ID',
   `CREATE_TIME` datetime DEFAULT NULL COMMENT '创建时间',
   `UPDATE_TIME` datetime DEFAULT NULL COMMENT '最后更新时间',
   `REMARK` varchar(200) DEFAULT NULL COMMENT '备注',
