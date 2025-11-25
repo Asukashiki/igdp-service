@@ -24,7 +24,7 @@ public class SupplierCert implements Serializable {
     private Long certId;
 
     /** 用户ID */
-    private Long userId;
+    private String userId;
 
     /** 企业/组织名称 */
     private String orgName;

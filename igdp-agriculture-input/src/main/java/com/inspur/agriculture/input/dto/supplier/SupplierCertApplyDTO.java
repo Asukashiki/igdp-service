@@ -16,7 +16,7 @@ public class SupplierCertApplyDTO {
 
     /** 用户ID */
     @NotNull(message = "用户ID不能为空")
-    private Long userId;
+    private String userId;
 
     /** 企业/组织名称 */
     @NotBlank(message = "企业/组织名称不能为空")
