@@ -56,7 +56,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                sc.status as cert_status,
                ai.input_name, ai.type as input_type, ai.input_sku
         from supplier_product sp
-        left join supplier_cert sc on sp.supplier_id = sc.user_id and sc.del_flag = '0'
+        left join (
+            select sc1.*
+            from supplier_cert sc1
+            inner join (
+                select user_id, max(create_time) as max_create_time
+                from supplier_cert
+                where del_flag = '0'
+                group by user_id
+            ) sc2 on sc1.user_id = sc2.user_id and sc1.create_time = sc2.max_create_time
+            where sc1.del_flag = '0'
+        ) sc on sp.supplier_id = sc.user_id
         left join agri_input ai on sp.input_id = ai.input_id and ai.del_flag = '0'
     </sql>
 
