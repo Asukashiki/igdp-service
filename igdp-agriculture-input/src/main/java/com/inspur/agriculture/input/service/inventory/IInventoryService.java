@@ -55,4 +55,13 @@ public interface IInventoryService {
      * @return 汇总列表
      */
     List<Map<String, Object>> getSummaryByWarehouse(Long supplierId);
+
+    /**
+     * 查询可用批次列表(用于出库选择)
+     *
+     * @param warehouseId 仓库ID
+     * @param inputId     投入品ID
+     * @return 可用批次列表
+     */
+    List<Map<String, Object>> getAvailableBatchList(Long warehouseId, Long inputId);
 }

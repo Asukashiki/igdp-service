@@ -19,7 +19,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectStockOutItemVo">
         select soi.stock_out_item_id, soi.stock_out_id, soi.input_id,
-               ai.input_name, ai.sku as input_sku,
+               ai.input_name, ai.input_sku as input_sku,
                soi.warehouse_id, w.warehouse_name,
                soi.batch_no, soi.quantity, soi.remarks
         from inv_stock_out_item soi

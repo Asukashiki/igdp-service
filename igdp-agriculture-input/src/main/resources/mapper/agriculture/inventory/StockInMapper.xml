@@ -18,7 +18,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="statusDesc" column="status_desc"/>
         <result property="totalQuantity" column="total_quantity"/>
         <result property="qrCode" column="qr_code"/>
-        <result property="expiredTime" column="expired_time"/>
         <result property="remarks" column="remarks"/>
         <result property="createPeople" column="create_people"/>
         <result property="createTime" column="create_time"/>
@@ -34,7 +33,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                CASE si.type WHEN '0' THEN '采购入库' WHEN '1' THEN '退货入库' ELSE '' END as type_desc,
                si.status,
                CASE si.status WHEN '0' THEN '未入库' WHEN '1' THEN '已入库' WHEN '2' THEN '作废' ELSE '' END as status_desc,
-               si.total_quantity, si.qr_code, si.expired_time, si.remarks,
+               si.total_quantity, si.qr_code, si.remarks,
                si.create_people, si.create_time, si.update_people, si.update_time
         from inv_stock_in si
         left join inv_warehouse w on si.warehouse_id = w.warehouse_id and w.del_flag = '0'

@@ -96,4 +96,14 @@ public interface InventoryMapper extends BaseMapper<Inventory> {
      * @return 影响行数
      */
     int updateStockStatus();
+
+    /**
+     * 查询可用批次列表(用于出库选择)
+     *
+     * @param warehouseId 仓库ID
+     * @param inputId     投入品ID
+     * @return 可用批次列表
+     */
+    List<Map<String, Object>> selectAvailableBatchList(@Param("warehouseId") Long warehouseId,
+                                                        @Param("inputId") Long inputId);
 }

@@ -38,11 +38,6 @@ public class StockInDTO {
     @NotBlank(message = "经办人不能为空")
     private String operator;
 
-    /** 过期日期 */
-    @NotNull(message = "过期日期不能为空")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date expiredTime;
-
     /** 备注 */
     private String remarks;
 

@@ -28,7 +28,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectInventoryVo">
         select inv.inventory_id, inv.input_id,
-               ai.input_name, ai.sku as input_sku, ai.type as input_type,
+               ai.input_name, ai.input_sku as input_sku, ai.type as input_type,
                CASE ai.type
                    WHEN 'pesticide' THEN '农药'
                    WHEN 'fertilizer' THEN '化肥'
@@ -109,7 +109,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectSummaryByInput" resultType="map">
         select ai.input_id as inputId,
                ai.input_name as inputName,
-               ai.sku as inputSku,
+               ai.input_sku as inputSku,
                ai.type as inputType,
                CASE ai.type
                    WHEN 'pesticide' THEN '农药'
@@ -130,7 +130,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="inputType != null and inputType != ''">
             and ai.type = #{inputType}
         </if>
-        group by ai.input_id, ai.input_name, ai.sku, ai.type
+        group by ai.input_id, ai.input_name, ai.input_sku, ai.type
         order by totalQuantity desc
     </select>
 
@@ -196,5 +196,26 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update_time = now()
         where del_flag = '0'
     </update>
+
+    <select id="selectAvailableBatchList" resultType="map">
+        select inv.batch_no as batchNo,
+               inv.current_quantity as currentQuantity,
+               inv.in_date as inDate,
+               inv.expired_date as expiredDate,
+               inv.stock_status as stockStatus,
+               CASE inv.stock_status
+                   WHEN '0' THEN '正常'
+                   WHEN '1' THEN '临期'
+                   WHEN '2' THEN '过期'
+                   ELSE ''
+               END as stockStatusDesc,
+               datediff(inv.expired_date, curdate()) as daysToExpire
+        from inv_inventory inv
+        where inv.del_flag = '0'
+          and inv.current_quantity > 0
+          and inv.warehouse_id = #{warehouseId}
+          and inv.input_id = #{inputId}
+        order by inv.expired_date asc, inv.in_date asc
+    </select>
 
 </mapper>

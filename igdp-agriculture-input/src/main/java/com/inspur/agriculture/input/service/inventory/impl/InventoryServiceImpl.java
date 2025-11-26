@@ -46,4 +46,9 @@ public class InventoryServiceImpl implements IInventoryService {
     public List<Map<String, Object>> getSummaryByWarehouse(Long supplierId) {
         return inventoryMapper.selectSummaryByWarehouse(supplierId);
     }
+
+    @Override
+    public List<Map<String, Object>> getAvailableBatchList(Long warehouseId, Long inputId) {
+        return inventoryMapper.selectAvailableBatchList(warehouseId, inputId);
+    }
 }

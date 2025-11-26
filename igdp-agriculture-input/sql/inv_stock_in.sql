@@ -10,7 +10,6 @@ CREATE TABLE `inv_stock_in` (
   `status` CHAR(1) NOT NULL DEFAULT '0' COMMENT '状态:0-未入库/1-已入库/2-作废',
   `total_quantity` INT DEFAULT 0 COMMENT '总数量',
   `qr_code` VARCHAR(255) COMMENT '二维码',
-  `expired_time` DATE NOT NULL COMMENT '过期日期',
   `remarks` VARCHAR(255) COMMENT '备注',
   `cancel_reason` VARCHAR(255) COMMENT '作废原因',
   `confirm_time` DATETIME COMMENT '确认入库时间',

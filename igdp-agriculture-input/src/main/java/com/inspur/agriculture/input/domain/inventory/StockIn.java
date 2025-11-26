@@ -50,10 +50,6 @@ public class StockIn implements Serializable {
     /** 二维码 */
     private String qrCode;
 
-    /** 过期日期 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date expiredTime;
-
     /** 备注 */
     private String remarks;
 
