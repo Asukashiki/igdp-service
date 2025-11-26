@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.StockOutMapper">
+
+    <resultMap id="StockOutVOResult" type="com.inspur.agriculture.input.vo.inventory.StockOutVO">
+        <id property="stockOutId" column="stock_out_id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="operator" column="operator"/>
+        <result property="outTime" column="out_time"/>
+        <result property="customer" column="customer"/>
+        <result property="type" column="type"/>
+        <result property="typeDesc" column="type_desc"/>
+        <result property="status" column="status"/>
+        <result property="statusDesc" column="status_desc"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="remark" column="remark"/>
+        <result property="createPeople" column="create_people"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatePeople" column="update_people"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectStockOutVo">
+        select so.stock_out_id, so.warehouse_id, w.warehouse_name,
+               so.batch_no, so.operator, so.out_time, so.customer,
+               so.type,
+               CASE so.type WHEN '0' THEN '销售出库' ELSE '' END as type_desc,
+               so.status,
+               CASE so.status WHEN '0' THEN '未出库' WHEN '1' THEN '已出库' WHEN '2' THEN '作废' ELSE '' END as status_desc,
+               so.total_quantity, so.remark,
+               so.create_people, so.create_time, so.update_people, so.update_time
+        from inv_stock_out so
+        left join inv_warehouse w on so.warehouse_id = w.warehouse_id and w.del_flag = '0'
+    </sql>
+
+    <select id="selectStockOutList" resultMap="StockOutVOResult">
+        <include refid="selectStockOutVo"/>
+        where so.del_flag = '0'
+        <if test="query.stockOutId != null and query.stockOutId != ''">
+            and so.stock_out_id like concat('%', #{query.stockOutId}, '%')
+        </if>
+        <if test="query.warehouseId != null">
+            and so.warehouse_id = #{query.warehouseId}
+        </if>
+        <if test="query.type != null and query.type != ''">
+            and so.type = #{query.type}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            and so.status = #{query.status}
+        </if>
+        <if test="query.batchNo != null and query.batchNo != ''">
+            and so.batch_no like concat('%', #{query.batchNo}, '%')
+        </if>
+        <if test="query.customer != null and query.customer != ''">
+            and so.customer like concat('%', #{query.customer}, '%')
+        </if>
+        <if test="query.createTimeStart != null and query.createTimeStart != ''">
+            and so.create_time &gt;= #{query.createTimeStart}
+        </if>
+        <if test="query.createTimeEnd != null and query.createTimeEnd != ''">
+            and so.create_time &lt;= #{query.createTimeEnd}
+        </if>
+        order by so.create_time desc
+    </select>
+
+    <select id="selectStockOutById" resultMap="StockOutVOResult">
+        <include refid="selectStockOutVo"/>
+        where so.stock_out_id = #{stockOutId}
+          and so.del_flag = '0'
+    </select>
+
+    <select id="generateStockOutId" resultType="string">
+        select concat('SO-', date_format(now(), '%Y%m%d'), '-',
+                      lpad(ifnull(max(substring(stock_out_id, 13)), 0) + 1, 4, '0')) as stock_out_id
+        from inv_stock_out
+        where stock_out_id like concat('SO-', date_format(now(), '%Y%m%d'), '%')
+          and del_flag = '0'
+    </select>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.StockInItemMapper">
+
+    <resultMap id="StockInItemVOResult" type="com.inspur.agriculture.input.vo.inventory.StockInVO$StockInItemVO">
+        <id property="stockInItemId" column="stock_in_item_id"/>
+        <result property="stockInId" column="stock_in_id"/>
+        <result property="inputId" column="input_id"/>
+        <result property="inputName" column="input_name"/>
+        <result property="inputSku" column="input_sku"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="quantity" column="quantity"/>
+        <result property="remarks" column="remarks"/>
+    </resultMap>
+
+    <sql id="selectStockInItemVo">
+        select sii.stock_in_item_id, sii.stock_in_id, sii.input_id,
+               ai.input_name, ai.sku as input_sku,
+               sii.warehouse_id, w.warehouse_name,
+               sii.quantity, sii.remarks
+        from inv_stock_in_item sii
+        left join agri_input ai on sii.input_id = ai.input_id and ai.del_flag = '0'
+        left join inv_warehouse w on sii.warehouse_id = w.warehouse_id and w.del_flag = '0'
+    </sql>
+
+    <select id="selectItemsByStockInId" resultMap="StockInItemVOResult">
+        <include refid="selectStockInItemVo"/>
+        where sii.stock_in_id = #{stockInId}
+          and sii.del_flag = '0'
+        order by sii.create_time
+    </select>
+
+    <select id="generateStockInItemId" resultType="string">
+        select concat(#{stockInId}, '-', lpad(#{index}, 2, '0'))
+    </select>
+
+    <insert id="batchInsert">
+        insert into inv_stock_in_item
+        (stock_in_item_id, stock_in_id, input_id, warehouse_id, quantity, remarks,
+         create_people, create_time, del_flag)
+        values
+        <foreach collection="items" item="item" separator=",">
+            (#{item.stockInItemId}, #{item.stockInId}, #{item.inputId}, #{item.warehouseId},
+             #{item.quantity}, #{item.remarks}, #{item.createPeople}, #{item.createTime}, '0')
+        </foreach>
+    </insert>
+
+</mapper>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.WarehouseMapper">
+
+    <resultMap id="WarehouseVOResult" type="com.inspur.agriculture.input.vo.inventory.WarehouseVO">
+        <id property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseCode" column="warehouse_code"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="warehouseType" column="warehouse_type"/>
+        <result property="warehouseTypeDesc" column="warehouse_type_desc"/>
+        <result property="location" column="location"/>
+        <result property="capacity" column="capacity"/>
+        <result property="usedCapacity" column="used_capacity"/>
+        <result property="availableCapacity" column="available_capacity"/>
+        <result property="belongs" column="belongs"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="status" column="status"/>
+        <result property="statusDesc" column="status_desc"/>
+        <result property="contactPerson" column="contact_person"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="remark" column="remark"/>
+        <result property="createPeople" column="create_people"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatePeople" column="update_people"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectWarehouseVo">
+        select w.warehouse_id, w.warehouse_code, w.warehouse_name, w.warehouse_type,
+               CASE w.warehouse_type
+                   WHEN 'normal' THEN '普通仓库'
+                   WHEN 'cold' THEN '冷藏仓库'
+                   WHEN 'dangerous' THEN '危险品仓库'
+                   ELSE ''
+               END as warehouse_type_desc,
+               w.location, w.capacity, w.used_capacity,
+               (w.capacity - w.used_capacity) as available_capacity,
+               w.belongs, w.supplier_id,
+               sc.org_name as supplier_name,
+               w.status,
+               CASE w.status WHEN '0' THEN '停用' WHEN '1' THEN '启用' ELSE '' END as status_desc,
+               w.contact_person, w.contact_phone, w.remark,
+               w.create_people, w.create_time, w.update_people, w.update_time
+        from inv_warehouse w
+        left join supplier_cert sc on w.supplier_id = sc.user_id and sc.del_flag = '0'
+    </sql>
+
+    <select id="selectWarehouseList" resultMap="WarehouseVOResult">
+        <include refid="selectWarehouseVo"/>
+        where w.del_flag = '0'
+        <if test="query.warehouseName != null and query.warehouseName != ''">
+            and w.warehouse_name like concat('%', #{query.warehouseName}, '%')
+        </if>
+        <if test="query.warehouseCode != null and query.warehouseCode != ''">
+            and w.warehouse_code like concat('%', #{query.warehouseCode}, '%')
+        </if>
+        <if test="query.warehouseType != null and query.warehouseType != ''">
+            and w.warehouse_type = #{query.warehouseType}
+        </if>
+        <if test="query.supplierId != null">
+            and w.supplier_id = #{query.supplierId}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            and w.status = #{query.status}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (w.warehouse_name like concat('%', #{query.keyword}, '%')
+                 or w.warehouse_code like concat('%', #{query.keyword}, '%')
+                 or w.location like concat('%', #{query.keyword}, '%'))
+        </if>
+        order by w.create_time desc
+    </select>
+
+    <select id="selectWarehouseById" resultMap="WarehouseVOResult">
+        <include refid="selectWarehouseVo"/>
+        where w.warehouse_id = #{warehouseId}
+          and w.del_flag = '0'
+    </select>
+
+    <select id="checkWarehouseCodeExists" resultType="int">
+        select count(1)
+        from inv_warehouse
+        where warehouse_code = #{warehouseCode}
+          and del_flag = '0'
+        <if test="excludeId != null">
+            and warehouse_id != #{excludeId}
+        </if>
+    </select>
+
+    <update id="updateUsedCapacity">
+        update inv_warehouse
+        set used_capacity = used_capacity + #{capacityChange},
+            update_time = now()
+        where warehouse_id = #{warehouseId}
+          and del_flag = '0'
+    </update>
+
+</mapper>

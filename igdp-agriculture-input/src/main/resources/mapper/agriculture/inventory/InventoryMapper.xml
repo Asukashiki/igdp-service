@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.InventoryMapper">
+
+    <resultMap id="InventoryVOResult" type="com.inspur.agriculture.input.vo.inventory.InventoryVO">
+        <id property="inventoryId" column="inventory_id"/>
+        <result property="inputId" column="input_id"/>
+        <result property="inputName" column="input_name"/>
+        <result property="inputSku" column="input_sku"/>
+        <result property="inputType" column="input_type"/>
+        <result property="inputTypeDesc" column="input_type_desc"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="currentQuantity" column="current_quantity"/>
+        <result property="inDate" column="in_date"/>
+        <result property="expiredDate" column="expired_date"/>
+        <result property="stockStatus" column="stock_status"/>
+        <result property="stockStatusDesc" column="stock_status_desc"/>
+        <result property="daysToExpire" column="days_to_expire"/>
+        <result property="createPeople" column="create_people"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatePeople" column="update_people"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectInventoryVo">
+        select inv.inventory_id, inv.input_id,
+               ai.input_name, ai.sku as input_sku, ai.type as input_type,
+               CASE ai.type
+                   WHEN 'pesticide' THEN '农药'
+                   WHEN 'fertilizer' THEN '化肥'
+                   WHEN 'seed' THEN '种子'
+                   ELSE ''
+               END as input_type_desc,
+               inv.batch_no, inv.warehouse_id, w.warehouse_name,
+               inv.current_quantity, inv.in_date, inv.expired_date,
+               inv.stock_status,
+               CASE inv.stock_status
+                   WHEN '0' THEN '正常'
+                   WHEN '1' THEN '临期'
+                   WHEN '2' THEN '过期'
+                   ELSE ''
+               END as stock_status_desc,
+               datediff(inv.expired_date, curdate()) as days_to_expire,
+               inv.create_people, inv.create_time, inv.update_people, inv.update_time
+        from inv_inventory inv
+        left join agri_input ai on inv.input_id = ai.input_id and ai.del_flag = '0'
+        left join inv_warehouse w on inv.warehouse_id = w.warehouse_id and w.del_flag = '0'
+    </sql>
+
+    <select id="selectInventoryList" resultMap="InventoryVOResult">
+        <include refid="selectInventoryVo"/>
+        where inv.del_flag = '0'
+        <if test="query.warehouseId != null">
+            and inv.warehouse_id = #{query.warehouseId}
+        </if>
+        <if test="query.warehouseName != null and query.warehouseName != ''">
+            and w.warehouse_name like concat('%', #{query.warehouseName}, '%')
+        </if>
+        <if test="query.inputId != null">
+            and inv.input_id = #{query.inputId}
+        </if>
+        <if test="query.inputName != null and query.inputName != ''">
+            and ai.input_name like concat('%', #{query.inputName}, '%')
+        </if>
+        <if test="query.batchNo != null and query.batchNo != ''">
+            and inv.batch_no like concat('%', #{query.batchNo}, '%')
+        </if>
+        <if test="query.stockStatus != null and query.stockStatus != ''">
+            and inv.stock_status = #{query.stockStatus}
+        </if>
+        <if test="query.quantityMin != null">
+            and inv.current_quantity &gt;= #{query.quantityMin}
+        </if>
+        <if test="query.quantityMax != null">
+            and inv.current_quantity &lt;= #{query.quantityMax}
+        </if>
+        order by inv.create_time desc
+    </select>
+
+    <select id="selectInventoryById" resultMap="InventoryVOResult">
+        <include refid="selectInventoryVo"/>
+        where inv.inventory_id = #{inventoryId}
+          and inv.del_flag = '0'
+    </select>
+
+    <select id="selectWarningList" resultMap="InventoryVOResult">
+        <include refid="selectInventoryVo"/>
+        where inv.del_flag = '0'
+          and inv.current_quantity > 0
+        <if test="warehouseId != null">
+            and inv.warehouse_id = #{warehouseId}
+        </if>
+        <if test="warningType == 'nearExpiry'">
+            and inv.stock_status = '1'
+        </if>
+        <if test="warningType == 'expired'">
+            and inv.stock_status = '2'
+        </if>
+        <if test="warningType == null or warningType == 'all'">
+            and inv.stock_status in ('1', '2')
+        </if>
+        order by inv.expired_date, inv.create_time desc
+    </select>
+
+    <select id="selectSummaryByInput" resultType="map">
+        select ai.input_id as inputId,
+               ai.input_name as inputName,
+               ai.sku as inputSku,
+               ai.type as inputType,
+               CASE ai.type
+                   WHEN 'pesticide' THEN '农药'
+                   WHEN 'fertilizer' THEN '化肥'
+                   WHEN 'seed' THEN '种子'
+                   ELSE ''
+               END as inputTypeDesc,
+               sum(inv.current_quantity) as totalQuantity,
+               count(distinct inv.batch_no) as batchCount,
+               count(distinct inv.warehouse_id) as warehouseCount
+        from inv_inventory inv
+        left join agri_input ai on inv.input_id = ai.input_id and ai.del_flag = '0'
+        where inv.del_flag = '0'
+          and inv.current_quantity > 0
+        <if test="warehouseId != null">
+            and inv.warehouse_id = #{warehouseId}
+        </if>
+        <if test="inputType != null and inputType != ''">
+            and ai.type = #{inputType}
+        </if>
+        group by ai.input_id, ai.input_name, ai.sku, ai.type
+        order by totalQuantity desc
+    </select>
+
+    <select id="selectSummaryByWarehouse" resultType="map">
+        select w.warehouse_id as warehouseId,
+               w.warehouse_name as warehouseName,
+               w.warehouse_type as warehouseType,
+               CASE w.warehouse_type
+                   WHEN 'normal' THEN '普通仓库'
+                   WHEN 'cold' THEN '冷藏仓库'
+                   WHEN 'dangerous' THEN '危险品仓库'
+                   ELSE ''
+               END as warehouseTypeDesc,
+               w.capacity,
+               w.used_capacity as usedCapacity,
+               (w.capacity - w.used_capacity) as availableCapacity,
+               concat(round(w.used_capacity / w.capacity * 100, 2), '%') as usageRate,
+               count(distinct ai.type) as inputTypeCount,
+               count(distinct inv.batch_no) as batchCount
+        from inv_warehouse w
+        left join inv_inventory inv on w.warehouse_id = inv.warehouse_id and inv.del_flag = '0' and inv.current_quantity > 0
+        left join agri_input ai on inv.input_id = ai.input_id and ai.del_flag = '0'
+        where w.del_flag = '0'
+        <if test="supplierId != null">
+            and w.supplier_id = #{supplierId}
+        </if>
+        group by w.warehouse_id, w.warehouse_name, w.warehouse_type, w.capacity, w.used_capacity
+        order by w.warehouse_id
+    </select>
+
+    <select id="selectOrCreateInventory" resultType="com.inspur.agriculture.input.domain.inventory.Inventory">
+        select *
+        from inv_inventory
+        where input_id = #{inputId}
+          and batch_no = #{batchNo}
+          and warehouse_id = #{warehouseId}
+          and del_flag = '0'
+    </select>
+
+    <update id="updateQuantity">
+        update inv_inventory
+        set current_quantity = current_quantity + #{quantityChange},
+            update_time = now()
+        where inventory_id = #{inventoryId}
+          and del_flag = '0'
+    </update>
+
+    <select id="generateInventoryId" resultType="string">
+        select concat('INV-', date_format(now(), '%Y%m%d'), '-',
+                      lpad(ifnull(max(substring(inventory_id, 14)), 0) + 1, 4, '0')) as inventory_id
+        from inv_inventory
+        where inventory_id like concat('INV-', date_format(now(), '%Y%m%d'), '%')
+          and del_flag = '0'
+    </select>
+
+    <update id="updateStockStatus">
+        update inv_inventory
+        set stock_status = case
+            when expired_date &lt; curdate() then '2'
+            when datediff(expired_date, curdate()) &lt;= 30 then '1'
+            else '0'
+        end,
+        update_time = now()
+        where del_flag = '0'
+    </update>
+
+</mapper>
