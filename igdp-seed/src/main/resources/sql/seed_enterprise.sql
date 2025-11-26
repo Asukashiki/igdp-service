@@ -1,0 +1,63 @@
+-- 种子企业认证和审核系统数据库脚本
+
+-- 1. 企业认证信息表
+CREATE TABLE `enterprise_info` (
+  `enterprise_id` VARCHAR(32) NOT NULL COMMENT '企业唯一标识（主键，系统生成）',
+  `enterprise_name` VARCHAR(100) NOT NULL COMMENT '企业名称（唯一索引）',
+  `unified_social_credit_code` VARCHAR(20) NOT NULL COMMENT '统一社会信用代码（唯一索引）',
+  `enterprise_type` VARCHAR(50) NOT NULL COMMENT '企业类型（枚举：Production-oriented/trade-oriented/integrated）',
+  `seed_license_no` VARCHAR(50) NOT NULL COMMENT '种子经营许可证编号（唯一索引）',
+  `license_start_date` DATE NOT NULL COMMENT '许可证有效期起始日',
+  `license_end_date` DATE NOT NULL COMMENT '许可证有效期截止日',
+  `region` VARCHAR(50) NOT NULL COMMENT '地区',
+  `zone` VARCHAR(50) NOT NULL COMMENT '区域',
+  `county` VARCHAR(50) NOT NULL COMMENT '县',
+  `township` VARCHAR(50) NOT NULL COMMENT '乡',
+  `detailed_address` VARCHAR(255) NOT NULL COMMENT '完整地址',
+  `business_scope` VARCHAR(255) NOT NULL COMMENT '业务范围',
+  `annual_production_capacity` DECIMAL(10,2) NOT NULL COMMENT '年生产能力（吨/年）',
+  `establishment_date` DATE NOT NULL COMMENT '企业成立时间',
+  `legal_person_name` VARCHAR(50) NOT NULL COMMENT '法人姓名',
+  `legal_person_id` VARCHAR(30) NOT NULL COMMENT '法人ID',
+  `contact_person` VARCHAR(50) NOT NULL COMMENT '联系人姓名',
+  `contact_phone` VARCHAR(20) NOT NULL COMMENT '联系电话',
+  `contact_email` VARCHAR(100) NULL COMMENT '邮箱',
+  `business_license_url` VARCHAR(255) NOT NULL COMMENT '营业执照存储路径',
+  `seed_license_url` VARCHAR(255) NOT NULL COMMENT '种子许可证存储路径',
+  `tax_registration_url` VARCHAR(255) NOT NULL COMMENT '税务登记证存储路径',
+  `factory_license_url` VARCHAR(255) NOT NULL COMMENT '工厂许可证存储路径',
+  `operator` VARCHAR(50) NOT NULL COMMENT '操作人',
+  `operation_org` VARCHAR(100) NOT NULL COMMENT '操作机构',
+  `operation_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+  `certification_status` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '认证状态（0-待审核/1-通过/2-驳回）',
+  `create_by` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT NULL COMMENT '创建时间',
+  `update_by` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`enterprise_id`),
+  UNIQUE KEY `idx_enterprise_name` (`enterprise_name`),
+  UNIQUE KEY `idx_credit_code` (`unified_social_credit_code`),
+  UNIQUE KEY `idx_seed_license` (`seed_license_no`),
+  KEY `idx_certification_status` (`certification_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='种子企业认证信息表';
+
+-- 2. 企业审核记录表
+CREATE TABLE `enterprise_audit` (
+  `audit_id` VARCHAR(32) NOT NULL COMMENT '审核记录唯一标识（主键，系统生成）',
+  `enterprise_id` VARCHAR(32) NOT NULL COMMENT '关联企业唯一标识',
+  `audit_result` TINYINT(1) NOT NULL COMMENT '审核结果（1-通过/2-驳回）',
+  `audit_opinion` VARCHAR(500) NULL COMMENT '审核意见',
+  `auditor` VARCHAR(50) NOT NULL COMMENT '审核人',
+  `audit_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '审核时间',
+  `audit_stage` VARCHAR(50) NOT NULL COMMENT '当前审核阶段（Initial review/re-review/final review）',
+  `reject_reason` VARCHAR(500) NULL COMMENT '驳回原因（驳回时必填）',
+  `create_by` VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  `create_time` DATETIME DEFAULT NULL COMMENT '创建时间',
+  `update_by` VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  `update_time` DATETIME DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`audit_id`),
+  KEY `idx_enterprise_id` (`enterprise_id`),
+  KEY `idx_audit_result` (`audit_result`),
+  KEY `idx_audit_stage` (`audit_stage`),
+  CONSTRAINT `fk_audit_enterprise` FOREIGN KEY (`enterprise_id`) REFERENCES `enterprise_info` (`enterprise_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='种子企业审核记录表';

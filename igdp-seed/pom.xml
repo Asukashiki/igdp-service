@@ -1,0 +1,20 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.inspur</groupId>
+        <artifactId>igdp</artifactId>
+        <version>3.8.7</version>
+    </parent>
+    <artifactId>igdp-seed</artifactId>
+    <name>igdp-seed</name>
+    <description>种子企业认证和审核模块</description>
+
+    <dependencies>
+        <!-- 通用工具-->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-common</artifactId>
+        </dependency>
+    </dependencies>
+</project>
