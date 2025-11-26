@@ -3,11 +3,13 @@ package com.inspur.agriculture.input.service.inventory.impl;
 import com.inspur.agriculture.input.domain.inventory.Inventory;
 import com.inspur.agriculture.input.domain.inventory.StockIn;
 import com.inspur.agriculture.input.domain.inventory.StockInItem;
+import com.inspur.agriculture.input.domain.inventory.Warehouse;
 import com.inspur.agriculture.input.dto.inventory.StockInDTO;
 import com.inspur.agriculture.input.dto.inventory.StockInQueryDTO;
 import com.inspur.agriculture.input.mapper.inventory.InventoryMapper;
 import com.inspur.agriculture.input.mapper.inventory.StockInItemMapper;
 import com.inspur.agriculture.input.mapper.inventory.StockInMapper;
+import com.inspur.agriculture.input.mapper.inventory.WarehouseMapper;
 import com.inspur.agriculture.input.service.inventory.IStockInService;
 import com.inspur.agriculture.input.vo.inventory.StockInVO;
 import com.inspur.common.exception.ServiceException;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +41,9 @@ public class StockInServiceImpl implements IStockInService {
 
     @Autowired
     private InventoryMapper inventoryMapper;
+
+    @Autowired
+    private WarehouseMapper warehouseMapper;
 
     @Override
     public List<StockInVO> getStockInList(StockInQueryDTO queryDTO) {
@@ -101,6 +107,7 @@ public class StockInServiceImpl implements IStockInService {
             item.setInputId(itemDTO.getInputId());
             item.setWarehouseId(dto.getWarehouseId());
             item.setQuantity(itemDTO.getQuantity());
+            item.setExpiryDate(itemDTO.getExpiryDate());
             item.setRemarks(itemDTO.getRemarks());
             item.setCreateTime(DateUtils.getNowDate());
             try {
@@ -131,6 +138,28 @@ public class StockInServiceImpl implements IStockInService {
         // 查询入库明细
         List<StockInVO.StockInItemVO> items = stockInItemMapper.selectItemsByStockInId(stockInId);
 
+        // 计算总入库数量
+        int totalQuantity = items.stream().mapToInt(StockInVO.StockInItemVO::getQuantity).sum();
+
+        // 查询仓库信息并校验容量
+        Warehouse warehouse = warehouseMapper.selectById(stockIn.getWarehouseId());
+        if (warehouse == null || "2".equals(warehouse.getDelFlag())) {
+            throw new ServiceException("仓库不存在");
+        }
+        if (!"1".equals(warehouse.getStatus())) {
+            throw new ServiceException("仓库已停用");
+        }
+
+        // 校验仓库容量是否充足
+        BigDecimal usedCapacity = warehouse.getUsedCapacity() != null ? warehouse.getUsedCapacity() : BigDecimal.ZERO;
+        BigDecimal availableCapacity = warehouse.getCapacity().subtract(usedCapacity);
+        BigDecimal requiredCapacity = BigDecimal.valueOf(totalQuantity);
+
+        if (availableCapacity.compareTo(requiredCapacity) < 0) {
+            throw new ServiceException(String.format("仓库容量不足，可用容量: %.2f，需要容量: %.2f",
+                availableCapacity.doubleValue(), requiredCapacity.doubleValue()));
+        }
+
         // 更新库存
         for (StockInVO.StockInItemVO item : items) {
             Inventory inventory = inventoryMapper.selectOrCreateInventory(
@@ -145,7 +174,7 @@ public class StockInServiceImpl implements IStockInService {
                 inventory.setWarehouseId(item.getWarehouseId());
                 inventory.setCurrentQuantity(item.getQuantity());
                 inventory.setInDate(DateUtils.getNowDate());
-                inventory.setExpiredDate(stockIn.getExpiredTime());
+                inventory.setExpiredDate(item.getExpiryDate());
                 inventory.setStockStatus("0");
                 inventory.setCreateTime(DateUtils.getNowDate());
                 try {
@@ -160,6 +189,9 @@ public class StockInServiceImpl implements IStockInService {
                 inventoryMapper.updateQuantity(inventory.getInventoryId(), item.getQuantity());
             }
         }
+
+        // 更新仓库已用容量
+        warehouseMapper.updateUsedCapacity(stockIn.getWarehouseId(), requiredCapacity);
 
         // 更新入库单状态
         stockIn.setStatus("1");

@@ -6,6 +6,7 @@ CREATE TABLE `inv_stock_in_item` (
   `input_id` BIGINT NOT NULL COMMENT '投入品ID',
   `warehouse_id` BIGINT NOT NULL COMMENT '入库仓库ID',
   `quantity` INT NOT NULL COMMENT '入库数量',
+  `expiry_date` DATE NOT NULL COMMENT '过期日期',
   `remarks` VARCHAR(255) COMMENT '备注',
   `create_people` VARCHAR(50) NOT NULL COMMENT '创建人',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

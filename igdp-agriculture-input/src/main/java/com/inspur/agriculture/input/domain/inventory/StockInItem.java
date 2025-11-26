@@ -37,6 +37,10 @@ public class StockInItem implements Serializable {
     /** 入库数量 */
     private Integer quantity;
 
+    /** 过期日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date expiryDate;
+
     /** 备注 */
     private String remarks;
 

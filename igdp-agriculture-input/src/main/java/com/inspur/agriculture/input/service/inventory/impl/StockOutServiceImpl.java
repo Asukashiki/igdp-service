@@ -3,11 +3,13 @@ package com.inspur.agriculture.input.service.inventory.impl;
 import com.inspur.agriculture.input.domain.inventory.Inventory;
 import com.inspur.agriculture.input.domain.inventory.StockOut;
 import com.inspur.agriculture.input.domain.inventory.StockOutItem;
+import com.inspur.agriculture.input.domain.inventory.Warehouse;
 import com.inspur.agriculture.input.dto.inventory.StockOutDTO;
 import com.inspur.agriculture.input.dto.inventory.StockOutQueryDTO;
 import com.inspur.agriculture.input.mapper.inventory.InventoryMapper;
 import com.inspur.agriculture.input.mapper.inventory.StockOutItemMapper;
 import com.inspur.agriculture.input.mapper.inventory.StockOutMapper;
+import com.inspur.agriculture.input.mapper.inventory.WarehouseMapper;
 import com.inspur.agriculture.input.service.inventory.IStockOutService;
 import com.inspur.agriculture.input.vo.inventory.StockOutVO;
 import com.inspur.common.exception.ServiceException;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +41,9 @@ public class StockOutServiceImpl implements IStockOutService {
 
     @Autowired
     private InventoryMapper inventoryMapper;
+
+    @Autowired
+    private WarehouseMapper warehouseMapper;
 
     @Override
     public List<StockOutVO> getStockOutList(StockOutQueryDTO queryDTO) {
@@ -60,6 +66,32 @@ public class StockOutServiceImpl implements IStockOutService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public String createStockOut(StockOutDTO dto) {
+        // 校验仓库是否存在
+        Warehouse warehouse = warehouseMapper.selectById(dto.getWarehouseId());
+        if (warehouse == null || "2".equals(warehouse.getDelFlag())) {
+            throw new ServiceException("仓库不存在");
+        }
+        if (!"1".equals(warehouse.getStatus())) {
+            throw new ServiceException("仓库已停用");
+        }
+
+        // 校验每个出库商品的库存是否充足
+        for (StockOutDTO.StockOutItemDTO itemDTO : dto.getItems()) {
+            Inventory inventory = inventoryMapper.selectOrCreateInventory(
+                    itemDTO.getInputId(), itemDTO.getBatchNo(), dto.getWarehouseId());
+
+            if (inventory == null) {
+                throw new ServiceException(String.format("投入品ID %d 批次号 %s 在该仓库中无库存",
+                        itemDTO.getInputId(), itemDTO.getBatchNo()));
+            }
+
+            if (inventory.getCurrentQuantity() < itemDTO.getQuantity()) {
+                throw new ServiceException(String.format("投入品ID %d 批次号 %s 库存不足，当前库存: %d，需要出库: %d",
+                        itemDTO.getInputId(), itemDTO.getBatchNo(),
+                        inventory.getCurrentQuantity(), itemDTO.getQuantity()));
+            }
+        }
+
         // 生成出库单号
         String stockOutId = stockOutMapper.generateStockOutId();
 
@@ -132,18 +164,30 @@ public class StockOutServiceImpl implements IStockOutService {
         // 查询出库明细
         List<StockOutVO.StockOutItemVO> items = stockOutItemMapper.selectItemsByStockOutId(stockOutId);
 
+        // 计算总出库数量
+        int totalQuantity = items.stream().mapToInt(StockOutVO.StockOutItemVO::getQuantity).sum();
+
         // 扣减库存
         for (StockOutVO.StockOutItemVO item : items) {
             Inventory inventory = inventoryMapper.selectOrCreateInventory(
                     item.getInputId(), item.getBatchNo(), item.getWarehouseId());
 
-            if (inventory == null || inventory.getCurrentQuantity() < item.getQuantity()) {
-                throw new ServiceException("批次 " + item.getBatchNo() + " 库存不足");
+            if (inventory == null) {
+                throw new ServiceException(String.format("批次 %s 库存不存在", item.getBatchNo()));
+            }
+
+            if (inventory.getCurrentQuantity() < item.getQuantity()) {
+                throw new ServiceException(String.format("批次 %s 库存不足，当前库存: %d，需要出库: %d",
+                        item.getBatchNo(), inventory.getCurrentQuantity(), item.getQuantity()));
             }
 
             // 扣减库存
             inventoryMapper.updateQuantity(inventory.getInventoryId(), -item.getQuantity());
         }
+
+        // 更新仓库已用容量（减少）
+        BigDecimal capacityChange = BigDecimal.valueOf(-totalQuantity);
+        warehouseMapper.updateUsedCapacity(stockOut.getWarehouseId(), capacityChange);
 
         // 更新出库单状态
         stockOut.setStatus("1");

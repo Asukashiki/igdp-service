@@ -64,6 +64,11 @@ public class StockInDTO {
         @NotNull(message = "入库数量不能为空")
         private Integer quantity;
 
+        /** 过期日期 */
+        @NotNull(message = "过期日期不能为空")
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private Date expiryDate;
+
         /** 备注 */
         private String remarks;
     }
