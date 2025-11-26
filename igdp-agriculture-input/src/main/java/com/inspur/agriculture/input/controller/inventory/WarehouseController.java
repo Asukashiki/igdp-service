@@ -73,7 +73,7 @@ public class WarehouseController {
     /**
      * 添加仓库
      */
-    @PostMapping
+    @PostMapping("/add")
     public AjaxResult add(@Validated @RequestBody WarehouseDTO dto) {
         try {
             int rows = warehouseService.addWarehouse(dto);
