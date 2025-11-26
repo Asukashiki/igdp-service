@@ -46,7 +46,7 @@ public class WarehouseVO {
     private String belongs;
 
     /** 关联供应商ID */
-    private Long supplierId;
+    private String supplierId;
 
     /** 供应商名称 */
     private String supplierName;
