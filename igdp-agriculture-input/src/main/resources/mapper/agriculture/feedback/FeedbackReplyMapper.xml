@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.feedback.FeedbackReplyMapper">
+
+    <resultMap type="com.inspur.agriculture.input.domain.feedback.FeedbackReply" id="FeedbackReplyResult">
+        <id property="replyId" column="reply_id"/>
+        <result property="feedbackId" column="feedback_id"/>
+        <result property="content" column="content"/>
+        <result property="replyUserId" column="reply_user_id"/>
+        <result property="replyUserType" column="reply_user_type"/>
+        <result property="attachments" column="attachments"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.input.vo.feedback.FeedbackReplyVO" id="FeedbackReplyVOResult">
+        <id property="replyId" column="reply_id"/>
+        <result property="feedbackId" column="feedback_id"/>
+        <result property="content" column="content"/>
+        <result property="replyUserId" column="reply_user_id"/>
+        <result property="replyUserName" column="reply_user_name"/>
+        <result property="replyUserType" column="reply_user_type"/>
+        <result property="attachments" column="attachments"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+    </resultMap>
+
+    <select id="selectByFeedbackId" resultMap="FeedbackReplyVOResult">
+        SELECT
+            fr.reply_id, fr.feedback_id, fr.content,
+            fr.reply_user_id, fr.reply_user_type, fr.attachments,
+            fr.create_time, fr.create_by,
+            CASE
+                WHEN fr.reply_user_type = '0' THEN sc.org_name
+                WHEN fr.reply_user_type = '1' THEN su.nick_name
+                ELSE fr.reply_user_id
+            END as reply_user_name
+        FROM feedback_reply fr
+        LEFT JOIN supplier_cert sc ON fr.reply_user_id = sc.user_id AND fr.reply_user_type = '0' AND sc.del_flag = '0'
+        LEFT JOIN sys_user su ON fr.reply_user_id = su.user_id AND fr.reply_user_type = '1'
+        WHERE fr.feedback_id = #{feedbackId}
+          AND fr.del_flag = '0'
+        ORDER BY fr.create_time ASC
+    </select>
+
+</mapper>

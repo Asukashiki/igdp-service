@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.feedback.FeedbackMapper">
+
+    <resultMap type="com.inspur.agriculture.input.domain.feedback.Feedback" id="FeedbackResult">
+        <id property="feedbackId" column="feedback_id"/>
+        <result property="feedbackNo" column="feedback_no"/>
+        <result property="feedbackType" column="feedback_type"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="userId" column="user_id"/>
+        <result property="userType" column="user_type"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="contactEmail" column="contact_email"/>
+        <result property="attachments" column="attachments"/>
+        <result property="priority" column="priority"/>
+        <result property="status" column="status"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="handleTime" column="handle_time"/>
+        <result property="handleResult" column="handle_result"/>
+        <result property="handleRemark" column="handle_remark"/>
+        <result property="satisfaction" column="satisfaction"/>
+        <result property="evaluation" column="evaluation"/>
+        <result property="evaluationTime" column="evaluation_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.input.vo.feedback.FeedbackVO" id="FeedbackVOResult">
+        <id property="feedbackId" column="feedback_id"/>
+        <result property="feedbackNo" column="feedback_no"/>
+        <result property="feedbackType" column="feedback_type"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="userType" column="user_type"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="contactEmail" column="contact_email"/>
+        <result property="attachments" column="attachments"/>
+        <result property="priority" column="priority"/>
+        <result property="status" column="status"/>
+        <result property="handlerId" column="handler_id"/>
+        <result property="handlerName" column="handler_name"/>
+        <result property="handleTime" column="handle_time"/>
+        <result property="handleResult" column="handle_result"/>
+        <result property="handleRemark" column="handle_remark"/>
+        <result property="satisfaction" column="satisfaction"/>
+        <result property="evaluation" column="evaluation"/>
+        <result property="evaluationTime" column="evaluation_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="processingHours" column="processing_hours"/>
+    </resultMap>
+
+    <sql id="selectFeedbackVo">
+        SELECT
+            f.feedback_id, f.feedback_no, f.feedback_type, f.title, f.content,
+            f.user_id, f.user_type, f.contact_name, f.contact_phone, f.contact_email,
+            f.attachments, f.priority, f.status,
+            f.handler_id, f.handle_time, f.handle_result, f.handle_remark,
+            f.satisfaction, f.evaluation, f.evaluation_time,
+            f.create_time, f.create_by, f.update_time, f.update_by,
+            CASE
+                WHEN f.user_type = '0' THEN sc.org_name
+                ELSE f.contact_name
+            END as user_name,
+            handler.nick_name as handler_name,
+            CASE
+                WHEN f.handle_time IS NOT NULL
+                THEN TIMESTAMPDIFF(HOUR, f.create_time, f.handle_time)
+                ELSE NULL
+            END as processing_hours
+        FROM feedback f
+        LEFT JOIN supplier_cert sc ON f.user_id = sc.user_id AND f.user_type = '0' AND sc.del_flag = '0'
+        LEFT JOIN sys_user handler ON f.handler_id = handler.user_id
+    </sql>
+
+    <select id="selectFeedbackList" resultMap="FeedbackVOResult">
+        <include refid="selectFeedbackVo"/>
+        WHERE f.del_flag = '0'
+        <if test="query.feedbackNo != null and query.feedbackNo != ''">
+            AND f.feedback_no = #{query.feedbackNo}
+        </if>
+        <if test="query.feedbackType != null and query.feedbackType != ''">
+            AND f.feedback_type = #{query.feedbackType}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            AND f.status = #{query.status}
+        </if>
+        <if test="query.priority != null and query.priority != ''">
+            AND f.priority = #{query.priority}
+        </if>
+        <if test="query.userId != null and query.userId != ''">
+            AND f.user_id = #{query.userId}
+        </if>
+        <if test="query.handlerId != null and query.handlerId != ''">
+            AND f.handler_id = #{query.handlerId}
+        </if>
+        <if test="query.titleKeyword != null and query.titleKeyword != ''">
+            AND f.title LIKE CONCAT('%', #{query.titleKeyword}, '%')
+        </if>
+        <if test="query.contentKeyword != null and query.contentKeyword != ''">
+            AND f.content LIKE CONCAT('%', #{query.contentKeyword}, '%')
+        </if>
+        <if test="query.contactName != null and query.contactName != ''">
+            AND f.contact_name LIKE CONCAT('%', #{query.contactName}, '%')
+        </if>
+        <if test="query.contactPhone != null and query.contactPhone != ''">
+            AND f.contact_phone LIKE CONCAT('%', #{query.contactPhone}, '%')
+        </if>
+        <if test="query.startTime != null">
+            AND DATE(f.create_time) >= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            AND DATE(f.create_time) &lt;= #{query.endTime}
+        </if>
+        ORDER BY f.create_time DESC
+    </select>
+
+    <select id="selectFeedbackById" resultMap="FeedbackVOResult">
+        <include refid="selectFeedbackVo"/>
+        WHERE f.feedback_id = #{feedbackId} AND f.del_flag = '0'
+    </select>
+
+    <select id="generateFeedbackNo" resultType="String">
+        SELECT CONCAT('FB', DATE_FORMAT(NOW(), '%Y%m%d'), LPAD(COALESCE(COUNT(*) + 1, 1), 4, '0'))
+        FROM feedback
+        WHERE DATE_FORMAT(create_time, '%Y%m%d') = DATE_FORMAT(NOW(), '%Y%m%d')
+    </select>
+
+    <select id="getFeedbackStats" resultType="com.inspur.agriculture.input.vo.feedback.FeedbackStatsVO">
+        SELECT
+            COUNT(*) as totalFeedbacks,
+            SUM(CASE WHEN status = '0' THEN 1 ELSE 0 END) as pendingCount,
+            SUM(CASE WHEN status = '1' THEN 1 ELSE 0 END) as processingCount,
+            SUM(CASE WHEN status = '2' THEN 1 ELSE 0 END) as completedCount,
+            SUM(CASE WHEN status = '3' THEN 1 ELSE 0 END) as closedCount,
+            SUM(CASE WHEN DATE(create_time) = CURDATE() THEN 1 ELSE 0 END) as todayCount,
+            SUM(CASE WHEN YEARWEEK(create_time) = YEARWEEK(NOW()) THEN 1 ELSE 0 END) as weekCount,
+            SUM(CASE WHEN YEAR(create_time) = YEAR(NOW()) AND MONTH(create_time) = MONTH(NOW()) THEN 1 ELSE 0 END) as monthCount,
+            ROUND(AVG(CASE
+                WHEN handle_time IS NOT NULL
+                THEN TIMESTAMPDIFF(HOUR, create_time, handle_time)
+                ELSE NULL
+            END), 2) as avgProcessingHours,
+            ROUND(AVG(satisfaction), 2) as avgSatisfaction,
+            SUM(CASE WHEN feedback_type = '0' THEN 1 ELSE 0 END) as complaintCount,
+            SUM(CASE WHEN feedback_type = '1' THEN 1 ELSE 0 END) as suggestionCount,
+            SUM(CASE WHEN feedback_type = '2' THEN 1 ELSE 0 END) as consultationCount,
+            SUM(CASE WHEN feedback_type = '3' THEN 1 ELSE 0 END) as bugReportCount,
+            SUM(CASE WHEN priority = '2' THEN 1 ELSE 0 END) as highPriorityCount,
+            SUM(CASE WHEN priority = '3' THEN 1 ELSE 0 END) as urgentPriorityCount
+        FROM feedback
+        WHERE del_flag = '0'
+    </select>
+
+</mapper>
