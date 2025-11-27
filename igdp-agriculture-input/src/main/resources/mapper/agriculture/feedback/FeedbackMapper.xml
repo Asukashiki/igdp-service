@@ -8,13 +8,13 @@
         <result property="feedbackType" column="feedback_type"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
-        <result property="userId" column="user_id"/>
-        <result property="userType" column="user_type"/>
+        <result property="inputId" column="input_id"/>
+        <result property="inputName" column="input_name"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
         <result property="contactName" column="contact_name"/>
         <result property="contactPhone" column="contact_phone"/>
         <result property="contactEmail" column="contact_email"/>
-        <result property="attachments" column="attachments"/>
-        <result property="priority" column="priority"/>
         <result property="status" column="status"/>
         <result property="handlerId" column="handler_id"/>
         <result property="handleTime" column="handle_time"/>
@@ -36,14 +36,13 @@
         <result property="feedbackType" column="feedback_type"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
-        <result property="userId" column="user_id"/>
-        <result property="userName" column="user_name"/>
-        <result property="userType" column="user_type"/>
+        <result property="inputId" column="input_id"/>
+        <result property="inputName" column="input_name"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
         <result property="contactName" column="contact_name"/>
         <result property="contactPhone" column="contact_phone"/>
         <result property="contactEmail" column="contact_email"/>
-        <result property="attachments" column="attachments"/>
-        <result property="priority" column="priority"/>
         <result property="status" column="status"/>
         <result property="handlerId" column="handler_id"/>
         <result property="handlerName" column="handler_name"/>
@@ -63,15 +62,12 @@
     <sql id="selectFeedbackVo">
         SELECT
             f.feedback_id, f.feedback_no, f.feedback_type, f.title, f.content,
-            f.user_id, f.user_type, f.contact_name, f.contact_phone, f.contact_email,
-            f.attachments, f.priority, f.status,
+            f.input_id, f.input_name, f.supplier_id, f.supplier_name,
+            f.contact_name, f.contact_phone, f.contact_email,
+            f.status,
             f.handler_id, f.handle_time, f.handle_result, f.handle_remark,
             f.satisfaction, f.evaluation, f.evaluation_time,
             f.create_time, f.create_by, f.update_time, f.update_by,
-            CASE
-                WHEN f.user_type = '0' THEN sc.org_name
-                ELSE f.contact_name
-            END as user_name,
             handler.nick_name as handler_name,
             CASE
                 WHEN f.handle_time IS NOT NULL
@@ -79,7 +75,6 @@
                 ELSE NULL
             END as processing_hours
         FROM feedback f
-        LEFT JOIN supplier_cert sc ON f.user_id = sc.user_id AND f.user_type = '0' AND sc.del_flag = '0'
         LEFT JOIN sys_user handler ON f.handler_id = handler.user_id
     </sql>
 
@@ -95,11 +90,11 @@
         <if test="query.status != null and query.status != ''">
             AND f.status = #{query.status}
         </if>
-        <if test="query.priority != null and query.priority != ''">
-            AND f.priority = #{query.priority}
+        <if test="query.inputId != null">
+            AND f.input_id = #{query.inputId}
         </if>
-        <if test="query.userId != null and query.userId != ''">
-            AND f.user_id = #{query.userId}
+        <if test="query.supplierId != null">
+            AND f.supplier_id = #{query.supplierId}
         </if>
         <if test="query.handlerId != null and query.handlerId != ''">
             AND f.handler_id = #{query.handlerId}
@@ -155,9 +150,7 @@
             SUM(CASE WHEN feedback_type = '0' THEN 1 ELSE 0 END) as complaintCount,
             SUM(CASE WHEN feedback_type = '1' THEN 1 ELSE 0 END) as suggestionCount,
             SUM(CASE WHEN feedback_type = '2' THEN 1 ELSE 0 END) as consultationCount,
-            SUM(CASE WHEN feedback_type = '3' THEN 1 ELSE 0 END) as bugReportCount,
-            SUM(CASE WHEN priority = '2' THEN 1 ELSE 0 END) as highPriorityCount,
-            SUM(CASE WHEN priority = '3' THEN 1 ELSE 0 END) as urgentPriorityCount
+            SUM(CASE WHEN feedback_type = '3' THEN 1 ELSE 0 END) as bugReportCount
         FROM feedback
         WHERE del_flag = '0'
     </select>

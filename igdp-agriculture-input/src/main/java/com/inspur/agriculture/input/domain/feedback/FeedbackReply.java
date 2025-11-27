@@ -36,7 +36,8 @@ public class FeedbackReply implements Serializable {
     /** 回复人类型(0-用户/1-处理人员) */
     private String replyUserType;
 
-    /** 附件路径(多个用逗号分隔) */
+    /** 附件路径(多个用逗号分隔) - 暂不存储到数据库 */
+    @TableField(exist = false)
     private String attachments;
 
     /** 创建时间 */

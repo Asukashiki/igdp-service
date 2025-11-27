@@ -54,7 +54,8 @@ public class Feedback implements Serializable {
     /** 联系邮箱 */
     private String contactEmail;
 
-    /** 优先级(0-低/1-中/2-高/3-紧急) */
+    /** 优先级(0-低/1-中/2-高/3-紧急) - 暂不存储到数据库 */
+    @TableField(exist = false)
     private String priority;
 
     /** 状态(0-待处理/1-处理中/2-已完成/3-已关闭) */

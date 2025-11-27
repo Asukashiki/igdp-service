@@ -32,14 +32,17 @@ public class FeedbackVO {
     /** 反馈内容 */
     private String content;
 
-    /** 反馈用户ID */
-    private String userId;
+    /** 农资ID */
+    private Integer inputId;
 
-    /** 反馈用户名称 */
-    private String userName;
+    /** 农资名称 */
+    private String inputName;
 
-    /** 反馈用户类型 */
-    private String userType;
+    /** 供应商ID */
+    private Integer supplierId;
+
+    /** 供应商名称 */
+    private String supplierName;
 
     /** 联系人 */
     private String contactName;

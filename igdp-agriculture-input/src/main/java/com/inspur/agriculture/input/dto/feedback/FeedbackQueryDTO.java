@@ -22,11 +22,11 @@ public class FeedbackQueryDTO {
     /** 状态 */
     private String status;
 
-    /** 优先级 */
-    private String priority;
+    /** 农资ID */
+    private Integer inputId;
 
-    /** 反馈用户ID */
-    private String userId;
+    /** 供应商ID */
+    private Integer supplierId;
 
     /** 处理人ID */
     private String handlerId;

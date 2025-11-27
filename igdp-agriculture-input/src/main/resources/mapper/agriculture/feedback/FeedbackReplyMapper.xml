@@ -8,7 +8,6 @@
         <result property="content" column="content"/>
         <result property="replyUserId" column="reply_user_id"/>
         <result property="replyUserType" column="reply_user_type"/>
-        <result property="attachments" column="attachments"/>
         <result property="createTime" column="create_time"/>
         <result property="createBy" column="create_by"/>
         <result property="delFlag" column="del_flag"/>
@@ -21,7 +20,6 @@
         <result property="replyUserId" column="reply_user_id"/>
         <result property="replyUserName" column="reply_user_name"/>
         <result property="replyUserType" column="reply_user_type"/>
-        <result property="attachments" column="attachments"/>
         <result property="createTime" column="create_time"/>
         <result property="createBy" column="create_by"/>
     </resultMap>
@@ -29,7 +27,7 @@
     <select id="selectByFeedbackId" resultMap="FeedbackReplyVOResult">
         SELECT
             fr.reply_id, fr.feedback_id, fr.content,
-            fr.reply_user_id, fr.reply_user_type, fr.attachments,
+            fr.reply_user_id, fr.reply_user_type,
             fr.create_time, fr.create_by,
             CASE
                 WHEN fr.reply_user_type = '0' THEN sc.org_name
