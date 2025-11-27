@@ -1,6 +1,7 @@
 package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.seed.domain.dto.TrialBaseDataDTO;
@@ -30,7 +31,7 @@ public class TrialBaseDataServiceImpl extends ServiceImpl<TrialBaseDataMapper, T
         if (dto.getTrialId() != null) {
             wrapper.eq("trial_id", dto.getTrialId());
         }
-        if (dto.getCropType() != null) {
+        if (ObjectUtil.isNotEmpty(dto.getCropType())) {
             wrapper.eq("crop_type", dto.getCropType());
         }
         if (dto.getVarietyName() != null) {
