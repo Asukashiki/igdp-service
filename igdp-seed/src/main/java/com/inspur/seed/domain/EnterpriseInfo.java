@@ -162,7 +162,7 @@ public class EnterpriseInfo extends BaseEntity {
     private LocalDateTime operationTime;
 
     /**
-     * 认证状态（0-待审核/1-通过/2-驳回）
+     * 认证状态（0-待审核/1-通过/2-驳回/-1草稿状态）
      */
     private Integer certificationStatus;
 }

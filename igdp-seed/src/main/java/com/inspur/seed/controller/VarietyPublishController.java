@@ -1,9 +1,9 @@
 package com.inspur.seed.controller;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.inspur.common.annotation.Log;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.core.page.TableDataInfo;
 import com.inspur.common.enums.BusinessType;
 import com.inspur.seed.domain.VarietyPublish;
 import com.inspur.seed.service.IVarietyPublishService;
@@ -33,7 +33,7 @@ public class VarietyPublishController extends BaseController {
      * @param varietyPublish 发布信息
      * @return 发布结果
      */
-    @SaCheckPermission("seed:variety:publish:handle")
+    //@SaCheckPermission("seed:variety:publish:handle")
     @Log(title = "品种发布", businessType = BusinessType.INSERT)
     @PostMapping("/handle")
     public AjaxResult handle(@Validated @RequestBody VarietyPublish varietyPublish) {
@@ -60,19 +60,20 @@ public class VarietyPublishController extends BaseController {
      * @param publishStatus 公示状态
      * @return 查询结果
      */
-    @SaCheckPermission("seed:variety:publish:list")
+    //@SaCheckPermission("seed:variety:publish:list")
     @GetMapping("/list")
-    public AjaxResult list(
+    public TableDataInfo list(
             @RequestParam(required = false) String varietyName,
             @RequestParam(required = false) String cropType,
             @RequestParam(required = false) Integer publishStatus) {
+        // 使用RuoYi框架提供的分页方法
+        startPage();
+        
+        // 调用服务方法查询数据
         List<VarietyPublish> list = varietyPublishService.queryPublishList(varietyName, cropType, publishStatus);
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("total", list.size());
-        data.put("list", list);
-
-        return AjaxResult.success("查询成功", data);
+        
+        // 使用框架提供的方法格式化返回结果
+        return getDataTable(list);
     }
 
     /**
@@ -81,7 +82,7 @@ public class VarietyPublishController extends BaseController {
      * @param publishId 发布ID
      * @return 查询结果
      */
-    @SaCheckPermission("seed:variety:publish:query")
+    //@SaCheckPermission("seed:variety:publish:query")
     @GetMapping("/{publishId}")
     public AjaxResult getInfo(@PathVariable String publishId) {
         VarietyPublish varietyPublish = varietyPublishService.queryByPublishId(publishId);
@@ -97,7 +98,7 @@ public class VarietyPublishController extends BaseController {
      * @param publishId 发布ID
      * @return 下架结果
      */
-    @SaCheckPermission("seed:variety:publish:unpublish")
+    //@SaCheckPermission("seed:variety:publish:unpublish")
     @Log(title = "品种下架", businessType = BusinessType.UPDATE)
     @PostMapping("/unpublish/{publishId}")
     public AjaxResult unpublish(@PathVariable String publishId) {
@@ -115,7 +116,7 @@ public class VarietyPublishController extends BaseController {
      * @param registrationId 登记ID
      * @return 查询结果
      */
-    @SaCheckPermission("seed:variety:publish:query")
+    //@SaCheckPermission("seed:variety:publish:query")
     @GetMapping("/registration/{registrationId}")
     public AjaxResult getByRegistration(@PathVariable String registrationId) {
         VarietyPublish varietyPublish = varietyPublishService.queryByRegistrationId(registrationId);

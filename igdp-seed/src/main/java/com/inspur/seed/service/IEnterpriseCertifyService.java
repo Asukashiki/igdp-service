@@ -39,6 +39,14 @@ public interface IEnterpriseCertifyService extends IService<EnterpriseInfo> {
     EnterpriseInfo queryByEnterpriseId(String enterpriseId);
 
     /**
+     * 根据用户ID查询认证信息
+     *
+     * @param userId 用户ID
+     * @return 企业认证信息
+     */
+    EnterpriseInfo queryByUserId(String userId);
+
+    /**
      * 更新认证状态
      *
      * @param enterpriseId 企业ID
