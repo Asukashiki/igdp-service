@@ -52,4 +52,21 @@ public interface IDashboardService {
      * 获取预警信息列表
      */
     List<WarningInfoVO> getWarningList(Integer limit);
+
+    /**
+     * 获取今日出入库列表
+     */
+    List<TodayStockVO> getTodayStockList();
+
+    /**
+     * 获取即将过期列表
+     *
+     * @param limit 数量限制
+     */
+    List<ExpiringSoonVO> getExpiringSoonList(Integer limit);
+
+    /**
+     * 获取库存状态分布
+     */
+    List<StockStatusDistributionVO> getStockStatusDistribution();
 }

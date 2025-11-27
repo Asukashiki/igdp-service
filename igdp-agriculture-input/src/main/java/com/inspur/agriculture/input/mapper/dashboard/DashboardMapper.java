@@ -86,4 +86,19 @@ public interface DashboardMapper {
      * 获取本月出库总量
      */
     Long getMonthStockOutQuantity();
+
+    /**
+     * 获取今日出入库列表
+     */
+    List<TodayStockVO> getTodayStockList();
+
+    /**
+     * 获取即将过期列表
+     */
+    List<ExpiringSoonVO> getExpiringSoonList(@Param("limit") Integer limit);
+
+    /**
+     * 获取库存状态分布
+     */
+    List<StockStatusDistributionVO> getStockStatusDistribution();
 }

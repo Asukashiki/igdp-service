@@ -143,4 +143,50 @@ public class DashboardController {
             return AjaxResult.error("获取预警信息失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 获取今日出入库列表
+     *
+     * @return 今日出入库列表
+     */
+    @GetMapping("/today-stock")
+    public AjaxResult getTodayStock() {
+        try {
+            List<TodayStockVO> todayStock = dashboardService.getTodayStockList();
+            return AjaxResult.success(todayStock);
+        } catch (Exception e) {
+            return AjaxResult.error("获取今日出入库数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取即将过期列表
+     *
+     * @param limit 数量限制(默认20)
+     * @return 即将过期列表
+     */
+    @GetMapping("/expiring-soon")
+    public AjaxResult getExpiringSoon(@RequestParam(defaultValue = "20") Integer limit) {
+        try {
+            List<ExpiringSoonVO> expiringSoon = dashboardService.getExpiringSoonList(limit);
+            return AjaxResult.success(expiringSoon);
+        } catch (Exception e) {
+            return AjaxResult.error("获取即将过期数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取库存状态分布
+     *
+     * @return 库存状态分布
+     */
+    @GetMapping("/stock-status-distribution")
+    public AjaxResult getStockStatusDistribution() {
+        try {
+            List<StockStatusDistributionVO> distribution = dashboardService.getStockStatusDistribution();
+            return AjaxResult.success(distribution);
+        } catch (Exception e) {
+            return AjaxResult.error("获取库存状态分布失败: " + e.getMessage());
+        }
+    }
 }

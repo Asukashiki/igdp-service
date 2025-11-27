@@ -3,13 +3,13 @@
     "frontend-design@claude-code-plugins": true
   },
   "env": {
-    "ANTHROPIC_AUTH_TOKEN": "sk-kZJ5VA6dyFHJlFr4PtetpjPaghHVxykHj4WnJfUmRSzOI4B3",
-    "ANTHROPIC_BASE_URL": "https://api.codemirror.codes/",
+    "ANTHROPIC_AUTH_TOKEN": "sk-Vbz66A9Vb37F50e4603DT3BLBkFJ5457eF23444045FD868A",
+    "ANTHROPIC_BASE_URL": "https://apic1.ohmycdn.com",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-sonnet-4-5-20250929",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet-4-5-20250929",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-5-20250929",
-    "ANTHROPIC_MODEL": "claude-sonnet-4-5-20250929"
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-sonnet-4-5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet-4-5",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-5",
+    "ANTHROPIC_MODEL": "claude-sonnet-4-5"
   },
   "alwaysThinkingEnabled": false,
   "permissions": {
