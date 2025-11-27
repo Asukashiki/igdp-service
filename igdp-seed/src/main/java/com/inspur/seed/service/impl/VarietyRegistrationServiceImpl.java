@@ -59,6 +59,8 @@ public class VarietyRegistrationServiceImpl extends ServiceImpl<VarietyRegistrat
             String registrationNo = generateRegistrationNo();
             varietyRegistration.setRegistrationNo(registrationNo);
 
+            varietyRegistration.setOperationOrg(enterpriseInfo.getEnterpriseName());
+
             // 设置备案状态为审核中
             varietyRegistration.setRecordStatus(0);
 
@@ -107,6 +109,8 @@ public class VarietyRegistrationServiceImpl extends ServiceImpl<VarietyRegistrat
         varietyAudit.setVarietyName(varietyRegistration.getVarietyName());
         // 设置审核阶段为初审
         varietyAudit.setAuditStage("初审");
+        // 设置审核人
+        varietyAudit.setAuditor(LoginHelper.getUsername());
         // 设置创建信息
         varietyAudit.setCreateBy(LoginHelper.getUsername());
         varietyAudit.setCreateTime(LocalDateTime.now());
@@ -118,7 +122,7 @@ public class VarietyRegistrationServiceImpl extends ServiceImpl<VarietyRegistrat
     }
 
     @Override
-    public List<VarietyRegistration> queryRegistrationList(String varietyName, String enterpriseName, String enterpriseType, String recordType) {
+    public List<VarietyRegistration> queryRegistrationList(String varietyName, String cropType, String recordStatus) {
         LambdaQueryWrapper<VarietyRegistration> wrapper = new LambdaQueryWrapper<>();
 
         // 品种名称模糊查询
@@ -126,19 +130,14 @@ public class VarietyRegistrationServiceImpl extends ServiceImpl<VarietyRegistrat
             wrapper.like(VarietyRegistration::getVarietyName, varietyName);
         }
 
-        // 企业名称模糊查询
-        if (StringUtils.isNotEmpty(enterpriseName)) {
-            wrapper.like(VarietyRegistration::getEnterpriseName, enterpriseName);
+        // 作物类型筛选
+        if (StringUtils.isNotEmpty(cropType)) {
+            wrapper.eq(VarietyRegistration::getCropType, cropType);
         }
 
-        // 企业类型筛选
-        if (StringUtils.isNotEmpty(enterpriseType)) {
-            wrapper.eq(VarietyRegistration::getEnterpriseType, enterpriseType);
-        }
-
-        // 备案类型筛选
-        if (StringUtils.isNotEmpty(recordType)) {
-            wrapper.eq(VarietyRegistration::getRecordType, recordType);
+        // 备案状态筛选
+        if (StringUtils.isNotEmpty(recordStatus)) {
+            wrapper.eq(VarietyRegistration::getRecordStatus, recordStatus);
         }
 
         // 按创建时间倒序排列

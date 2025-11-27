@@ -24,12 +24,11 @@ public interface IVarietyRegistrationService extends IService<VarietyRegistratio
      * 查询品种登记列表
      *
      * @param varietyName 品种名称
-     * @param enterpriseName 企业名称
-     * @param enterpriseType 企业类型
-     * @param recordType 备案类型
+     * @param cropType 作物类型
+     * @param recordStatus 备案状态
      * @return 品种登记列表
      */
-    List<VarietyRegistration> queryRegistrationList(String varietyName, String enterpriseName, String enterpriseType, String recordType);
+    List<VarietyRegistration> queryRegistrationList(String varietyName, String cropType, String recordStatus);
 
     /**
      * 根据登记ID查询详情
