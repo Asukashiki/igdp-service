@@ -274,10 +274,10 @@
         SELECT
             ai.type,
             CASE ai.type
-                WHEN '0' THEN '种子'
-                WHEN '1' THEN '化肥'
-                WHEN '2' THEN '农药'
-                ELSE '其他'
+                WHEN '0' THEN 'Seed'
+                WHEN '1' THEN 'Fertilizer'
+                WHEN '2' THEN 'Pesticide'
+                ELSE 'Other'
             END as type_name,
             COUNT(*) as count,
             COALESCE(SUM(inv.stock_quantity), 0) as stock_quantity,
@@ -301,26 +301,26 @@
                 WHEN inv.stock_status = '2' THEN '2'
             END as warning_type,
             CASE
-                WHEN inv.stock_status = '1' THEN '临期预警'
-                WHEN inv.stock_status = '2' THEN '过期预警'
+                WHEN inv.stock_status = '1' THEN 'Near Expiry Warning'
+                WHEN inv.stock_status = '2' THEN 'Expired Warning'
             END as warning_type_desc,
             CASE
                 WHEN inv.stock_status = '2' THEN 3
                 WHEN inv.stock_status = '1' THEN 2
             END as warning_level,
             CASE
-                WHEN inv.stock_status = '2' THEN '高'
-                WHEN inv.stock_status = '1' THEN '中'
+                WHEN inv.stock_status = '2' THEN 'High'
+                WHEN inv.stock_status = '1' THEN 'Medium'
             END as warning_level_desc,
             '1' as object_type,
             CAST(inv.input_id AS CHAR) as object_id,
             ai.input_name as object_name,
             CASE
-                WHEN inv.stock_status = '1' THEN CONCAT('投入品"', ai.input_name, '"即将过期,剩余', DATEDIFF(inv.expired_date, CURDATE()), '天')
-                WHEN inv.stock_status = '2' THEN CONCAT('投入品"', ai.input_name, '"已过期,超期', DATEDIFF(CURDATE(), inv.expired_date), '天')
+                WHEN inv.stock_status = '1' THEN CONCAT('Input "', ai.input_name, '" is about to expire, ', DATEDIFF(inv.expired_date, CURDATE()), ' days remaining')
+                WHEN inv.stock_status = '2' THEN CONCAT('Input "', ai.input_name, '" has expired, overdue by ', DATEDIFF(CURDATE(), inv.expired_date), ' days')
             END as warning_content,
-            CONCAT(inv.current_quantity, '件') as current_value,
-            '30天' as threshold,
+            CONCAT(inv.current_quantity, ' units') as current_value,
+            '30 days' as threshold,
             inv.update_time as warning_time,
             '0' as status,
             w.warehouse_name,
@@ -346,9 +346,9 @@
             NULL as customer,
             si.status,
             CASE si.status
-                WHEN '0' THEN '未入库'
-                WHEN '1' THEN '已入库'
-                WHEN '2' THEN '作废'
+                WHEN '0' THEN 'Pending'
+                WHEN '1' THEN 'Completed'
+                WHEN '2' THEN 'Cancelled'
             END as status_desc,
             si.total_quantity,
             si.create_time,
@@ -380,9 +380,9 @@
             so.customer,
             so.status,
             CASE so.status
-                WHEN '0' THEN '未出库'
-                WHEN '1' THEN '已出库'
-                WHEN '2' THEN '作废'
+                WHEN '0' THEN 'Pending'
+                WHEN '1' THEN 'Completed'
+                WHEN '2' THEN 'Cancelled'
             END as status_desc,
             so.total_quantity,
             so.create_time,
@@ -402,10 +402,10 @@
             ai.input_sku,
             ai.type as input_type,
             CASE ai.type
-                WHEN '0' THEN '种子'
-                WHEN '1' THEN '化肥'
-                WHEN '2' THEN '农药'
-                ELSE '其他'
+                WHEN '0' THEN 'Seed'
+                WHEN '1' THEN 'Fertilizer'
+                WHEN '2' THEN 'Pesticide'
+                ELSE 'Other'
             END as input_type_desc,
             inv.batch_no,
             inv.warehouse_id,
@@ -416,9 +416,9 @@
             DATEDIFF(inv.expired_date, CURDATE()) as days_to_expire,
             inv.stock_status,
             CASE inv.stock_status
-                WHEN '0' THEN '正常'
-                WHEN '1' THEN '临期'
-                WHEN '2' THEN '过期'
+                WHEN '0' THEN 'Normal'
+                WHEN '1' THEN 'Near Expiry'
+                WHEN '2' THEN 'Expired'
             END as stock_status_desc,
             CASE
                 WHEN inv.stock_status = '2' OR DATEDIFF(inv.expired_date, CURDATE()) &lt;= 7 THEN 3
@@ -426,9 +426,9 @@
                 ELSE 1
             END as warning_level,
             CASE
-                WHEN inv.stock_status = '2' OR DATEDIFF(inv.expired_date, CURDATE()) &lt;= 7 THEN '高'
-                WHEN DATEDIFF(inv.expired_date, CURDATE()) &lt;= 15 THEN '中'
-                ELSE '低'
+                WHEN inv.stock_status = '2' OR DATEDIFF(inv.expired_date, CURDATE()) &lt;= 7 THEN 'High'
+                WHEN DATEDIFF(inv.expired_date, CURDATE()) &lt;= 15 THEN 'Medium'
+                ELSE 'Low'
             END as warning_level_desc
         FROM inv_inventory inv
         INNER JOIN agri_input ai ON inv.input_id = ai.input_id AND ai.del_flag = '0'
@@ -446,10 +446,10 @@
         SELECT
             inv.stock_status,
             CASE inv.stock_status
-                WHEN '0' THEN '正常'
-                WHEN '1' THEN '临期'
-                WHEN '2' THEN '过期'
-                ELSE '未知'
+                WHEN '0' THEN 'Normal'
+                WHEN '1' THEN 'Near Expiry'
+                WHEN '2' THEN 'Expired'
+                ELSE 'Unknown'
             END as stock_status_desc,
             COUNT(DISTINCT inv.input_id) as product_count,
             COALESCE(SUM(inv.current_quantity), 0) as total_quantity,
