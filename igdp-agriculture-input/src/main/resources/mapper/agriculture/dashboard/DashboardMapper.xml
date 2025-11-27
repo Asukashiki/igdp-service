@@ -333,4 +333,131 @@
         LIMIT #{limit}
     </select>
 
+    <select id="getTodayStockList" resultType="com.inspur.agriculture.input.vo.dashboard.TodayStockVO">
+        SELECT
+            si.stock_in_id as bill_id,
+            'in' as bill_type,
+            si.warehouse_id,
+            w.warehouse_name,
+            si.batch_no,
+            si.operator,
+            si.supplier_id,
+            sc.org_name as supplier_name,
+            NULL as customer,
+            si.status,
+            CASE si.status
+                WHEN '0' THEN '未入库'
+                WHEN '1' THEN '已入库'
+                WHEN '2' THEN '作废'
+            END as status_desc,
+            si.total_quantity,
+            si.create_time,
+            si.confirm_time,
+            si.remarks
+        FROM inv_stock_in si
+        LEFT JOIN inv_warehouse w ON si.warehouse_id = w.warehouse_id AND w.del_flag = '0'
+        LEFT JOIN (
+            SELECT sc1.*
+            FROM supplier_cert sc1
+            INNER JOIN (
+                SELECT user_id, MAX(create_time) as max_create_time
+                FROM supplier_cert WHERE del_flag = '0'
+                GROUP BY user_id
+            ) sc2 ON sc1.user_id = sc2.user_id AND sc1.create_time = sc2.max_create_time
+            WHERE sc1.del_flag = '0'
+        ) sc ON si.supplier_id = sc.user_id
+        WHERE DATE(si.create_time) = CURDATE() AND si.del_flag = '0'
+        UNION ALL
+        SELECT
+            so.stock_out_id as bill_id,
+            'out' as bill_type,
+            so.warehouse_id,
+            w.warehouse_name,
+            so.batch_no,
+            so.operator,
+            NULL as supplier_id,
+            NULL as supplier_name,
+            so.customer,
+            so.status,
+            CASE so.status
+                WHEN '0' THEN '未出库'
+                WHEN '1' THEN '已出库'
+                WHEN '2' THEN '作废'
+            END as status_desc,
+            so.total_quantity,
+            so.create_time,
+            so.out_time as confirm_time,
+            so.remark as remarks
+        FROM inv_stock_out so
+        LEFT JOIN inv_warehouse w ON so.warehouse_id = w.warehouse_id AND w.del_flag = '0'
+        WHERE DATE(so.create_time) = CURDATE() AND so.del_flag = '0'
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="getExpiringSoonList" resultType="com.inspur.agriculture.input.vo.dashboard.ExpiringSoonVO">
+        SELECT
+            inv.inventory_id,
+            inv.input_id,
+            ai.input_name,
+            ai.input_sku,
+            ai.type as input_type,
+            CASE ai.type
+                WHEN '0' THEN '种子'
+                WHEN '1' THEN '化肥'
+                WHEN '2' THEN '农药'
+                ELSE '其他'
+            END as input_type_desc,
+            inv.batch_no,
+            inv.warehouse_id,
+            w.warehouse_name,
+            inv.current_quantity,
+            inv.in_date,
+            inv.expired_date,
+            DATEDIFF(inv.expired_date, CURDATE()) as days_to_expire,
+            inv.stock_status,
+            CASE inv.stock_status
+                WHEN '0' THEN '正常'
+                WHEN '1' THEN '临期'
+                WHEN '2' THEN '过期'
+            END as stock_status_desc,
+            CASE
+                WHEN inv.stock_status = '2' OR DATEDIFF(inv.expired_date, CURDATE()) &lt;= 7 THEN 3
+                WHEN DATEDIFF(inv.expired_date, CURDATE()) &lt;= 15 THEN 2
+                ELSE 1
+            END as warning_level,
+            CASE
+                WHEN inv.stock_status = '2' OR DATEDIFF(inv.expired_date, CURDATE()) &lt;= 7 THEN '高'
+                WHEN DATEDIFF(inv.expired_date, CURDATE()) &lt;= 15 THEN '中'
+                ELSE '低'
+            END as warning_level_desc
+        FROM inv_inventory inv
+        INNER JOIN agri_input ai ON inv.input_id = ai.input_id AND ai.del_flag = '0'
+        INNER JOIN inv_warehouse w ON inv.warehouse_id = w.warehouse_id AND w.del_flag = '0'
+        WHERE inv.del_flag = '0'
+          AND (
+            inv.stock_status IN ('1', '2')
+            OR DATEDIFF(inv.expired_date, CURDATE()) &lt;= 30
+          )
+        ORDER BY warning_level DESC, days_to_expire ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="getStockStatusDistribution" resultType="com.inspur.agriculture.input.vo.dashboard.StockStatusDistributionVO">
+        SELECT
+            inv.stock_status,
+            CASE inv.stock_status
+                WHEN '0' THEN '正常'
+                WHEN '1' THEN '临期'
+                WHEN '2' THEN '过期'
+                ELSE '未知'
+            END as stock_status_desc,
+            COUNT(DISTINCT inv.input_id) as product_count,
+            COALESCE(SUM(inv.current_quantity), 0) as total_quantity,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM inv_inventory WHERE del_flag = '0'), 2) as percentage
+        FROM inv_inventory inv
+        WHERE inv.del_flag = '0'
+        GROUP BY inv.stock_status
+        ORDER BY inv.stock_status ASC
+    </select>
+
 </mapper>
