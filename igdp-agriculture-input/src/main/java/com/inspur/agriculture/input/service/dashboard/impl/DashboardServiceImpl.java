@@ -135,4 +135,22 @@ public class DashboardServiceImpl implements IDashboardService {
         }
         return dashboardMapper.getWarningList(limit);
     }
+
+    @Override
+    public List<TodayStockVO> getTodayStockList() {
+        return dashboardMapper.getTodayStockList();
+    }
+
+    @Override
+    public List<ExpiringSoonVO> getExpiringSoonList(Integer limit) {
+        if (limit == null || limit <= 0) {
+            limit = 20;
+        }
+        return dashboardMapper.getExpiringSoonList(limit);
+    }
+
+    @Override
+    public List<StockStatusDistributionVO> getStockStatusDistribution() {
+        return dashboardMapper.getStockStatusDistribution();
+    }
 }
