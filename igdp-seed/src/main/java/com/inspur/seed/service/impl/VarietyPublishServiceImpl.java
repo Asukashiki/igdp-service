@@ -41,41 +41,67 @@ public class VarietyPublishServiceImpl extends ServiceImpl<VarietyPublishMapper,
             throw new ServiceException("品种登记申请不存在");
         }
 
-        // 校验品种登记申请状态是否为待发布
-        if (registration.getRecordStatus() != 1) {
-            throw new ServiceException("品种登记申请状态不是待发布，无法发布");
+        String publishId = varietyPublish.getPublishId();
+
+        // 判断是否存在 publishId
+        if (StringUtils.isNotEmpty(publishId)) {
+            // 存在 publishId，修改为已发布状态
+            VarietyPublish existingPublish = queryByPublishId(publishId);
+            if (existingPublish == null) {
+                throw new ServiceException("发布记录不存在");
+            }
+
+            // 修改为已发布状态（3）
+            varietyPublish.setPublishStatus(3);
+
+            // 设置发布时间
+            varietyPublish.setPublishTime(LocalDateTime.now());
+
+            // 设置更新信息
+            varietyPublish.setUpdateBy(LoginHelper.getUsername());
+            varietyPublish.setUpdateTime(LocalDateTime.now());
+
+            // 更新发布记录
+            updateById(varietyPublish);
+
+            // 同步更新品种登记申请状态为已发布(3)
+            varietyRegistrationService.updateRecordStatus(varietyPublish.getRegistrationId(), 3);
+        } else {
+            // 不存在 publishId，添加一条发布单
+
+            // 校验品种登记申请状态是否为待发布
+            if (registration.getRecordStatus() != 1) {
+                throw new ServiceException("品种登记申请状态不是待发布，无法发布");
+            }
+
+            // 生成发布ID
+            publishId = "VAR_PUB" + IdUtils.fastSimpleUUID().substring(0, 16).toUpperCase();
+            varietyPublish.setPublishId(publishId);
+
+            // 生成发布编号（格式：PUB+年月日+000001）
+            String publishNo = generatePublishNo();
+            varietyPublish.setPublishNo(publishNo);
+
+            // 设置发布日期
+            if (varietyPublish.getPublishDate() == null) {
+                varietyPublish.setPublishDate(LocalDate.now());
+            }
+
+            // 设置发布时间
+            varietyPublish.setPublishTime(LocalDateTime.now());
+
+            // 设置公示状态为公示中（1）
+            if (varietyPublish.getPublishStatus() == null) {
+                varietyPublish.setPublishStatus(1);
+            }
+
+            // 设置创建信息
+            varietyPublish.setCreateBy(LoginHelper.getUsername());
+            varietyPublish.setCreateTime(LocalDateTime.now());
+
+            // 保存发布记录
+            save(varietyPublish);
         }
-
-        // 生成发布ID
-        String publishId = "VAR_PUB" + IdUtils.fastSimpleUUID().substring(0, 16).toUpperCase();
-        varietyPublish.setPublishId(publishId);
-
-        // 生成发布编号（格式：PUB+年月日+000001）
-        String publishNo = generatePublishNo();
-        varietyPublish.setPublishNo(publishNo);
-
-        // 设置发布日期
-        if (varietyPublish.getPublishDate() == null) {
-            varietyPublish.setPublishDate(LocalDate.now());
-        }
-
-        // 设置发布时间
-        varietyPublish.setPublishTime(LocalDateTime.now());
-
-        // 设置公示状态为公示中
-        if (varietyPublish.getPublishStatus() == null) {
-            varietyPublish.setPublishStatus(1);
-        }
-
-        // 设置创建信息
-        varietyPublish.setCreateBy(LoginHelper.getUsername());
-        varietyPublish.setCreateTime(LocalDateTime.now());
-
-        // 保存发布记录
-        save(varietyPublish);
-
-        // 更新品种登记申请状态为已发布(3)
-        varietyRegistrationService.updateRecordStatus(varietyPublish.getRegistrationId(), 3);
 
         return publishId;
     }

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.VarietyAuditMapper">
+
+    <resultMap type="com.inspur.seed.domain.vo.VarietyAuditTaskVO" id="VarietyAuditTaskVOResult">
+        <!-- 登记申请信息 -->
+        <result property="registrationId"           column="registration_id"            />
+        <result property="registrationNo"           column="registration_no"            />
+        <result property="varietyName"              column="variety_name"               />
+        <result property="cropType"                 column="crop_type"                  />
+        <result property="enterpriseName"           column="enterprise_name"            />
+        <result property="recordStatus"             column="record_status"              />
+        <result property="recordDate"               column="record_date"                />
+        <result property="recordType"               column="record_type"                />
+        <result property="enterpriseType"           column="enterprise_type"            />
+        <result property="unifiedSocialCreditCode"  column="unified_social_credit_code" />
+        <result property="seedLicenseNo"            column="seed_license_no"            />
+
+        <!-- 品种标识信息 -->
+        <result property="varietyCode"              column="variety_code"               />
+        <result property="species"                  column="species"                    />
+        <result property="genus"                    column="genus"                      />
+        <result property="family"                   column="family"                     />
+
+        <!-- 技术性状信息 -->
+        <result property="breedingMethod"           column="breeding_method"            />
+        <result property="methodPedigree"           column="method_pedigree"            />
+        <result property="breedingYear"             column="breeding_year"              />
+        <result property="minYieldPotential"        column="min_yield_potential"        />
+        <result property="maxYieldPotential"        column="max_yield_potential"        />
+        <result property="diseaseResistance"        column="disease_resistance"         />
+        <result property="stressResistance"         column="stress_resistance"          />
+        <result property="growthPeriod"             column="growth_period"              />
+        <result property="plantHeight"              column="plant_height"               />
+        <result property="grainQualityTraits"       column="grain_quality_traits"       />
+
+        <!-- 试验和性能数据 -->
+        <result property="testLocation"             column="test_location"              />
+        <result property="testYear"                 column="test_year"                  />
+        <result property="averageYield"             column="average_yield"              />
+        <result property="stabilityScore"           column="stability_score"            />
+        <result property="testReportUrl"            column="test_report_url"            />
+
+        <!-- 监管数据 -->
+        <result property="approvalDocNo"            column="approval_doc_no"            />
+        <result property="approvalOrg"              column="approval_org"               />
+        <result property="approvalDate"             column="approval_date"              />
+        <result property="certificationDocUrl"      column="certification_doc_url"      />
+
+        <!-- 审核信息 -->
+        <result property="auditResult"              column="audit_result"               />
+        <result property="auditOpinion"             column="audit_opinion"              />
+        <result property="rejectReason"             column="reject_reason"              />
+        <result property="auditor"                  column="auditor"                    />
+        <result property="auditTime"                column="audit_time"                 />
+    </resultMap>
+
+    <!-- 查询审核任务列表 -->
+    <select id="selectAuditTaskList" resultMap="VarietyAuditTaskVOResult">
+        SELECT
+            vr.registration_id,
+            vr.registration_no,
+            vr.variety_name,
+            vr.crop_type,
+            vr.enterprise_name,
+            vr.record_status,
+            vr.record_date,
+            vr.record_type,
+            vr.enterprise_type,
+            vr.unified_social_credit_code,
+            vr.seed_license_no,
+            vr.variety_code,
+            vr.species,
+            vr.genus,
+            vr.family,
+            vr.breeding_method,
+            vr.method_pedigree,
+            vr.breeding_year,
+            CAST(vr.min_yield_potential AS CHAR) as min_yield_potential,
+            CAST(vr.max_yield_potential AS CHAR) as max_yield_potential,
+            vr.disease_resistance,
+            vr.stress_resistance,
+            vr.growth_period,
+            CAST(vr.plant_height AS CHAR) as plant_height,
+            vr.grain_quality_traits,
+            vr.test_location,
+            vr.test_year,
+            CAST(vr.average_yield AS CHAR) as average_yield,
+            CAST(vr.stability_score AS CHAR) as stability_score,
+            vr.test_report_url,
+            vr.approval_doc_no,
+            vr.approval_org,
+            vr.approval_date,
+            vr.certification_doc_url,
+            va.audit_result,
+            va.audit_opinion,
+            va.reject_reason,
+            va.auditor,
+            va.audit_time
+        FROM
+            variety_registration vr
+        LEFT JOIN
+            variety_audit va ON vr.registration_id = va.registration_id
+            AND va.audit_id = (
+                SELECT va2.audit_id
+                FROM variety_audit va2
+                WHERE va2.registration_id = vr.registration_id
+                ORDER BY va2.create_time DESC
+                LIMIT 1
+            )
+        <where>
+            <if test="varietyName != null and varietyName != ''">
+                AND vr.variety_name LIKE CONCAT('%', #{varietyName}, '%')
+            </if>
+            <if test="enterpriseName != null and enterpriseName != ''">
+                AND vr.enterprise_name LIKE CONCAT('%', #{enterpriseName}, '%')
+            </if>
+            <if test="auditResult != null">
+                AND va.audit_result = #{auditResult}
+            </if>
+        </where>
+        ORDER BY IFNULL(va.audit_time, vr.create_time) DESC, vr.create_time DESC
+    </select>
+
+    <!-- 查询审核任务详情 -->
+    <select id="selectAuditTaskDetail" resultMap="VarietyAuditTaskVOResult">
+        SELECT
+            vr.registration_id,
+            vr.registration_no,
+            vr.variety_name,
+            vr.crop_type,
+            vr.enterprise_name,
+            vr.record_status,
+            vr.record_date,
+            vr.record_type,
+            vr.enterprise_type,
+            vr.unified_social_credit_code,
+            vr.seed_license_no,
+            vr.variety_code,
+            vr.species,
+            vr.genus,
+            vr.family,
+            vr.breeding_method,
+            vr.method_pedigree,
+            vr.breeding_year,
+            CAST(vr.min_yield_potential AS CHAR) as min_yield_potential,
+            CAST(vr.max_yield_potential AS CHAR) as max_yield_potential,
+            vr.disease_resistance,
+            vr.stress_resistance,
+            vr.growth_period,
+            CAST(vr.plant_height AS CHAR) as plant_height,
+            vr.grain_quality_traits,
+            vr.test_location,
+            vr.test_year,
+            CAST(vr.average_yield AS CHAR) as average_yield,
+            CAST(vr.stability_score AS CHAR) as stability_score,
+            vr.test_report_url,
+            vr.approval_doc_no,
+            vr.approval_org,
+            vr.approval_date,
+            vr.certification_doc_url,
+            va.audit_result,
+            va.audit_opinion,
+            va.reject_reason,
+            va.auditor,
+            va.audit_time
+        FROM
+            variety_registration vr
+        LEFT JOIN
+            variety_audit va ON vr.registration_id = va.registration_id
+            AND va.audit_id = (
+                SELECT va2.audit_id
+                FROM variety_audit va2
+                WHERE va2.registration_id = vr.registration_id
+                ORDER BY va2.create_time DESC
+                LIMIT 1
+            )
+        WHERE
+            vr.registration_id = #{registrationId}
+    </select>
+
+</mapper>

@@ -1,9 +1,9 @@
 package com.inspur.seed.controller;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.inspur.common.annotation.Log;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.core.page.TableDataInfo;
 import com.inspur.common.enums.BusinessType;
 import com.inspur.seed.domain.VarietyRegistration;
 import com.inspur.seed.service.IVarietyRegistrationService;
@@ -33,7 +33,7 @@ public class VarietyRegistrationController extends BaseController {
      * @param varietyRegistration 品种登记信息
      * @return 提交结果
      */
-    @SaCheckPermission("seed:variety:registration:submit")
+    //@SaCheckPermission("seed:variety:registration:submit")
     @Log(title = "品种登记", businessType = BusinessType.INSERT)
     @PostMapping("/submit")
     public AjaxResult submit(@Validated @RequestBody VarietyRegistration varietyRegistration) {
@@ -61,20 +61,21 @@ public class VarietyRegistrationController extends BaseController {
      * @param recordType 备案类型
      * @return 查询结果
      */
-    @SaCheckPermission("seed:variety:registration:list")
+   // @SaCheckPermission("seed:variety:registration:list")
     @GetMapping("/list")
-    public AjaxResult list(
+    public TableDataInfo list(
             @RequestParam(required = false) String varietyName,
             @RequestParam(required = false) String enterpriseName,
             @RequestParam(required = false) String enterpriseType,
             @RequestParam(required = false) String recordType) {
+        // 使用RuoYi框架提供的分页方法
+        startPage();
+        
+        // 调用服务方法查询数据
         List<VarietyRegistration> list = varietyRegistrationService.queryRegistrationList(varietyName, enterpriseName, enterpriseType, recordType);
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("total", list.size());
-        data.put("list", list);
-
-        return AjaxResult.success("查询成功", data);
+        
+        // 使用框架提供的方法格式化返回结果
+        return getDataTable(list);
     }
 
     /**
@@ -83,7 +84,7 @@ public class VarietyRegistrationController extends BaseController {
      * @param registrationId 登记ID
      * @return 查询结果
      */
-    @SaCheckPermission("seed:variety:registration:query")
+   // @SaCheckPermission("seed:variety:registration:query")
     @GetMapping("/{registrationId}")
     public AjaxResult getInfo(@PathVariable String registrationId) {
         VarietyRegistration varietyRegistration = varietyRegistrationService.queryByRegistrationId(registrationId);
@@ -94,12 +95,12 @@ public class VarietyRegistrationController extends BaseController {
     }
 
     /**
-     * 保存表单（暂存）
+     * 保存表单
      *
      * @param varietyRegistration 品种登记信息
      * @return 保存结果
      */
-    @SaCheckPermission("seed:variety:registration:save")
+    //@SaCheckPermission("seed:variety:registration:save")
     @Log(title = "品种登记", businessType = BusinessType.UPDATE)
     @PostMapping("/save")
     public AjaxResult save(@Validated @RequestBody VarietyRegistration varietyRegistration) {
@@ -129,17 +130,17 @@ public class VarietyRegistrationController extends BaseController {
      * @param cropType 作物类型
      * @return 查询结果
      */
-    @SaCheckPermission("seed:variety:registration:pending")
+    //@SaCheckPermission("seed:variety:registration:pending")
     @GetMapping("/pending")
-    public AjaxResult pendingPublish(
+    public TableDataInfo pendingPublish(
             @RequestParam(required = false) String varietyName,
             @RequestParam(required = false) String cropType) {
+        // 使用RuoYi框架提供的分页方法
+        startPage();
+        
         List<VarietyRegistration> list = varietyRegistrationService.queryPendingPublishList(varietyName, cropType);
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("total", list.size());
-        data.put("list", list);
-
-        return AjaxResult.success("查询成功", data);
+        
+        // 使用框架提供的方法格式化返回结果
+        return getDataTable(list);
     }
 }
