@@ -5,17 +5,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.LoginHelper;
 import com.inspur.common.utils.StringUtils;
-import com.inspur.common.utils.uuid.IdUtils;
 import com.inspur.seed.domain.VarietyAudit;
-import com.inspur.seed.domain.VarietyRegistration;
+import com.inspur.seed.domain.vo.VarietyAuditTaskVO;
 import com.inspur.seed.mapper.VarietyAuditMapper;
 import com.inspur.seed.service.IVarietyAuditService;
-import com.inspur.seed.service.IVarietyRegistrationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,21 +25,12 @@ import java.util.List;
 @Service
 public class VarietyAuditServiceImpl extends ServiceImpl<VarietyAuditMapper, VarietyAudit> implements IVarietyAuditService {
 
-    @Resource
-    private IVarietyRegistrationService varietyRegistrationService;
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String handleAudit(VarietyAudit varietyAudit) {
-        // 校验品种登记申请是否存在
-        VarietyRegistration registration = varietyRegistrationService.queryByRegistrationId(varietyAudit.getRegistrationId());
-        if (registration == null) {
-            throw new ServiceException("品种登记申请不存在");
-        }
-
-        // 校验品种登记申请状态是否为审核中
-        if (registration.getRecordStatus() != 0) {
-            throw new ServiceException("品种登记申请状态不是审核中，无法审核");
+        // 校验审核结果必须为1（通过）或2（不通过）
+        if (varietyAudit.getAuditResult() != 1 && varietyAudit.getAuditResult() != 2) {
+            throw new ServiceException("审核结果必须为通过或不通过");
         }
 
         // 校验驳回时必须填写驳回原因
@@ -48,24 +38,38 @@ public class VarietyAuditServiceImpl extends ServiceImpl<VarietyAuditMapper, Var
             throw new ServiceException("驳回时必须填写驳回原因");
         }
 
-        // 生成审核ID
-        String auditId = "VAR_AUD" + IdUtils.fastSimpleUUID().substring(0, 16).toUpperCase();
+        // 校验通过时必须填写审核意见
+        if (varietyAudit.getAuditResult() == 1 && StringUtils.isEmpty(varietyAudit.getAuditOpinion())) {
+            throw new ServiceException("通过时必须填写审核意见");
+        }
+
+        // 查询当前登记ID对应的最新审核单
+        VarietyAudit existingAudit = queryLatestByRegistrationId(varietyAudit.getRegistrationId());
+        if (existingAudit == null) {
+            throw new ServiceException("未找到待审核的记录");
+        }
+
+        // 修改当前审核单
+        String auditId = existingAudit.getAuditId();
         varietyAudit.setAuditId(auditId);
-
-        // 设置审核时间
+        varietyAudit.setEnterpriseId(existingAudit.getEnterpriseId());
+        varietyAudit.setVarietyName(existingAudit.getVarietyName());
+        varietyAudit.setAuditStage(existingAudit.getAuditStage());
+        
+        // 设置审核时间和审核人
         varietyAudit.setAuditTime(LocalDateTime.now());
+        varietyAudit.setAuditor(LoginHelper.getUsername());
+        
+        // 设置更新信息
+        varietyAudit.setUpdateBy(LoginHelper.getUsername());
+        varietyAudit.setUpdateTime(LocalDateTime.now());
+        
+        // 保留创建信息
+        varietyAudit.setCreateBy(existingAudit.getCreateBy());
+        varietyAudit.setCreateTime(existingAudit.getCreateTime());
 
-        // 设置创建信息
-        varietyAudit.setCreateBy(LoginHelper.getUsername());
-        varietyAudit.setCreateTime(LocalDateTime.now());
-
-        // 保存审核记录
-        save(varietyAudit);
-
-        // 更新品种登记申请状态
-        // 审核通过：更新为待发布(1)，驳回：更新为审核未通过(2)
-        Integer recordStatus = varietyAudit.getAuditResult() == 1 ? 1 : 2;
-        varietyRegistrationService.updateRecordStatus(varietyAudit.getRegistrationId(), recordStatus);
+        // 更新审核记录
+        updateById(varietyAudit);
 
         return auditId;
     }
@@ -105,5 +109,16 @@ public class VarietyAuditServiceImpl extends ServiceImpl<VarietyAuditMapper, Var
         wrapper.orderByDesc(VarietyAudit::getAuditTime);
         wrapper.last("LIMIT 1");
         return getOne(wrapper);
+    }
+    
+
+    @Override
+    public List<VarietyAuditTaskVO> queryAuditTaskList(String varietyName, String enterpriseName, Integer auditResult) {
+        return baseMapper.selectAuditTaskList(varietyName, enterpriseName, auditResult);
+    }
+
+    @Override
+    public VarietyAuditTaskVO queryAuditTaskDetail(String registrationId) {
+        return baseMapper.selectAuditTaskDetail(registrationId);
     }
 }

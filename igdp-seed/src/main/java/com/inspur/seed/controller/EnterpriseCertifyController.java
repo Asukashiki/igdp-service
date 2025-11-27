@@ -5,6 +5,7 @@ import com.inspur.common.annotation.Log;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.enums.BusinessType;
+import com.inspur.common.utils.LoginHelper;
 import com.inspur.seed.domain.EnterpriseInfo;
 import com.inspur.seed.service.IEnterpriseCertifyService;
 import org.springframework.validation.annotation.Validated;
@@ -33,7 +34,7 @@ public class EnterpriseCertifyController extends BaseController {
      * @param enterpriseInfo 企业认证信息
      * @return 提交结果
      */
-    @SaCheckPermission("seed:enterprise:certify:submit")
+    //@SaCheckPermission("seed:enterprise:certify:submit")
     @Log(title = "种子企业认证", businessType = BusinessType.INSERT)
     @PostMapping("/submit")
     public AjaxResult submit(@Validated @RequestBody EnterpriseInfo enterpriseInfo) {
@@ -59,7 +60,7 @@ public class EnterpriseCertifyController extends BaseController {
      * @param certificationStatus 认证状态
      * @return 查询结果
      */
-    @SaCheckPermission("seed:enterprise:certify:list")
+    //@SaCheckPermission("seed:enterprise:certify:list")
     @GetMapping("/list")
     public AjaxResult list(
             @RequestParam(required = false) String keyword,
@@ -80,10 +81,26 @@ public class EnterpriseCertifyController extends BaseController {
      * @param enterpriseId 企业ID
      * @return 查询结果
      */
-    @SaCheckPermission("seed:enterprise:certify:query")
+   // @SaCheckPermission("seed:enterprise:certify:query")
     @GetMapping("/{enterpriseId}")
     public AjaxResult getInfo(@PathVariable String enterpriseId) {
         EnterpriseInfo enterpriseInfo = enterpriseCertifyService.queryByEnterpriseId(enterpriseId);
+        if (enterpriseInfo == null) {
+            return AjaxResult.error("企业信息不存在");
+        }
+        return AjaxResult.success(enterpriseInfo);
+    }
+
+    /**
+     * 根据用户ID查询认证信息详情
+     *
+     * @return 查询结果
+     */
+    // @SaCheckPermission("seed:enterprise:certify:query")
+    @GetMapping("/info")
+    public AjaxResult getInfoUserId() {
+        String userId = LoginHelper.getUsername();
+        EnterpriseInfo enterpriseInfo = enterpriseCertifyService.queryByUserId(userId);
         if (enterpriseInfo == null) {
             return AjaxResult.error("企业信息不存在");
         }
@@ -96,7 +113,7 @@ public class EnterpriseCertifyController extends BaseController {
      * @param enterpriseInfo 企业认证信息
      * @return 保存结果
      */
-    @SaCheckPermission("seed:enterprise:certify:save")
+   // @SaCheckPermission("seed:enterprise:certify:save")
     @Log(title = "种子企业认证草稿", businessType = BusinessType.UPDATE)
     @PostMapping("/save")
     public AjaxResult save(@Validated @RequestBody EnterpriseInfo enterpriseInfo) {

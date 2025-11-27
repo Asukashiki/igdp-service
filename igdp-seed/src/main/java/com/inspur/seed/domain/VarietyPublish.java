@@ -78,7 +78,7 @@ public class VarietyPublish extends BaseEntity {
     private String sowingGuide;
 
     /**
-     * 公示状态（1-公示中/2-已下架）
+     * 公示状态（1-公示中/2-已下架/3-已发布）
      */
     private Integer publishStatus;
 
@@ -88,8 +88,10 @@ public class VarietyPublish extends BaseEntity {
     private String publisher;
 
     /**
-     * 发布时间
+     * 审核通过时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime publishTime;
+
+    private String auditId;
 }

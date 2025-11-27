@@ -41,7 +41,7 @@ public class VarietyAudit extends BaseEntity {
     private String varietyName;
 
     /**
-     * 审核结果（1-通过/2-驳回）
+     * 审核结果（0-待审核/1-通过/2-驳回）
      */
     private Integer auditResult;
 
