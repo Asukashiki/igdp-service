@@ -74,7 +74,11 @@
             <artifactId>DmJdbcDriver18</artifactId>
         </dependency>
 
-
+        <dependency>
+          <groupId>com.squareup.okhttp3</groupId>
+          <artifactId>okhttp-sse</artifactId>
+          <version>4.9.3</version>
+        </dependency>
 
 
         <!-- 核心模块-->
@@ -107,6 +111,11 @@
 
         <dependency>
             <groupId>com.inspur</groupId>
+            <artifactId>igdp-farmland-management</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.inspur</groupId>
             <artifactId>igdp-doc</artifactId>
         </dependency>
 
@@ -114,6 +123,13 @@
         <dependency>
             <groupId>com.inspur</groupId>
             <artifactId>igdp-seed</artifactId>
+        </dependency>
+
+
+        <!-- 农业投入品管理模块 -->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-agriculture-input</artifactId>
         </dependency>
 
         <dependency>

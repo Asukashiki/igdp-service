@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * @author liyunlong
  */
 @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
-@MapperScan("com.inspur.*.mapper")
+@MapperScan("com.inspur.**.mapper")
 public class IgdpApplication
 {
     public static void main(String[] args)

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.supplier.SupplierProductMapper">
+
+    <resultMap type="com.inspur.agriculture.input.domain.supplier.SupplierProduct" id="SupplierProductResult">
+        <id     property="supplierProductId"      column="supplier_product_id"      />
+        <result property="supplierId"             column="supplier_id"              />
+        <result property="inputId"                column="input_id"                 />
+        <result property="supplierProductCode"    column="supplier_product_code"    />
+        <result property="supplierProductName"    column="supplier_product_name"    />
+        <result property="qualityRating"          column="quality_rating"           />
+        <result property="notes"                  column="notes"                    />
+        <result property="createPeople"           column="create_people"            />
+        <result property="createTime"             column="create_time"              />
+        <result property="updatePeople"           column="update_people"            />
+        <result property="updateTime"             column="update_time"              />
+        <result property="delFlag"                column="del_flag"                 />
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.input.vo.supplier.SupplierProductVO" id="SupplierProductVOResult">
+        <id     property="supplierProductId"      column="supplier_product_id"      />
+        <result property="supplierId"             column="supplier_id"              />
+        <result property="supplierName"           column="supplier_name"            />
+        <result property="inputId"                column="input_id"                 />
+        <result property="inputName"              column="input_name"               />
+        <result property="inputType"              column="input_type"               />
+        <result property="inputSku"               column="input_sku"                />
+        <result property="supplierProductCode"    column="supplier_product_code"    />
+        <result property="supplierProductName"    column="supplier_product_name"    />
+        <result property="qualityRating"          column="quality_rating"           />
+        <result property="certStatus"             column="cert_status"              />
+        <result property="notes"                  column="notes"                    />
+        <result property="createPeople"           column="create_people"            />
+        <result property="createTime"             column="create_time"              />
+        <result property="updatePeople"           column="update_people"            />
+        <result property="updateTime"             column="update_time"              />
+    </resultMap>
+
+    <sql id="selectSupplierProductVo">
+        select sp.supplier_product_id, sp.supplier_id, sp.input_id,
+               sp.supplier_product_code, sp.supplier_product_name,
+               sp.quality_rating, sp.notes,
+               sp.create_people, sp.create_time, sp.update_people, sp.update_time,
+               sp.del_flag
+        from supplier_product sp
+    </sql>
+
+    <sql id="selectSupplierProductWithJoinVo">
+        select sp.supplier_product_id, sp.supplier_id, sp.input_id,
+               sp.supplier_product_code, sp.supplier_product_name,
+               sp.quality_rating, sp.notes,
+               sp.create_people, sp.create_time, sp.update_people, sp.update_time,
+               sc.org_name as supplier_name,
+               sc.status as cert_status,
+               ai.input_name, ai.type as input_type, ai.input_sku
+        from supplier_product sp
+        left join (
+            select sc1.*
+            from supplier_cert sc1
+            inner join (
+                select user_id, max(create_time) as max_create_time
+                from supplier_cert
+                where del_flag = '0'
+                group by user_id
+            ) sc2 on sc1.user_id = sc2.user_id and sc1.create_time = sc2.max_create_time
+            where sc1.del_flag = '0'
+        ) sc on sp.supplier_id = sc.user_id
+        left join agri_input ai on sp.input_id = ai.input_id and ai.del_flag = '0'
+    </sql>
+
+    <select id="selectSupplierProductList" resultMap="SupplierProductVOResult">
+        <include refid="selectSupplierProductWithJoinVo"/>
+        where sp.del_flag = '0'
+        <if test="query.supplierId != null">
+            and sp.supplier_id = #{query.supplierId}
+        </if>
+        <if test="query.inputType != null and query.inputType != ''">
+            and ai.type = #{query.inputType}
+        </if>
+        <if test="query.inputName != null and query.inputName != ''">
+            and ai.input_name like concat('%', #{query.inputName}, '%')
+        </if>
+        <if test="query.inputSku != null and query.inputSku != ''">
+            and ai.input_sku = #{query.inputSku}
+        </if>
+        <if test="query.supplierProductCode != null and query.supplierProductCode != ''">
+            and sp.supplier_product_code like concat('%', #{query.supplierProductCode}, '%')
+        </if>
+        <if test="query.qualityRating != null and query.qualityRating != ''">
+            and sp.quality_rating = #{query.qualityRating}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (
+                ai.input_name like concat('%', #{query.keyword}, '%')
+                or sp.supplier_product_name like concat('%', #{query.keyword}, '%')
+                or sp.supplier_product_code like concat('%', #{query.keyword}, '%')
+            )
+        </if>
+        order by sp.create_time desc
+    </select>
+
+    <select id="selectSupplierProductById" parameterType="Long" resultMap="SupplierProductVOResult">
+        <include refid="selectSupplierProductWithJoinVo"/>
+        where sp.supplier_product_id = #{supplierProductId}
+          and sp.del_flag = '0'
+    </select>
+
+    <select id="checkSupplierProductExists" resultType="int">
+        select count(1)
+        from supplier_product
+        where supplier_id = #{supplierId}
+          and input_id = #{inputId}
+          and del_flag = '0'
+        <if test="excludeId != null">
+            and supplier_product_id != #{excludeId}
+        </if>
+    </select>
+
+</mapper>
