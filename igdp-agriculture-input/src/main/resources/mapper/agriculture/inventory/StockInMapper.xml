@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.StockInMapper">
+
+    <resultMap id="StockInVOResult" type="com.inspur.agriculture.input.vo.inventory.StockInVO">
+        <id property="stockInId" column="stock_in_id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="operator" column="operator"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="type" column="type"/>
+        <result property="typeDesc" column="type_desc"/>
+        <result property="status" column="status"/>
+        <result property="statusDesc" column="status_desc"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="qrCode" column="qr_code"/>
+        <result property="remarks" column="remarks"/>
+        <result property="createPeople" column="create_people"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatePeople" column="update_people"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectStockInVo">
+        select si.stock_in_id, si.warehouse_id, w.warehouse_name,
+               si.batch_no, si.operator, si.supplier_id,
+               sc.org_name as supplier_name,
+               si.type,
+               CASE si.type WHEN '0' THEN '采购入库' WHEN '1' THEN '退货入库' ELSE '' END as type_desc,
+               si.status,
+               CASE si.status WHEN '0' THEN '未入库' WHEN '1' THEN '已入库' WHEN '2' THEN '作废' ELSE '' END as status_desc,
+               si.total_quantity, si.qr_code, si.remarks,
+               si.create_people, si.create_time, si.update_people, si.update_time
+        from inv_stock_in si
+        left join inv_warehouse w on si.warehouse_id = w.warehouse_id and w.del_flag = '0'
+        left join supplier_cert sc on si.supplier_id = sc.user_id and sc.del_flag = '0'
+    </sql>
+
+    <select id="selectStockInList" resultMap="StockInVOResult">
+        <include refid="selectStockInVo"/>
+        where si.del_flag = '0'
+        <if test="query.stockInId != null and query.stockInId != ''">
+            and si.stock_in_id like concat('%', #{query.stockInId}, '%')
+        </if>
+        <if test="query.warehouseId != null">
+            and si.warehouse_id = #{query.warehouseId}
+        </if>
+        <if test="query.supplierId != null">
+            and si.supplier_id = #{query.supplierId}
+        </if>
+        <if test="query.type != null and query.type != ''">
+            and si.type = #{query.type}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            and si.status = #{query.status}
+        </if>
+        <if test="query.batchNo != null and query.batchNo != ''">
+            and si.batch_no like concat('%', #{query.batchNo}, '%')
+        </if>
+        <if test="query.createTimeStart != null and query.createTimeStart != ''">
+            and si.create_time &gt;= #{query.createTimeStart}
+        </if>
+        <if test="query.createTimeEnd != null and query.createTimeEnd != ''">
+            and si.create_time &lt;= #{query.createTimeEnd}
+        </if>
+        order by si.create_time desc
+    </select>
+
+    <select id="selectStockInById" resultMap="StockInVOResult">
+        <include refid="selectStockInVo"/>
+        where si.stock_in_id = #{stockInId}
+          and si.del_flag = '0'
+    </select>
+
+    <select id="generateStockInId" resultType="string">
+        select concat('SI-', date_format(now(), '%Y%m%d'), '-',
+                      lpad(ifnull(max(substring(stock_in_id, 13)), 0) + 1, 4, '0')) as stock_in_id
+        from inv_stock_in
+        where stock_in_id like concat('SI-', date_format(now(), '%Y%m%d'), '%')
+          and del_flag = '0'
+    </select>
+
+    <select id="generateBatchNo" resultType="string">
+        select concat('BN-', date_format(now(), '%Y%m%d'), '-',
+                      lpad(ifnull(max(substring(batch_no, 13)), 0) + 1, 4, '0')) as batch_no
+        from inv_stock_in
+        where batch_no like concat('BN-', date_format(now(), '%Y%m%d'), '%')
+          and del_flag = '0'
+    </select>
+
+</mapper>
