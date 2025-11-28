@@ -93,4 +93,21 @@ public class SeedPromotionInfoController extends BaseController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    /**
+     * 推广内容删除
+     *
+     * @param promotionId 推广ID
+     * @return 删除结果
+     */
+    @Log(title = "种子推广信息", businessType = BusinessType.DELETE)
+    @DeleteMapping("/delete/{promotionId}")
+    public AjaxResult delete(@PathVariable String promotionId) {
+        try {
+            seedPromotionInfoService.deletePromotion(promotionId);
+            return AjaxResult.success("删除成功");
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
 }
