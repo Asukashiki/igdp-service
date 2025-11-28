@@ -6,6 +6,7 @@ import com.inspur.agriculture.input.domain.supplier.SupplierCert;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApplyDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApproveDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
+import com.inspur.agriculture.input.dto.supplier.SupplierCertUpdateDTO;
 import com.inspur.agriculture.input.service.supplier.ISupplierCertService;
 import com.inspur.agriculture.input.vo.supplier.ApproveResponseVO;
 import com.inspur.agriculture.input.vo.supplier.CertApplyResponseVO;
@@ -76,7 +77,7 @@ public class SupplierCertController {
      * @return 认证状态
      */
     @GetMapping("/status/{userId}")
-    public AjaxResult getStatus(@PathVariable("userId") Long userId) {
+    public AjaxResult getStatus(@PathVariable("userId") String userId) {
         try {
             CertStatusVO status = supplierCertService.getCertStatus(userId);
             if (status == null) {
@@ -159,13 +160,48 @@ public class SupplierCertController {
      * @return 认证详情
      */
     @GetMapping("/{certId}")
-    public AjaxResult getInfo(@PathVariable("certId") Long certId) {
+    public AjaxResult getInfo(@PathVariable("certId") String certId) {
         try {
             SupplierCert cert = supplierCertService.getCertById(certId);
             if (cert == null) {
                 return AjaxResult.error("认证记录不存在");
             }
             return AjaxResult.success(cert);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 根据用户ID查询认证信息
+     *
+     * @param userId 用户ID
+     * @return 认证详情
+     */
+    @GetMapping("/user/{userId}")
+    public AjaxResult getByUserId(@PathVariable("userId") String userId) {
+        try {
+            SupplierCert cert = supplierCertService.getCertByUserId(userId);
+            if (cert == null) {
+                return AjaxResult.error("未找到该用户的认证信息");
+            }
+            return AjaxResult.success(cert);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 更新供应商认证信息
+     *
+     * @param dto 更新数据
+     * @return 更新结果
+     */
+    @PostMapping("/update")
+    public AjaxResult update(@Validated @RequestBody SupplierCertUpdateDTO dto) {
+        try {
+            int rows = supplierCertService.updateCert(dto);
+            return rows > 0 ? AjaxResult.success("认证信息更新成功") : AjaxResult.error("认证信息更新失败");
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }

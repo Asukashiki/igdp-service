@@ -4,6 +4,7 @@ import com.inspur.agriculture.input.domain.supplier.SupplierCert;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApplyDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApproveDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
+import com.inspur.agriculture.input.dto.supplier.SupplierCertUpdateDTO;
 import com.inspur.agriculture.input.vo.supplier.ApproveResponseVO;
 import com.inspur.agriculture.input.vo.supplier.CertApplyResponseVO;
 import com.inspur.agriculture.input.vo.supplier.CertStatusVO;
@@ -40,7 +41,7 @@ public interface ISupplierCertService {
      * @param userId 用户ID
      * @return 认证状态
      */
-    CertStatusVO getCertStatus(Long userId);
+    CertStatusVO getCertStatus(String userId);
 
     /**
      * 查询待审核列表（分页，带筛选条件）
@@ -64,5 +65,21 @@ public interface ISupplierCertService {
      * @param certId 认证ID
      * @return 认证详情
      */
-    SupplierCert getCertById(Long certId);
+    SupplierCert getCertById(String certId);
+
+    /**
+     * 根据用户ID查询认证信息
+     *
+     * @param userId 用户ID
+     * @return 认证详情
+     */
+    SupplierCert getCertByUserId(String userId);
+
+    /**
+     * 更新供应商认证信息
+     *
+     * @param dto 更新数据
+     * @return 更新结果
+     */
+    int updateCert(SupplierCertUpdateDTO dto);
 }
