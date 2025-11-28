@@ -102,4 +102,9 @@ public class BreedingTracking extends BaseEntity {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    /**
+     * 更新者
+     */
+    private String updateBy;
 }
