@@ -1,6 +1,8 @@
 package com.inspur.seed.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.inspur.common.core.domain.BaseEntity;
@@ -56,6 +58,7 @@ public class BreedingSeedSupervision extends BaseEntity {
     /**
      * 认证文件(文件路径)
      */
+    @TableField(insertStrategy = FieldStrategy.ALWAYS, updateStrategy = FieldStrategy.ALWAYS)
     private String certificationDocument;
 
     /**
