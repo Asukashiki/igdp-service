@@ -124,4 +124,15 @@ public class SeedPromotionInfoServiceImpl extends ServiceImpl<SeedPromotionInfoM
     public SeedPromotionInfo queryByPromotionId(String promotionId) {
         return getById(promotionId);
     }
+
+    @Override
+    public void deletePromotion(String promotionId) {
+        // 查询推广信息
+        SeedPromotionInfo promotionInfo = getById(promotionId);
+        if (promotionInfo == null) {
+            throw new ServiceException("推广信息不存在");
+        }
+        // 删除推广信息
+        removeById(promotionId);
+    }
 }

@@ -52,4 +52,6 @@ public interface ISeedPromotionInfoService extends IService<SeedPromotionInfo> {
      * @return 推广详情
      */
     SeedPromotionInfo queryByPromotionId(String promotionId);
+
+    void deletePromotion(String promotionId);
 }
