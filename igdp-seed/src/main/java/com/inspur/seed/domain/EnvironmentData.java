@@ -89,9 +89,9 @@ public class EnvironmentData extends BaseEntity {
 
     /** 查询起始时间（查询参数，非数据库字段） */
     @TableField(exist = false)
-    private String startTime;
+    private String queryStartTime;
 
     /** 查询结束时间（查询参数，非数据库字段） */
     @TableField(exist = false)
-    private String endTime;
+    private String queryEndTime;
 }

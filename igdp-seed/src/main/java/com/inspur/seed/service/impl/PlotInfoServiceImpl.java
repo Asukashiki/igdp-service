@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -47,7 +48,7 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
         plotInfo.setGroundId(groundId);
 
         // 设置创建信息
-        plotInfo.setCreateTime(new Date());
+        plotInfo.setCreateTime(LocalDateTime.now());
         plotInfo.setCreateBy(SecurityUtils.getUsername());
 
         // 保存地块信息
@@ -63,7 +64,7 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
     @Transactional(rollbackFor = Exception.class)
     public int updatePlotInfo(PlotInfo plotInfo) {
         // 设置更新信息
-        plotInfo.setUpdateTime(new Date());
+        plotInfo.setUpdateTime(LocalDateTime.now());
         plotInfo.setUpdateBy(SecurityUtils.getUsername());
 
         // 更新地块信息

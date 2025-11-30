@@ -8,6 +8,7 @@ import com.inspur.seed.service.IFarmingRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
         farmingRecord.setFarmingId(farmingId);
 
         // 设置创建信息
-        farmingRecord.setCreateTime(new Date());
+        farmingRecord.setCreateTime(LocalDateTime.now());
         farmingRecord.setCreateBy(SecurityUtils.getUsername());
 
         farmingRecordMapper.insert(farmingRecord);
@@ -49,7 +50,7 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
     @Override
     public int updateFarmingRecord(FarmingRecord farmingRecord) {
         // 设置更新信息
-        farmingRecord.setUpdateTime(new Date());
+        farmingRecord.setUpdateTime(LocalDateTime.now());
         farmingRecord.setUpdateBy(SecurityUtils.getUsername());
 
         return farmingRecordMapper.updateById(farmingRecord);

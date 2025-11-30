@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -60,7 +61,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         trialBasic.setTrialId(trialId);
 
         // 设置创建信息
-        trialBasic.setCreateTime(new Date());
+        trialBasic.setCreateTime(LocalDateTime.now());
         trialBasic.setCreateBy(SecurityUtils.getUsername());
 
         // 保存试验信息
@@ -81,7 +82,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         }
 
         // 设置更新信息
-        trialBasic.setUpdateTime(new Date());
+        trialBasic.setUpdateTime(LocalDateTime.now());
         trialBasic.setUpdateBy(SecurityUtils.getUsername());
 
         // 更新试验信息

@@ -8,6 +8,7 @@ import com.inspur.seed.service.IAgronomicTraitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class AgronomicTraitServiceImpl implements IAgronomicTraitService {
         agronomicTrait.setTraitId(traitId);
 
         // 设置创建信息
-        agronomicTrait.setCreateTime(new Date());
+        agronomicTrait.setCreateTime(LocalDateTime.now());
         agronomicTrait.setCreateBy(SecurityUtils.getUsername());
 
         agronomicTraitMapper.insert(agronomicTrait);
@@ -49,7 +50,7 @@ public class AgronomicTraitServiceImpl implements IAgronomicTraitService {
     @Override
     public int updateAgronomicTrait(AgronomicTrait agronomicTrait) {
         // 设置更新信息
-        agronomicTrait.setUpdateTime(new Date());
+        agronomicTrait.setUpdateTime(LocalDateTime.now());
         agronomicTrait.setUpdateBy(SecurityUtils.getUsername());
 
         return agronomicTraitMapper.updateById(agronomicTrait);

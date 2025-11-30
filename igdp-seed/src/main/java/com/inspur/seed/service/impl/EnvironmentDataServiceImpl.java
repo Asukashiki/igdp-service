@@ -8,6 +8,7 @@ import com.inspur.seed.service.IEnvironmentDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class EnvironmentDataServiceImpl implements IEnvironmentDataService {
         environmentData.setEnvId(envId);
 
         // 设置创建信息
-        environmentData.setCreateTime(new Date());
+        environmentData.setCreateTime(LocalDateTime.now());
         environmentData.setCreateBy(SecurityUtils.getUsername());
 
         environmentDataMapper.insert(environmentData);
@@ -49,7 +50,7 @@ public class EnvironmentDataServiceImpl implements IEnvironmentDataService {
     @Override
     public int updateEnvironmentData(EnvironmentData environmentData) {
         // 设置更新信息
-        environmentData.setUpdateTime(new Date());
+        environmentData.setUpdateTime(LocalDateTime.now());
         environmentData.setUpdateBy(SecurityUtils.getUsername());
 
         return environmentDataMapper.updateById(environmentData);

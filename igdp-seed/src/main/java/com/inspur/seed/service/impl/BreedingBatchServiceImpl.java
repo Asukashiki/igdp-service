@@ -9,6 +9,7 @@ import com.inspur.seed.service.IBreedingBatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -46,7 +47,7 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
         breedingBatch.setBatchId(batchId);
 
         // 设置创建信息
-        breedingBatch.setCreateTime(new Date());
+        breedingBatch.setCreateTime(LocalDateTime.now());
         breedingBatch.setCreateBy(SecurityUtils.getUsername());
 
         // 数据校验
@@ -62,7 +63,7 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
         validateBreedingBatch(breedingBatch);
 
         // 设置更新信息
-        breedingBatch.setUpdateTime(new Date());
+        breedingBatch.setUpdateTime(LocalDateTime.now());
         breedingBatch.setUpdateBy(SecurityUtils.getUsername());
 
         return breedingBatchMapper.updateById(breedingBatch);
