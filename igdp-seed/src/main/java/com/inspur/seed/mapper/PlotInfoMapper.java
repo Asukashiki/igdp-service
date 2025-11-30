@@ -46,4 +46,14 @@ public interface PlotInfoMapper extends BaseMapper<PlotInfo> {
      * @return 地块列表
      */
     List<PlotInfo> selectPlotsByBatchId(@Param("batchId") String batchId);
+
+    /**
+     * 获取地块下拉选项列表
+     * 支持按批次ID和试验ID过滤
+     *
+     * @param batchId 批次ID（可选）
+     * @param trialId 试验ID（可选）
+     * @return 地块选项列表
+     */
+    List<PlotInfo> selectPlotOptions(@Param("batchId") String batchId, @Param("trialId") String trialId);
 }

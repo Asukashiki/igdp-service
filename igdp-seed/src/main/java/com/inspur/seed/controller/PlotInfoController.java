@@ -73,4 +73,15 @@ public class PlotInfoController extends BaseController {
     public AjaxResult listByBatch(@RequestParam("batchId") String batchId) {
         return AjaxResult.success(plotInfoService.selectPlotsByBatchId(batchId));
     }
+
+    /**
+     * 获取地块下拉选项列表
+     * 支持按批次ID和试验ID过滤
+     */
+    @GetMapping("/options")
+    public AjaxResult getOptions(
+            @RequestParam(value = "batchId", required = false) String batchId,
+            @RequestParam(value = "trialId", required = false) String trialId) {
+        return AjaxResult.success(plotInfoService.selectPlotOptions(batchId, trialId));
+    }
 }

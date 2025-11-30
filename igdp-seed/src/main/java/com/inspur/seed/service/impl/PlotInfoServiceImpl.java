@@ -100,6 +100,11 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
         return plotInfoMapper.selectPlotsByBatchId(batchId);
     }
 
+    @Override
+    public List<PlotInfo> selectPlotOptions(String batchId, String trialId) {
+        return plotInfoMapper.selectPlotOptions(batchId, trialId);
+    }
+
     /**
      * 保存播种信息列表
      */

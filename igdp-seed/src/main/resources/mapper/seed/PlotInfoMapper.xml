@@ -106,4 +106,22 @@
         order by create_time desc
     </select>
 
+    <select id="selectPlotOptions" resultMap="PlotInfoResult">
+        select distinct p.ground_id, p.batch_id, p.trial_id, p.trial_field_name, p.gps_location, p.region
+        from plot_info p
+        <if test="trialId != null and trialId != ''">
+            inner join trial_plot_relation r on p.ground_id = r.ground_id and r.is_deleted = 0
+        </if>
+        <where>
+            p.is_deleted = 0
+            <if test="batchId != null and batchId != ''">
+                AND p.batch_id = #{batchId}
+            </if>
+            <if test="trialId != null and trialId != ''">
+                AND r.trial_id = #{trialId}
+            </if>
+        </where>
+        order by p.create_time desc
+    </select>
+
 </mapper>
