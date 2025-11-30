@@ -56,23 +56,22 @@ public class VarietyRegistrationController extends BaseController {
      * 查询品种登记列表
      *
      * @param varietyName 品种名称
-     * @param enterpriseName 企业名称
-     * @param enterpriseType 企业类型
-     * @param recordType 备案类型
+     * @param cropType 作物类型
+     * @param recordStatus 备案状态
      * @return 查询结果
      */
    // @SaCheckPermission("seed:variety:registration:list")
     @GetMapping("/list")
     public TableDataInfo list(
             @RequestParam(required = false) String varietyName,
-            @RequestParam(required = false) String enterpriseName,
-            @RequestParam(required = false) String enterpriseType,
-            @RequestParam(required = false) String recordType) {
+            @RequestParam(required = false) String cropType,
+            @RequestParam(required = false) String recordStatus
+            ) {
         // 使用RuoYi框架提供的分页方法
         startPage();
         
         // 调用服务方法查询数据
-        List<VarietyRegistration> list = varietyRegistrationService.queryRegistrationList(varietyName, enterpriseName, enterpriseType, recordType);
+        List<VarietyRegistration> list = varietyRegistrationService.queryRegistrationList(varietyName, cropType, recordStatus);
         
         // 使用框架提供的方法格式化返回结果
         return getDataTable(list);

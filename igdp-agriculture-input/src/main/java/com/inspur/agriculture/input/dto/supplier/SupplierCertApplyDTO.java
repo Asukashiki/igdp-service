@@ -56,6 +56,5 @@ public class SupplierCertApplyDTO {
 
     /** 联系人手机 */
     @NotBlank(message = "联系人手机不能为空")
-    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式错误")
     private String contactPhone;
 }

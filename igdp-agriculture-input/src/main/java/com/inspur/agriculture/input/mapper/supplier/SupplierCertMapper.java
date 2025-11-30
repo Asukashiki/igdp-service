@@ -28,7 +28,7 @@ public interface SupplierCertMapper extends BaseMapper<SupplierCert> {
      * @param userId 用户ID
      * @return 供应商认证
      */
-    SupplierCert selectCertByUserId(@Param("userId") Long userId);
+    SupplierCert selectCertByUserId(@Param("userId") String userId);
 
     /**
      * 根据认证ID查询认证详情
@@ -36,7 +36,7 @@ public interface SupplierCertMapper extends BaseMapper<SupplierCert> {
      * @param certId 认证ID
      * @return 供应商认证
      */
-    SupplierCert selectCertById(@Param("certId") Long certId);
+    SupplierCert selectCertById(@Param("certId") String certId);
 
     /**
      * 查询待审核列表（带筛选条件）

@@ -35,6 +35,11 @@ public class BreedingTrackingServiceImpl extends ServiceImpl<BreedingTrackingMap
         // 设置创建信息
         breedingTracking.setCreateBy(LoginHelper.getUsername());
         breedingTracking.setCreateTime(LocalDateTime.now());
+        breedingTracking.setUpdateBy(LoginHelper.getUsername());
+        breedingTracking.setUpdateTime(LocalDateTime.now());
+
+        //设置记录人
+        breedingTracking.setRecorder(LoginHelper.getUsername());
 
         // 保存育种跟踪记录
         save(breedingTracking);

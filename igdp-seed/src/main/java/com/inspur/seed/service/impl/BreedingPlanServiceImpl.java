@@ -7,10 +7,13 @@ import com.inspur.common.utils.LoginHelper;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.common.utils.uuid.IdUtils;
 import com.inspur.seed.domain.BreedingPlan;
+import com.inspur.seed.domain.EnterpriseInfo;
 import com.inspur.seed.mapper.BreedingPlanMapper;
 import com.inspur.seed.service.IBreedingPlanService;
+import com.inspur.seed.service.IEnterpriseCertifyService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +25,9 @@ import java.util.List;
 @Service
 public class BreedingPlanServiceImpl extends ServiceImpl<BreedingPlanMapper, BreedingPlan> implements IBreedingPlanService {
 
+    @Resource
+    private IEnterpriseCertifyService enterpriseCertifyService;
+
     @Override
     public String addBreedingPlan(BreedingPlan breedingPlan) {
         // 检查批次ID是否已存在
@@ -30,6 +36,13 @@ public class BreedingPlanServiceImpl extends ServiceImpl<BreedingPlanMapper, Bre
         if (count(wrapper) > 0) {
             throw new ServiceException("育种批次ID已存在");
         }
+
+        String userId = LoginHelper.getUsername();
+        EnterpriseInfo enterpriseInfo = enterpriseCertifyService.queryByUserId(userId);
+        if (enterpriseInfo == null) {
+            throw new ServiceException("企业认证信息不存在");
+        }
+        breedingPlan.setEnterpriseId(enterpriseInfo.getEnterpriseId());
 
         // 生成计划ID
         String planId = "PLAN" + IdUtils.fastSimpleUUID().substring(0, 16).toUpperCase();
