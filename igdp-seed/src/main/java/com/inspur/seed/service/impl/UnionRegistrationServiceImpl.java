@@ -70,8 +70,9 @@ public class UnionRegistrationServiceImpl extends ServiceImpl<UnionInfoMapper, U
             unionInfo.setEnterpriseId(enterpriseId);
             unionInfo.setDataId(dataId);
             unionInfo.setCertificationStatus(1); // 直接设置为已注册（1=已通过）
-            unionInfo.setOperationTime(LocalDateTime.now());
-            unionInfo.setUserId(LoginHelper.getUsername());
+            unionInfo.setOperationTime(LocalDateTime.now()); // 登记时间
+            unionInfo.setUserId(LoginHelper.getUsername()); // 登记人代码
+            unionInfo.setRegisterOrgCode(LoginHelper.getDeptId() != null ? LoginHelper.getDeptId().toString() : null); // 登记机构代码
             unionInfo.setCreateBy(LoginHelper.getUsername());
             unionInfo.setCreateTime(LocalDateTime.now());
 
@@ -132,8 +133,9 @@ public class UnionRegistrationServiceImpl extends ServiceImpl<UnionInfoMapper, U
             unionInfo.setEnterpriseId(enterpriseId);
             unionInfo.setDataId(dataId);
             unionInfo.setCertificationStatus(-1); // 草稿状态
-            unionInfo.setOperationTime(LocalDateTime.now());
-            unionInfo.setUserId(LoginHelper.getUsername());
+            unionInfo.setOperationTime(LocalDateTime.now()); // 登记时间
+            unionInfo.setUserId(LoginHelper.getUsername()); // 登记人代码
+            unionInfo.setRegisterOrgCode(LoginHelper.getDeptId() != null ? LoginHelper.getDeptId().toString() : null); // 登记机构代码
             unionInfo.setCreateBy(LoginHelper.getUsername());
             unionInfo.setCreateTime(LocalDateTime.now());
 

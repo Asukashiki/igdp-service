@@ -147,9 +147,14 @@ public class UnionInfo extends BaseEntity {
     private Integer certificationStatus;
 
     /**
-     * 用户ID
+     * 用户ID（登记人代码）
      */
     private String userId;
+
+    /**
+     * 登记机构代码（行政区划ID）
+     */
+    private String registerOrgCode;
 
     /**
      * 驳回原因
