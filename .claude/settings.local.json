@@ -3,8 +3,8 @@
     "frontend-design@claude-code-plugins": true
   },
   "env": {
-    "ANTHROPIC_AUTH_TOKEN": "sk-Vbz66A9Vb37F50e4603DT3BLBkFJ5457eF23444045FD868A",
-    "ANTHROPIC_BASE_URL": "https://apic1.ohmycdn.com",
+    "ANTHROPIC_AUTH_TOKEN": "sk-SmPkF6Xb252A182F4969T3BLBKFJ6f96de06bF2E474597af",
+    "ANTHROPIC_BASE_URL": "https://api.ohmygpt.com",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-sonnet-4-5",
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet-4-5",

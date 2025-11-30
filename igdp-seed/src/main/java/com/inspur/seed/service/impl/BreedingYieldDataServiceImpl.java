@@ -1,0 +1,121 @@
+package com.inspur.seed.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.domain.dto.BreedingYieldDataDTO;
+import com.inspur.seed.domain.entity.BreedingYieldData;
+import com.inspur.seed.domain.vo.BreedingYieldDataVO;
+import com.inspur.seed.mapper.BreedingYieldDataMapper;
+import com.inspur.seed.service.IBreedingYieldDataService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 产量数据Service实现类
+ *
+ * @author igdp
+ * @date 2025-11-29
+ */
+@Service
+public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
+
+    @Autowired
+    private BreedingYieldDataMapper breedingYieldDataMapper;
+
+    @Override
+    public List<BreedingYieldDataVO> selectBreedingYieldDataList(BreedingYieldDataDTO dto) {
+        QueryWrapper<BreedingYieldData> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("deleted", "0");
+        queryWrapper.eq("status", "1");
+
+        // 育种批次ID
+        if (StrUtil.isNotBlank(dto.getBatchId())) {
+            queryWrapper.eq("batch_id", dto.getBatchId());
+        }
+
+        // 试验ID
+        if (StrUtil.isNotBlank(dto.getTrialId())) {
+            queryWrapper.eq("trial_id", dto.getTrialId());
+        }
+
+        // 地块编号模糊查询
+        if (StrUtil.isNotBlank(dto.getPlotId())) {
+            queryWrapper.like("plot_id", dto.getPlotId());
+        }
+
+        // 收获日期范围
+        if (dto.getHarvestDateStart() != null) {
+            queryWrapper.ge("harvest_date", dto.getHarvestDateStart());
+        }
+        if (dto.getHarvestDateEnd() != null) {
+            queryWrapper.le("harvest_date", dto.getHarvestDateEnd());
+        }
+
+        queryWrapper.orderByDesc("created_time");
+
+        List<BreedingYieldData> list = breedingYieldDataMapper.selectList(queryWrapper);
+        return list.stream().map(this::convertToVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public BreedingYieldDataVO selectBreedingYieldDataById(String id) {
+        BreedingYieldData entity = breedingYieldDataMapper.selectById(id);
+        return entity != null ? convertToVO(entity) : null;
+    }
+
+    @Override
+    public int insertBreedingYieldData(BreedingYieldDataDTO dto) {
+        BreedingYieldData entity = new BreedingYieldData();
+        BeanUtil.copyProperties(dto, entity);
+
+        entity.setStatus("1");
+        entity.setDeleted("0");
+        entity.setCreatedTime(LocalDateTime.now());
+        // TODO: 从当前登录用户获取创建人信息
+        entity.setCreatedBy(SecurityUtils.getUsername());
+//         entity.setCreatedBy(currentUserId);
+//         entity.setCreatedByName(currentUserName);
+
+        return breedingYieldDataMapper.insert(entity);
+    }
+
+    @Override
+    public int updateBreedingYieldData(BreedingYieldDataDTO dto) {
+        BreedingYieldData entity = new BreedingYieldData();
+        BeanUtil.copyProperties(dto, entity);
+
+        entity.setUpdatedTime(LocalDateTime.now());
+        // TODO: 从当前登录用户获取更新人信息
+        // entity.setUpdatedBy(currentUserId);
+
+        return breedingYieldDataMapper.updateById(entity);
+    }
+
+    @Override
+    public int deleteBreedingYieldDataByIds(String[] ids) {
+        // 逻辑删除
+        return Arrays.stream(ids).mapToInt(id -> {
+            BreedingYieldData entity = new BreedingYieldData();
+            entity.setId(id);
+            entity.setDeleted("1");
+            entity.setUpdatedTime(LocalDateTime.now());
+            return breedingYieldDataMapper.updateById(entity);
+        }).sum();
+    }
+
+    /**
+     * 实体转VO
+     */
+    private BreedingYieldDataVO convertToVO(BreedingYieldData entity) {
+        BreedingYieldDataVO vo = new BreedingYieldDataVO();
+        BeanUtil.copyProperties(entity, vo);
+        return vo;
+    }
+}

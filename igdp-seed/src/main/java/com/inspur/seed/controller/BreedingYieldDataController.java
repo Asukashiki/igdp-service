@@ -1,0 +1,67 @@
+package com.inspur.seed.controller;
+
+import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.domain.dto.BreedingYieldDataDTO;
+import com.inspur.seed.domain.vo.BreedingYieldDataVO;
+import com.inspur.seed.service.IBreedingYieldDataService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * 产量数据Controller
+ *
+ * @author igdp
+ * @date 2025-11-29
+ */
+@RestController
+@RequestMapping("/seed/yield-data")
+public class BreedingYieldDataController {
+
+    @Autowired
+    private IBreedingYieldDataService breedingYieldDataService;
+
+    /**
+     * 查询产量数据列表
+     */
+    @PostMapping("/list")
+    public AjaxResult list(@RequestBody BreedingYieldDataDTO dto) {
+        List<BreedingYieldDataVO> list = breedingYieldDataService.selectBreedingYieldDataList(dto);
+        return AjaxResult.success(list);
+    }
+
+    /**
+     * 获取产量数据详细信息
+     */
+    @GetMapping("/{id}")
+    public AjaxResult getInfo(@PathVariable String id) {
+        BreedingYieldDataVO vo = breedingYieldDataService.selectBreedingYieldDataById(id);
+        return AjaxResult.success(vo);
+    }
+
+    /**
+     * 新增产量数据
+     */
+    @PostMapping("/add")
+    public AjaxResult add(@RequestBody BreedingYieldDataDTO dto) {
+        return AjaxResult.success(breedingYieldDataService.insertBreedingYieldData(dto));
+    }
+
+    /**
+     * 修改产量数据
+     */
+    @PostMapping("/edit")
+    public AjaxResult edit(@RequestBody BreedingYieldDataDTO dto) {
+        return AjaxResult.success(breedingYieldDataService.updateBreedingYieldData(dto));
+    }
+
+    /**
+     * 删除产量数据
+     */
+    @PostMapping("/delete")
+    public AjaxResult remove(@RequestBody String[] ids) {
+        return AjaxResult.success(breedingYieldDataService.deleteBreedingYieldDataByIds(ids));
+    }
+}
