@@ -212,7 +212,14 @@ public class VarietyAuditTaskVO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate approvalDate;
-    
+
+    /**
+     * 创建时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;
+
+
     /**
      * 认证文件存储路径
      */

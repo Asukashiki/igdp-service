@@ -44,6 +44,13 @@ public class BreedingMaterialServiceImpl extends ServiceImpl<BreedingMaterialMap
         breedingMaterial.setCreateBy(LoginHelper.getUsername());
         breedingMaterial.setCreateTime(LocalDateTime.now());
 
+        //设置操作人
+        breedingMaterial.setOperator(LoginHelper.getUsername());
+        //设置操作机构
+        breedingMaterial.setOperationOrg(LoginHelper.getUsername());
+
+
+
         // 保存育种材料登记
         save(breedingMaterial);
 

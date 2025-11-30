@@ -55,6 +55,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="rejectReason"             column="reject_reason"              />
         <result property="auditor"                  column="auditor"                    />
         <result property="auditTime"                column="audit_time"                 />
+        <result property="createTime"                column="create_time"                 />
     </resultMap>
 
     <!-- 查询审核任务列表 -->
@@ -98,7 +99,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             va.audit_opinion,
             va.reject_reason,
             va.auditor,
-            va.audit_time
+            va.audit_time,
+            vr.create_time
         FROM
             variety_registration vr
         LEFT JOIN
@@ -165,7 +167,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             va.audit_opinion,
             va.reject_reason,
             va.auditor,
-            va.audit_time
+            va.audit_time,
+            vr.create_time
         FROM
             variety_registration vr
         LEFT JOIN

@@ -223,7 +223,7 @@ public class VarietyAuditController extends BaseController {
         startPage();
         
         // 查询备案状态为0（审核中）的品种登记
-        List<VarietyRegistration> list = varietyRegistrationService.queryRegistrationList(varietyName, enterpriseName, null, null);
+        List<VarietyRegistration> list = varietyRegistrationService.queryRegistrationList(varietyName, enterpriseName, "0");
 
         // 过滤出审核中的记录
         list.removeIf(item -> item.getRecordStatus() != 0);

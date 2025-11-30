@@ -7,6 +7,7 @@ import com.inspur.agriculture.input.domain.supplier.enums.CertStatusEnum;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApplyDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertApproveDTO;
 import com.inspur.agriculture.input.dto.supplier.SupplierCertQueryDTO;
+import com.inspur.agriculture.input.dto.supplier.SupplierCertUpdateDTO;
 import com.inspur.agriculture.input.mapper.oauth.PubUserRoleMapper;
 import com.inspur.agriculture.input.mapper.supplier.SupplierCertMapper;
 import com.inspur.agriculture.input.service.supplier.ISupplierCertService;
@@ -175,7 +176,7 @@ public class SupplierCertServiceImpl implements ISupplierCertService {
      * @return 认证状态
      */
     @Override
-    public CertStatusVO getCertStatus(Long userId) {
+    public CertStatusVO getCertStatus(String userId) {
         SupplierCert cert = supplierCertMapper.selectCertByUserId(userId);
         if (cert == null) {
             return null;
@@ -223,7 +224,69 @@ public class SupplierCertServiceImpl implements ISupplierCertService {
      * @return 认证详情
      */
     @Override
-    public SupplierCert getCertById(Long certId) {
+    public SupplierCert getCertById(String certId) {
         return supplierCertMapper.selectCertById(certId);
+    }
+
+    /**
+     * 根据用户ID查询认证信息
+     *
+     * @param userId 用户ID
+     * @return 认证详情
+     */
+    @Override
+    public SupplierCert getCertByUserId(String userId) {
+        return supplierCertMapper.selectCertByUserId(userId);
+    }
+
+    /**
+     * 更新供应商认证信息
+     *
+     * @param dto 更新数据
+     * @return 更新结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int updateCert(SupplierCertUpdateDTO dto) {
+        // 1. 校验认证记录是否存在
+        SupplierCert cert = supplierCertMapper.selectById(dto.getCertId());
+        if (cert == null || "2".equals(cert.getDelFlag())) {
+            throw new ServiceException("认证记录不存在");
+        }
+
+        // 2. 只允许修改未通过或审核中的认证信息
+        if (CertStatusEnum.PASSED.getCode().equals(cert.getStatus())) {
+            throw new ServiceException("已通过审核的认证信息不允许修改，如需变更请联系管理员");
+        }
+
+        // 3. 如果修改了统一社会信用代码，需要校验唯一性
+        if (!cert.getCreditCode().equals(dto.getCreditCode())) {
+            LambdaQueryWrapper<SupplierCert> codeWrapper = new LambdaQueryWrapper<>();
+            codeWrapper.eq(SupplierCert::getCreditCode, dto.getCreditCode())
+                       .ne(SupplierCert::getCertId, dto.getCertId())
+                       .eq(SupplierCert::getDelFlag, "0");
+            SupplierCert existCode = supplierCertMapper.selectOne(codeWrapper);
+            if (existCode != null) {
+                throw new ServiceException("该统一社会信用代码已存在");
+            }
+        }
+
+        // 4. 更新认证信息
+        BeanUtils.copyProperties(dto, cert);
+        cert.setUpdateTime(DateUtils.getNowDate());
+        try {
+            String username = SecurityUtils.getUsername();
+            cert.setUpdatePeople(username);
+        } catch (Exception e) {
+            cert.setUpdatePeople("system");
+        }
+
+        // 5. 如果之前是未通过状态，更新后重新设置为审核中
+        if (CertStatusEnum.UN_PASSED.getCode().equals(cert.getStatus())) {
+            cert.setStatus(CertStatusEnum.AUDITING.getCode());
+            cert.setRejectReason(null);
+        }
+
+        return supplierCertMapper.updateById(cert);
     }
 }
