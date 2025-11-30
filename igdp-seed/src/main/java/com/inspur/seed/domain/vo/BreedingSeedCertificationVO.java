@@ -64,6 +64,48 @@ public class BreedingSeedCertificationVO implements Serializable {
     private String recordStatus;
 
     /**
+     * 审核结果
+     */
+    private String auditResult;
+
+    /**
+     * 审核意见
+     */
+    private String auditComment;
+
+    /**
+     * 审核时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date auditTime;
+
+    /**
+     * 审核人
+     */
+    private String auditor;
+
+    /**
+     * 审核机构ID
+     */
+    private String auditorOrgId;
+
+    /**
+     * 审核机构名称
+     */
+    private String auditorOrgName;
+
+    /**
+     * 打印次数
+     */
+    private Integer printCount;
+
+    /**
+     * 最后打印时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date lastPrintTime;
+
+    /**
      * 品种信息
      */
     private BreedingSeedVarietyInfoVO varietyInfo;

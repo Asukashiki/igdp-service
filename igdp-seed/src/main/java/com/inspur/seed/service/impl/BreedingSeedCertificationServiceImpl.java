@@ -5,6 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.dto.BreedingSeedCertificationDTO;
 import com.inspur.seed.domain.entity.*;
 import com.inspur.seed.domain.vo.*;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -233,8 +236,18 @@ public class BreedingSeedCertificationServiceImpl extends ServiceImpl<BreedingSe
             if (StrUtil.isNotBlank(dto.getVarietyName())) {
                 wrapper.like("variety_name", dto.getVarietyName());
             }
+            if (StrUtil.isNotBlank(dto.getRecordStatus())) {
+                wrapper.eq("record_status", dto.getRecordStatus());
+            }
             if (dto.getRecordDate() != null) {
                 wrapper.eq("record_date", dto.getRecordDate());
+            }
+            // 日期范围查询
+            if (dto.getStartDate() != null) {
+                wrapper.ge("record_date", dto.getStartDate());
+            }
+            if (dto.getEndDate() != null) {
+                wrapper.le("record_date", dto.getEndDate());
             }
         }
 
@@ -312,5 +325,117 @@ public class BreedingSeedCertificationServiceImpl extends ServiceImpl<BreedingSe
         BreedingSeedSupervision supervision = new BreedingSeedSupervision();
         supervision.setDelFlag("2");
         supervisionMapper.update(supervision, supervisionWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int submitForAudit(String dataId) {
+        BreedingSeedCertification entity = this.getById(dataId);
+        if (entity == null) {
+            throw new ServiceException("数据不存在");
+        }
+
+        // 只有草稿状态才能提交审核
+        if (!"draft".equals(entity.getRecordStatus())) {
+            throw new ServiceException("只有草稿状态才能提交审核");
+        }
+
+        // 更新状态为待审核
+        entity.setRecordStatus("pending");
+        entity.setAuditResult("pending");
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int approveApplication(BreedingSeedCertificationDTO dto) {
+        BreedingSeedCertification entity = this.getById(dto.getDataId());
+        if (entity == null) {
+            throw new ServiceException("数据不存在");
+        }
+
+        // 只有待审核状态才能审核
+        if (!"pending".equals(entity.getRecordStatus())) {
+            throw new ServiceException("只有待审核状态才能进行审核");
+        }
+
+        // 更新审核信息
+        entity.setRecordStatus("approved");
+        entity.setAuditResult("approved");
+        entity.setAuditComment(dto.getAuditComment());
+        entity.setAuditTime(new Date());
+
+        // 获取当前登录用户信息
+        try {
+            entity.setAuditor(SecurityUtils.getUsername());
+            // 如果需要设置审核机构,可以从用户信息中获取
+            // entity.setAuditorOrgId(SecurityUtils.getUserOrgId());
+            // entity.setAuditorOrgName(SecurityUtils.getUserOrgName());
+        } catch (Exception e) {
+            // 如果获取用户信息失败,使用默认值或跳过
+            entity.setAuditor("系统");
+        }
+
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int rejectApplication(BreedingSeedCertificationDTO dto) {
+        BreedingSeedCertification entity = this.getById(dto.getDataId());
+        if (entity == null) {
+            throw new ServiceException("数据不存在");
+        }
+
+        // 只有待审核状态才能审核
+        if (!"pending".equals(entity.getRecordStatus())) {
+            throw new ServiceException("只有待审核状态才能进行审核");
+        }
+
+        // 更新审核信息
+        entity.setRecordStatus("rejected");
+        entity.setAuditResult("rejected");
+        entity.setAuditComment(dto.getAuditComment());
+        entity.setAuditTime(new Date());
+
+        // 获取当前登录用户信息
+        try {
+            entity.setAuditor(SecurityUtils.getUsername());
+        } catch (Exception e) {
+            entity.setAuditor("系统");
+        }
+
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    public BreedingSeedCertificationVO getCertificateLabel(String dataId) {
+        // 获取完整的认证数据
+        BreedingSeedCertificationVO vo = selectBreedingSeedCertificationById(dataId);
+        if (vo == null) {
+            throw new ServiceException("数据不存在");
+        }
+
+        // 只有审核通过的才能打印标签
+        if (!"approved".equals(vo.getRecordStatus())) {
+            throw new ServiceException("只有审核通过的认证才能打印标签");
+        }
+
+        return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int recordPrintLog(String dataId) {
+        BreedingSeedCertification entity = this.getById(dataId);
+        if (entity == null) {
+            throw new ServiceException("数据不存在");
+        }
+
+        // 记录打印次数和时间
+        entity.setPrintCount(entity.getPrintCount() == null ? 1 : entity.getPrintCount() + 1);
+        entity.setLastPrintTime(new Date());
+
+        return this.updateById(entity) ? 1 : 0;
     }
 }

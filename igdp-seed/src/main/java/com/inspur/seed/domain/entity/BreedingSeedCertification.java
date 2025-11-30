@@ -69,6 +69,46 @@ public class BreedingSeedCertification extends BaseEntity {
     private String recordStatus;
 
     /**
+     * 审核结果(pending-待审核 approved-已通过 rejected-已驳回)
+     */
+    private String auditResult;
+
+    /**
+     * 审核意见
+     */
+    private String auditComment;
+
+    /**
+     * 审核时间
+     */
+    private Date auditTime;
+
+    /**
+     * 审核人
+     */
+    private String auditor;
+
+    /**
+     * 审核机构ID
+     */
+    private String auditorOrgId;
+
+    /**
+     * 审核机构名称
+     */
+    private String auditorOrgName;
+
+    /**
+     * 打印次数
+     */
+    private Integer printCount;
+
+    /**
+     * 最后打印时间
+     */
+    private Date lastPrintTime;
+
+    /**
      * 删除标志(0正常 2删除)
      */
     private String delFlag;

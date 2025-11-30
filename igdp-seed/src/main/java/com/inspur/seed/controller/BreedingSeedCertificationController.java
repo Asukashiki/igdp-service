@@ -78,4 +78,44 @@ public class BreedingSeedCertificationController {
     public AjaxResult delete(@RequestBody String[] dataIds) {
         return AjaxResult.success(breedingSeedCertificationService.deleteBreedingSeedCertificationByIds(dataIds));
     }
+
+    /**
+     * 提交审核
+     */
+    @PostMapping("/submit/{dataId}")
+    public AjaxResult submitForAudit(@PathVariable String dataId) {
+        return AjaxResult.success(breedingSeedCertificationService.submitForAudit(dataId));
+    }
+
+    /**
+     * 审核通过
+     */
+    @PostMapping("/approve")
+    public AjaxResult approve(@RequestBody BreedingSeedCertificationDTO dto) {
+        return AjaxResult.success(breedingSeedCertificationService.approveApplication(dto));
+    }
+
+    /**
+     * 审核驳回
+     */
+    @PostMapping("/reject")
+    public AjaxResult reject(@RequestBody BreedingSeedCertificationDTO dto) {
+        return AjaxResult.success(breedingSeedCertificationService.rejectApplication(dto));
+    }
+
+    /**
+     * 获取认证标签数据
+     */
+    @GetMapping("/certificate-label/{dataId}")
+    public AjaxResult getCertificateLabel(@PathVariable String dataId) {
+        return AjaxResult.success(breedingSeedCertificationService.getCertificateLabel(dataId));
+    }
+
+    /**
+     * 记录打印日志
+     */
+    @PostMapping("/record-print/{dataId}")
+    public AjaxResult recordPrint(@PathVariable String dataId) {
+        return AjaxResult.success(breedingSeedCertificationService.recordPrintLog(dataId));
+    }
 }

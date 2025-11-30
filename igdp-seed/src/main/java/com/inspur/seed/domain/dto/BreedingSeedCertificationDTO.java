@@ -64,6 +64,28 @@ public class BreedingSeedCertificationDTO implements Serializable {
     private String recordStatus;
 
     /**
+     * 审核结果
+     */
+    private String auditResult;
+
+    /**
+     * 审核意见
+     */
+    private String auditComment;
+
+    /**
+     * 查询开始日期
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date startDate;
+
+    /**
+     * 查询结束日期
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date endDate;
+
+    /**
      * 品种信息
      */
     private BreedingSeedVarietyInfoDTO varietyInfo;

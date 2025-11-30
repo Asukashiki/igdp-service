@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-IgdpApplication<igdp-admin>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.inspur.IgdpApplication",
+            "projectName": "igdp-admin",
+            "args": "",
+            "vmArgs": "-Dfile.encoding=UTF-8",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

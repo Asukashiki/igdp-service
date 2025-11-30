@@ -64,4 +64,44 @@ public interface IBreedingSeedCertificationService extends IService<BreedingSeed
      * @return 结果
      */
     int deleteBreedingSeedCertificationByIds(String[] dataIds);
+
+    /**
+     * 提交审核
+     *
+     * @param dataId 数据ID
+     * @return 结果
+     */
+    int submitForAudit(String dataId);
+
+    /**
+     * 审核通过
+     *
+     * @param dto 审核信息(dataId, auditComment)
+     * @return 结果
+     */
+    int approveApplication(BreedingSeedCertificationDTO dto);
+
+    /**
+     * 审核驳回
+     *
+     * @param dto 审核信息(dataId, auditComment)
+     * @return 结果
+     */
+    int rejectApplication(BreedingSeedCertificationDTO dto);
+
+    /**
+     * 获取认证标签数据
+     *
+     * @param dataId 数据ID
+     * @return 认证标签数据
+     */
+    BreedingSeedCertificationVO getCertificateLabel(String dataId);
+
+    /**
+     * 记录打印日志
+     *
+     * @param dataId 数据ID
+     * @return 结果
+     */
+    int recordPrintLog(String dataId);
 }
