@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.PlotInfoMapper">
+
+    <resultMap type="com.inspur.seed.domain.PlotInfo" id="PlotInfoResult">
+        <id property="groundId" column="ground_id"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="trialId" column="trial_id"/>
+        <result property="trialFieldName" column="trial_field_name"/>
+        <result property="researchCenterId" column="research_center_id"/>
+        <result property="programId" column="program_id"/>
+        <result property="subProgramId" column="sub_program_id"/>
+        <result property="researchFieldId" column="research_field_id"/>
+        <result property="region" column="region"/>
+        <result property="zone" column="zone"/>
+        <result property="woreda" column="woreda"/>
+        <result property="kebele" column="kebele"/>
+        <result property="agriculturalEcoZone" column="agricultural_eco_zone"/>
+        <result property="gpsLocation" column="gps_location"/>
+        <result property="startDate" column="start_date"/>
+        <result property="season" column="season"/>
+        <result property="activityCode" column="activity_code"/>
+        <result property="kpiCode" column="kpi_code"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="cropType" column="crop_type"/>
+        <result property="varietyName" column="variety_name"/>
+        <result property="sowingCount" column="sowing_count"/>
+    </resultMap>
+
+    <resultMap type="com.inspur.seed.domain.PlotInfo" id="PlotInfoDetailResult" extends="PlotInfoResult">
+        <collection property="sowingList" ofType="com.inspur.seed.domain.SowingInfo">
+            <id property="sowingId" column="sowing_id"/>
+            <result property="groundId" column="sowing_ground_id"/>
+            <result property="seedQuantity" column="seed_quantity"/>
+            <result property="sowingMethod" column="sowing_method"/>
+            <result property="sowingTime" column="sowing_time"/>
+            <result property="createTime" column="sowing_create_time"/>
+        </collection>
+    </resultMap>
+
+    <sql id="selectPlotInfoVo">
+        select p.ground_id, p.batch_id, p.trial_id, p.trial_field_name,
+               p.research_center_id, p.program_id, p.sub_program_id, p.research_field_id,
+               p.region, p.zone, p.woreda, p.kebele, p.agricultural_eco_zone,
+               p.gps_location, p.start_date, p.season, p.activity_code, p.kpi_code,
+               p.create_time, p.update_time, p.create_by, p.update_by, p.is_deleted,
+               b.crop_type, b.variety_name,
+               (select count(1) from sowing_info s where s.ground_id = p.ground_id and s.is_deleted = 0) as sowing_count
+        from plot_info p
+        left join breeding_batch b on p.batch_id = b.batch_id and b.is_deleted = 0
+    </sql>
+
+    <select id="selectPlotInfoList" parameterType="com.inspur.seed.domain.PlotInfo" resultMap="PlotInfoResult">
+        <include refid="selectPlotInfoVo"/>
+        <where>
+            p.is_deleted = 0
+            <if test="batchId != null and batchId != ''">
+                AND p.batch_id = #{batchId}
+            </if>
+            <if test="trialId != null and trialId != ''">
+                AND p.trial_id = #{trialId}
+            </if>
+            <if test="trialFieldName != null and trialFieldName != ''">
+                AND p.trial_field_name like concat('%', #{trialFieldName}, '%')
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND b.crop_type = #{cropType}
+            </if>
+            <if test="varietyName != null and varietyName != ''">
+                AND b.variety_name like concat('%', #{varietyName}, '%')
+            </if>
+        </where>
+        order by p.create_time desc
+    </select>
+
+    <select id="selectPlotInfoById" parameterType="String" resultMap="PlotInfoDetailResult">
+        select p.ground_id, p.batch_id, p.trial_id, p.trial_field_name,
+               p.research_center_id, p.program_id, p.sub_program_id, p.research_field_id,
+               p.region, p.zone, p.woreda, p.kebele, p.agricultural_eco_zone,
+               p.gps_location, p.start_date, p.season, p.activity_code, p.kpi_code,
+               p.create_time, p.update_time, p.create_by, p.update_by, p.is_deleted,
+               b.crop_type, b.variety_name,
+               s.sowing_id, s.ground_id as sowing_ground_id, s.seed_quantity, s.sowing_method,
+               s.sowing_time, s.create_time as sowing_create_time
+        from plot_info p
+        left join breeding_batch b on p.batch_id = b.batch_id and b.is_deleted = 0
+        left join sowing_info s on p.ground_id = s.ground_id and s.is_deleted = 0
+        where p.ground_id = #{groundId} and p.is_deleted = 0
+    </select>
+
+    <select id="selectPlotsByTrialId" parameterType="String" resultMap="PlotInfoResult">
+        select p.ground_id, p.trial_field_name, p.gps_location
+        from plot_info p
+        inner join trial_plot_relation r on p.ground_id = r.ground_id and r.is_deleted = 0
+        where r.trial_id = #{trialId} and p.is_deleted = 0
+    </select>
+
+    <select id="selectPlotsByBatchId" parameterType="String" resultMap="PlotInfoResult">
+        select ground_id, batch_id, trial_field_name, gps_location, start_date
+        from plot_info
+        where batch_id = #{batchId} and is_deleted = 0
+        order by create_time desc
+    </select>
+
+</mapper>

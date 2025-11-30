@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.AgronomicTraitMapper">
+
+    <resultMap type="com.inspur.seed.domain.AgronomicTrait" id="AgronomicTraitResult">
+        <id property="traitId" column="trait_id"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="trialId" column="trial_id"/>
+        <result property="recordTime" column="record_time"/>
+        <result property="plantHeightCm" column="plant_height_cm"/>
+        <result property="tillerCount" column="tiller_count"/>
+        <result property="spikeLengthCm" column="spike_length_cm"/>
+        <result property="daysToEmergence" column="days_to_emergence"/>
+        <result property="daysToTillering" column="days_to_tillering"/>
+        <result property="daysToHeading" column="days_to_heading"/>
+        <result property="photoUrl" column="photo_url"/>
+        <result property="remark" column="remarks"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="cropType" column="crop_type"/>
+        <result property="varietyName" column="variety_name"/>
+    </resultMap>
+
+    <sql id="selectAgronomicTraitVo">
+        select a.trait_id, a.batch_id, a.trial_id, a.record_time,
+               a.plant_height_cm, a.tiller_count, a.spike_length_cm,
+               a.days_to_emergence, a.days_to_tillering, a.days_to_heading,
+               a.photo_url, a.remarks, a.create_time, a.update_time,
+               a.create_by, a.update_by, a.is_deleted,
+               b.crop_type, b.variety_name
+        from agronomic_trait a
+        left join breeding_batch b on a.batch_id = b.batch_id and b.is_deleted = 0
+    </sql>
+
+    <select id="selectAgronomicTraitList" parameterType="com.inspur.seed.domain.AgronomicTrait" resultMap="AgronomicTraitResult">
+        <include refid="selectAgronomicTraitVo"/>
+        <where>
+            a.is_deleted = 0
+            <if test="batchId != null and batchId != ''">
+                AND a.batch_id = #{batchId}
+            </if>
+            <if test="trialId != null and trialId != ''">
+                AND a.trial_id = #{trialId}
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND b.crop_type = #{cropType}
+            </if>
+            <if test="varietyName != null and varietyName != ''">
+                AND b.variety_name like concat('%', #{varietyName}, '%')
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND a.record_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND a.record_time &lt;= #{endTime}
+            </if>
+        </where>
+        order by a.record_time desc, a.create_time desc
+    </select>
+
+    <select id="selectAgronomicTraitById" parameterType="String" resultMap="AgronomicTraitResult">
+        <include refid="selectAgronomicTraitVo"/>
+        where a.trait_id = #{traitId} and a.is_deleted = 0
+    </select>
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.SowingInfoMapper">
+
+    <resultMap type="com.inspur.seed.domain.SowingInfo" id="SowingInfoResult">
+        <id property="sowingId" column="sowing_id"/>
+        <result property="groundId" column="ground_id"/>
+        <result property="seedQuantity" column="seed_quantity"/>
+        <result property="sowingMethod" column="sowing_method"/>
+        <result property="sowingTime" column="sowing_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <select id="selectSowingListByGroundId" parameterType="String" resultMap="SowingInfoResult">
+        select sowing_id, ground_id, seed_quantity, sowing_method, sowing_time, create_time, update_time
+        from sowing_info
+        where ground_id = #{groundId} and is_deleted = 0
+        order by sowing_time
+    </select>
+
+    <update id="deleteByGroundId" parameterType="String">
+        update sowing_info set is_deleted = 1 where ground_id = #{groundId}
+    </update>
+
+    <insert id="batchInsert" parameterType="list">
+        insert into sowing_info (sowing_id, ground_id, seed_quantity, sowing_method, sowing_time, create_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.sowingId}, #{item.groundId}, #{item.seedQuantity}, #{item.sowingMethod}, #{item.sowingTime}, #{item.createTime})
+        </foreach>
+    </insert>
+
+</mapper>
