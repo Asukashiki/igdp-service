@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.ose.OseInfoMapper">
+
+    <resultMap id="OseInfoVOResult" type="com.inspur.seed.vo.ose.OseInfoVO">
+        <id property="oseId" column="ose_id"/>
+        <result property="oseCode" column="ose_code"/>
+        <result property="oseName" column="ose_name"/>
+        <result property="location" column="location"/>
+        <result property="regionCode" column="region_code"/>
+        <result property="regionName" column="region_name"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactNumber" column="contact_number"/>
+        <result property="oseStatus" column="ose_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectOseVo">
+        SELECT
+            o.ose_id,
+            o.ose_code,
+            o.ose_name,
+            o.location,
+            o.region_code,
+            o.region_name,
+            o.contact_name,
+            o.contact_number,
+            o.ose_status,
+            o.create_time,
+            o.update_time
+        FROM ose_info o
+    </sql>
+
+    <select id="selectOseList" resultMap="OseInfoVOResult">
+        <include refid="selectOseVo"/>
+        <where>
+            <if test="query.oseName != null and query.oseName != ''">
+                AND o.ose_name LIKE CONCAT('%', #{query.oseName}, '%')
+            </if>
+            <if test="query.startTime != null">
+                AND DATE(o.create_time) &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND DATE(o.create_time) &lt;= #{query.endTime}
+            </if>
+        </where>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectOseById" resultMap="OseInfoVOResult">
+        <include refid="selectOseVo"/>
+        WHERE o.ose_id = #{oseId}
+    </select>
+
+</mapper>
