@@ -2,6 +2,7 @@ package com.inspur.seed.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.MessageUtils;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.TrialBasic;
 import com.inspur.seed.domain.TrialPlotRelation;
@@ -34,7 +35,10 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
 
     @Override
     public List<TrialBasic> selectTrialBasicList(TrialBasic trialBasic) {
-        return trialBasicMapper.selectTrialBasicList(trialBasic);
+        List<TrialBasic> list = trialBasicMapper.selectTrialBasicList(trialBasic);
+        // 为每个对象设置中文名称
+        list.forEach(this::setTranslatedNames);
+        return list;
     }
 
     @Override
@@ -44,6 +48,8 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
             // 查询关联地块ID列表
             List<String> plotIds = trialPlotRelationMapper.selectPlotIdsByTrialId(trialId);
             trialBasic.setPlotIds(plotIds);
+            // 设置翻译名称
+            setTranslatedNames(trialBasic);
         }
         return trialBasic;
     }
@@ -105,11 +111,11 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
             // 删除关联关系
             trialPlotRelationMapper.deleteByTrialId(trialId);
 
-            // 删除试验信息
-            TrialBasic trialBasic = new TrialBasic();
-            trialBasic.setTrialId(trialId);
-            trialBasic.setIsDeleted(1);
-            count += trialBasicMapper.updateById(trialBasic);
+            // 删除试验信息 - 使用deleteById方法，让@TableLogic自动处理逻辑删除
+            boolean success = trialBasicMapper.deleteById(trialId) > 0;
+            if (success) {
+                count++;
+            }
         }
         return count;
     }
@@ -139,5 +145,32 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         }
 
         trialPlotRelationMapper.batchInsert(relationList);
+    }
+
+    /**
+     * 设置翻译名称
+     */
+    private void setTranslatedNames(TrialBasic trialBasic) {
+        if (trialBasic == null) {
+            return;
+        }
+        // 设置季节名称（国际化）
+        trialBasic.setSeasonName(getSeasonName(trialBasic.getSeason()));
+    }
+
+    /**
+     * 获取季节名称（支持国际化）
+     */
+    private String getSeasonName(String season) {
+        if (season == null || season.isEmpty()) {
+            return "";
+        }
+        String messageKey = "season." + season.toLowerCase();
+        try {
+            return MessageUtils.message(messageKey);
+        } catch (Exception e) {
+            // 如果找不到对应的国际化key，返回原值
+            return season;
+        }
     }
 }

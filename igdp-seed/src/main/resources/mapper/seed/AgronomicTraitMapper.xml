@@ -14,7 +14,7 @@
         <result property="daysToTillering" column="days_to_tillering"/>
         <result property="daysToHeading" column="days_to_heading"/>
         <result property="photoUrl" column="photo_url"/>
-        <result property="remark" column="remarks"/>
+        <result property="remarks" column="remarks"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
@@ -22,6 +22,7 @@
         <result property="isDeleted" column="is_deleted"/>
         <result property="cropType" column="crop_type"/>
         <result property="varietyName" column="variety_name"/>
+        <result property="batchName" column="batch_name"/>
     </resultMap>
 
     <sql id="selectAgronomicTraitVo">
@@ -30,7 +31,7 @@
                a.days_to_emergence, a.days_to_tillering, a.days_to_heading,
                a.photo_url, a.remarks, a.create_time, a.update_time,
                a.create_by, a.update_by, a.is_deleted,
-               b.crop_type, b.variety_name
+               b.crop_type, b.variety_name, b.batch_name
         from agronomic_trait a
         left join breeding_batch b on a.batch_id = b.batch_id and b.is_deleted = 0
     </sql>

@@ -87,11 +87,11 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
             // 删除播种信息
             sowingInfoMapper.deleteByGroundId(groundId);
 
-            // 删除地块信息
-            PlotInfo plotInfo = new PlotInfo();
-            plotInfo.setGroundId(groundId);
-            plotInfo.setIsDeleted(1);
-            count += plotInfoMapper.updateById(plotInfo);
+            // 删除地块信息 - 使用removeById方法，让@TableLogic自动处理逻辑删除
+            boolean success = plotInfoMapper.deleteById(groundId) > 0;
+            if (success) {
+                count++;
+            }
         }
         return count;
     }

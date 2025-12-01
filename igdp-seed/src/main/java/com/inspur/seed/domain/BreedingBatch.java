@@ -45,6 +45,10 @@ public class BreedingBatch extends BaseEntity {
     @TableField("crop_type")
     private String cropType;
 
+    /** 作物类型名称（中文） */
+    @TableField(exist = false)
+    private String cropTypeName;
+
     /** 品种名称 */
     @TableField("variety_name")
     private String varietyName;
@@ -64,6 +68,10 @@ public class BreedingBatch extends BaseEntity {
     /** 繁育方法 */
     @TableField("breeding_method")
     private String breedingMethod;
+
+    /** 繁育方法名称（中文） */
+    @TableField(exist = false)
+    private String breedingMethodName;
 
     /** 血统 */
     @TableField("pedigree")
