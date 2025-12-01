@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.TrialPlotRelationMapper">
+
+    <resultMap type="com.inspur.seed.domain.TrialPlotRelation" id="TrialPlotRelationResult">
+        <id property="relationId" column="relation_id"/>
+        <result property="trialId" column="trial_id"/>
+        <result property="groundId" column="ground_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <update id="deleteByTrialId" parameterType="String">
+        update trial_plot_relation set is_deleted = 1 where trial_id = #{trialId}
+    </update>
+
+    <select id="selectPlotIdsByTrialId" parameterType="String" resultType="String">
+        select ground_id from trial_plot_relation
+        where trial_id = #{trialId} and is_deleted = 0
+    </select>
+
+    <insert id="batchInsert" parameterType="list">
+        insert into trial_plot_relation (relation_id, trial_id, ground_id, create_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.relationId}, #{item.trialId}, #{item.groundId}, #{item.createTime})
+        </foreach>
+    </insert>
+
+</mapper>

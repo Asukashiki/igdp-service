@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.BreedingBatchMapper">
+
+    <resultMap type="com.inspur.seed.domain.BreedingBatch" id="BreedingBatchResult">
+        <id property="dataId" column="data_id"/>
+        <result property="batchName" column="batch_name"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="batchTime" column="batch_time"/>
+        <result property="cropType" column="crop_type"/>
+        <result property="varietyName" column="variety_name"/>
+        <result property="species" column="species"/>
+        <result property="genus" column="genus"/>
+        <result property="family" column="family"/>
+        <result property="breedingMethod" column="breeding_method"/>
+        <result property="pedigree" column="pedigree"/>
+        <result property="yearOfDevelopment" column="year_of_development"/>
+        <result property="productPlace" column="product_place"/>
+        <result property="yield" column="yield"/>
+        <result property="personInCharge" column="person_in_charge"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="remark" column="remarks"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="isDeleted" column="is_deleted"/>
+    </resultMap>
+
+    <sql id="selectBreedingBatchVo">
+        select data_id, batch_name, batch_id, batch_time, crop_type, variety_name,
+               species, genus, family, breeding_method, pedigree, year_of_development,
+               product_place, yield, person_in_charge, start_date, end_date, remarks,
+               create_time, update_time, create_by, update_by, is_deleted
+        from breeding_batch
+    </sql>
+
+    <select id="selectBreedingBatchList" parameterType="com.inspur.seed.domain.BreedingBatch" resultMap="BreedingBatchResult">
+        <include refid="selectBreedingBatchVo"/>
+        <where>
+            is_deleted = 0
+            <if test="batchId != null and batchId != ''">
+                AND batch_id like concat('%', #{batchId}, '%')
+            </if>
+            <if test="batchName != null and batchName != ''">
+                AND batch_name like concat('%', #{batchName}, '%')
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND crop_type = #{cropType}
+            </if>
+            <if test="varietyName != null and varietyName != ''">
+                AND variety_name like concat('%', #{varietyName}, '%')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectByBatchId" parameterType="String" resultMap="BreedingBatchResult">
+        <include refid="selectBreedingBatchVo"/>
+        where batch_id = #{batchId} and is_deleted = 0
+    </select>
+
+    <select id="generateBatchId" parameterType="int" resultType="String">
+        SELECT CONCAT('BREED', #{year}, LPAD(IFNULL(MAX(CAST(SUBSTRING(batch_id, 11) AS UNSIGNED)), 0) + 1, 6, '0'))
+        FROM breeding_batch
+        WHERE batch_id LIKE CONCAT('BREED', #{year}, '%')
+    </select>
+
+    <select id="selectBatchOptions" resultMap="BreedingBatchResult">
+        select data_id, batch_id, batch_name, crop_type, variety_name
+        from breeding_batch
+        where is_deleted = 0
+        order by create_time desc
+    </select>
+
+</mapper>
