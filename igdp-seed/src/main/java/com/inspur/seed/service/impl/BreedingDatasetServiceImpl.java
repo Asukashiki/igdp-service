@@ -102,10 +102,10 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             data.put("list", voList);
             data.put("total", result.getTotal());
 
-            return AjaxResult.success("查询成功", data);
+            return AjaxResult.success("Query successful", data);
         } catch (Exception e) {
-            log.error("查询育种数据集列表失败", e);
-            return AjaxResult.error("查询失败:" + e.getMessage());
+            log.error("Failed to query breeding dataset list", e);
+            return AjaxResult.error("Query failed: " + e.getMessage());
         }
     }
 
@@ -114,14 +114,14 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
         try {
             BreedingDataset dataset = this.getById(id);
             if (dataset == null || "1".equals(dataset.getDeleted())) {
-                return AjaxResult.error("数据集不存在");
+                return AjaxResult.error("Dataset does not exist");
             }
 
             BreedingDatasetVO vo = BeanUtil.copyProperties(dataset, BreedingDatasetVO.class);
-            return AjaxResult.success("查询成功", vo);
+            return AjaxResult.success("Query successful", vo);
         } catch (Exception e) {
-            log.error("查询育种数据集详情失败", e);
-            return AjaxResult.error("查询失败:" + e.getMessage());
+            log.error("Failed to query breeding dataset details", e);
+            return AjaxResult.error("Query failed: " + e.getMessage());
         }
     }
 
@@ -131,7 +131,7 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
         try {
             // 验证必填字段
             if (StrUtil.isBlank(dto.getBatchId())) {
-                return AjaxResult.error("批次ID不能为空");
+                return AjaxResult.error("Batch ID cannot be empty");
             }
 
             BreedingDataset dataset = new BreedingDataset();
@@ -158,10 +158,10 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
 
             this.save(dataset);
 
-            return AjaxResult.success("新增成功", dataset.getId());
+            return AjaxResult.success("Added successfully", dataset.getId());
         } catch (Exception e) {
-            log.error("新增育种数据集失败", e);
-            return AjaxResult.error("新增失败:" + e.getMessage());
+            log.error("Failed to add breeding dataset", e);
+            return AjaxResult.error("Add failed: " + e.getMessage());
         }
     }
 
@@ -170,17 +170,17 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
     public AjaxResult updateDataset(BreedingDatasetDTO dto) {
         try {
             if (StrUtil.isBlank(dto.getId())) {
-                return AjaxResult.error("数据集ID不能为空");
+                return AjaxResult.error("Dataset ID cannot be empty");
             }
 
             BreedingDataset dataset = this.getById(dto.getId());
             if (dataset == null || "1".equals(dataset.getDeleted())) {
-                return AjaxResult.error("数据集不存在");
+                return AjaxResult.error("Dataset does not exist");
             }
 
             // 已审核通过或审核中的数据集不允许修改
             if (!"draft".equals(dataset.getDatasetStatus()) && !"rejected".equals(dataset.getDatasetStatus())) {
-                return AjaxResult.error("只有草稿或驳回状态的数据集可以修改");
+                return AjaxResult.error("Only draft or rejected datasets can be modified");
             }
 
             // 更新字段(允许修改批次ID和冗余字段)
@@ -206,10 +206,10 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
 
             this.updateById(dataset);
 
-            return AjaxResult.success("修改成功");
+            return AjaxResult.success("Modified successfully");
         } catch (Exception e) {
-            log.error("修改育种数据集失败", e);
-            return AjaxResult.error("修改失败:" + e.getMessage());
+            log.error("Failed to modify breeding dataset", e);
+            return AjaxResult.error("Modification failed: " + e.getMessage());
         }
     }
 
@@ -218,35 +218,35 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
     public AjaxResult deleteDataset(String[] ids) {
         try {
             if (ids == null || ids.length == 0) {
-                return AjaxResult.error("请选择要删除的数据集");
+                return AjaxResult.error("Please select datasets to delete");
             }
 
             List<BreedingDataset> datasets = this.listByIds(Arrays.asList(ids));
 
             if (datasets == null || datasets.isEmpty()) {
-                return AjaxResult.error("数据集不存在");
+                return AjaxResult.error("Dataset does not exist");
             }
 
             // 检查状态
             for (BreedingDataset dataset : datasets) {
                 if (!"draft".equals(dataset.getDatasetStatus()) && !"rejected".equals(dataset.getDatasetStatus())) {
-                    return AjaxResult.error("只能删除草稿或驳回状态的数据集,当前状态:" + dataset.getDatasetStatus());
+                    return AjaxResult.error("Only draft or rejected datasets can be deleted, current status: " + dataset.getDatasetStatus());
                 }
             }
 
             // 使用MyBatis-Plus的removeByIds方法进行逻辑删除
             boolean success = this.removeByIds(Arrays.asList(ids));
-            
+
             if (!success) {
-                log.error("删除数据集失败");
-                return AjaxResult.error("删除失败");
+                log.error("Failed to delete datasets");
+                return AjaxResult.error("Delete failed");
             }
 
-            log.info("成功删除 {} 条数据集记录", ids.length);
-            return AjaxResult.success("删除成功");
+            log.info("Successfully deleted {} dataset records", ids.length);
+            return AjaxResult.success("Deleted successfully");
         } catch (Exception e) {
-            log.error("删除育种数据集失败", e);
-            return AjaxResult.error("删除失败:" + e.getMessage());
+            log.error("Failed to delete breeding datasets", e);
+            return AjaxResult.error("Delete failed: " + e.getMessage());
         }
     }
 
@@ -256,19 +256,19 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
         try {
             BreedingDataset dataset = this.getById(id);
             if (dataset == null || "1".equals(dataset.getDeleted())) {
-                return AjaxResult.error("数据集不存在");
+                return AjaxResult.error("Dataset does not exist");
             }
 
             if (!"draft".equals(dataset.getDatasetStatus()) && !"rejected".equals(dataset.getDatasetStatus())) {
-                return AjaxResult.error("只有草稿或驳回状态的数据集可以提交");
+                return AjaxResult.error("Only draft or rejected datasets can be submitted");
             }
 
             // 检查数据完整性 - 放宽限制，允许暂无数据时提交
             // if (dataset.getLabTestCount() == null || dataset.getLabTestCount() == 0) {
-            //     return AjaxResult.error("至少需要一条实验室检测记录才能提交");
+            //     return AjaxResult.error("At least one laboratory test record is required for submission");
             // }
             // if (dataset.getYieldDataCount() == null || dataset.getYieldDataCount() == 0) {
-            //     return AjaxResult.error("至少需要一条产量数据记录才能提交");
+            //     return AjaxResult.error("At least one yield data record is required for submission");
             // }
 
             // 更新状态
@@ -300,8 +300,8 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             // 更新数据集
             boolean updateSuccess = this.updateById(dataset);
             if (!updateSuccess) {
-                log.error("更新数据集状态失败,数据集ID: {}", id);
-                return AjaxResult.error("提交失败:更新数据集状态失败");
+                log.error("Failed to update dataset status, dataset ID: {}", id);
+                return AjaxResult.error("Submission failed: Failed to update dataset status");
             }
 
             // 查询是否已存在审核记录
@@ -327,10 +327,10 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
 
                 int updateResult = auditMapper.updateById(existingAudit);
                 if (updateResult <= 0) {
-                    log.error("更新审核记录失败,数据集ID: {}", id);
-                    throw new RuntimeException("更新审核记录失败");
+                    log.error("Failed to update audit record, dataset ID: {}", id);
+                    throw new RuntimeException("Failed to update audit record");
                 }
-                log.info("数据集重新提交成功,数据集ID: {}, 审核记录ID: {}", id, existingAudit.getId());
+                log.info("Dataset resubmitted successfully, dataset ID: {}, audit record ID: {}", id, existingAudit.getId());
             } else {
                 // 首次提交,创建新的审核记录
                 BreedingDatasetAudit audit = new BreedingDatasetAudit();
@@ -352,16 +352,16 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
 
                 int auditInsertResult = auditMapper.insert(audit);
                 if (auditInsertResult <= 0) {
-                    log.error("创建审核记录失败,数据集ID: {}", id);
-                    throw new RuntimeException("创建审核记录失败");
+                    log.error("Failed to create audit record, dataset ID: {}", id);
+                    throw new RuntimeException("Failed to create audit record");
                 }
-                log.info("数据集首次提交成功,数据集ID: {}, 审核记录ID: {}", id, audit.getId());
+                log.info("Dataset submitted successfully, dataset ID: {}, audit record ID: {}", id, audit.getId());
             }
 
-            return AjaxResult.success("提交成功");
+            return AjaxResult.success("Submitted successfully");
         } catch (Exception e) {
-            log.error("提交育种数据集失败", e);
-            return AjaxResult.error("提交失败:" + e.getMessage());
+            log.error("Failed to submit breeding dataset", e);
+            return AjaxResult.error("Submission failed: " + e.getMessage());
         }
     }
 
@@ -369,7 +369,7 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
     public AjaxResult statisticsData(String batchId) {
         try {
             if (StrUtil.isBlank(batchId)) {
-                return AjaxResult.error("育种批次ID不能为空");
+                return AjaxResult.error("Breeding batch ID cannot be empty");
             }
 
             Map<String, Object> statistics = new HashMap<>();
@@ -388,10 +388,10 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             statistics.put("labTestCount", 0);
             statistics.put("yieldDataCount", 0);
 
-            return AjaxResult.success("统计成功", statistics);
+            return AjaxResult.success("Statistics generated successfully", statistics);
         } catch (Exception e) {
-            log.error("统计数据失败", e);
-            return AjaxResult.error("统计失败:" + e.getMessage());
+            log.error("Failed to generate statistics", e);
+            return AjaxResult.error("Statistics failed: " + e.getMessage());
         }
     }
 }

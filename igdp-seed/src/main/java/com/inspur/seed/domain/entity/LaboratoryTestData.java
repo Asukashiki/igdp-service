@@ -79,6 +79,11 @@ public class LaboratoryTestData extends BaseEntity {
     private String labReportFile;
 
     /**
+     * 实验室报告文件名称(原始文件名)
+     */
+    private String labReportFileName;
+
+    /**
      * 删除标志(0正常 2删除)
      */
     private String delFlag;

@@ -30,10 +30,30 @@ public class BreedingLicenseDTO implements Serializable {
     private String batchId;
 
     /**
+     * 育种批次名称(冗余字段,从数据集带过来)
+     */
+    private String batchName;
+
+    /**
      * 数据集ID
      */
     @NotBlank(message = "数据集ID不能为空")
     private String datasetId;
+
+    /**
+     * 数据集编号(冗余字段,从数据集带过来)
+     */
+    private String datasetCode;
+
+    /**
+     * 作物类型(冗余字段,从数据集带过来)
+     */
+    private String cropType;
+
+    /**
+     * 品种名称(冗余字段,从数据集带过来)
+     */
+    private String varietyName;
 
     /**
      * 许可证号

@@ -46,7 +46,7 @@ public class AgronomicTraitController extends BaseController {
     @PostMapping("/add")
     public AjaxResult add(@RequestBody AgronomicTrait agronomicTrait) {
         String traitId = agronomicTraitService.insertAgronomicTrait(agronomicTrait);
-        return AjaxResult.success("新增成功", traitId);
+        return AjaxResult.success("Added successfully", traitId);
     }
 
     /**
