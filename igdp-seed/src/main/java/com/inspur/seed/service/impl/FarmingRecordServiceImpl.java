@@ -1,6 +1,7 @@
 package com.inspur.seed.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import com.inspur.common.utils.MessageUtils;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.FarmingRecord;
 import com.inspur.seed.mapper.FarmingRecordMapper;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,12 +25,19 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
 
     @Override
     public List<FarmingRecord> selectFarmingRecordList(FarmingRecord farmingRecord) {
-        return farmingRecordMapper.selectFarmingRecordList(farmingRecord);
+        List<FarmingRecord> list = farmingRecordMapper.selectFarmingRecordList(farmingRecord);
+        // 为每个对象设置翻译名称
+        list.forEach(this::setTranslatedNames);
+        return list;
     }
 
     @Override
     public FarmingRecord selectFarmingRecordById(String farmingId) {
-        return farmingRecordMapper.selectFarmingRecordById(farmingId);
+        FarmingRecord record = farmingRecordMapper.selectFarmingRecordById(farmingId);
+        if (record != null) {
+            setTranslatedNames(record);
+        }
+        return record;
     }
 
     @Override
@@ -60,11 +67,39 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
     public int deleteFarmingRecordByIds(String[] farmingIds) {
         int count = 0;
         for (String farmingId : farmingIds) {
-            FarmingRecord record = new FarmingRecord();
-            record.setFarmingId(farmingId);
-            record.setIsDeleted(1);
-            count += farmingRecordMapper.updateById(record);
+            // 使用deleteById方法，让@TableLogic自动处理逻辑删除
+            boolean success = farmingRecordMapper.deleteById(farmingId) > 0;
+            if (success) {
+                count++;
+            }
         }
         return count;
+    }
+
+    /**
+     * 设置翻译名称
+     */
+    private void setTranslatedNames(FarmingRecord record) {
+        if (record == null) {
+            return;
+        }
+        // 设置操作类型名称（国际化）
+        record.setOperationTypeName(getOperationTypeName(record.getOperationType()));
+    }
+
+    /**
+     * 获取操作类型名称（支持国际化）
+     */
+    private String getOperationTypeName(String operationType) {
+        if (operationType == null || operationType.isEmpty()) {
+            return "";
+        }
+        String messageKey = "operation.type." + operationType.toLowerCase();
+        try {
+            return MessageUtils.message(messageKey);
+        } catch (Exception e) {
+            // 如果找不到对应的国际化key，返回原值
+            return operationType;
+        }
     }
 }

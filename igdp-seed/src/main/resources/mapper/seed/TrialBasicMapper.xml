@@ -28,6 +28,7 @@
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
         <result property="plotCount" column="plot_count"/>
+        <result property="batchName" column="batch_name"/>
     </resultMap>
 
     <resultMap type="com.inspur.seed.domain.TrialBasic" id="TrialBasicDetailResult" extends="TrialBasicResult">
@@ -44,8 +45,10 @@
                t.region, t.zone, t.woreda, t.kebele, t.agricultural_eco_zone,
                t.gps_location, t.start_date, t.activity_code, t.kpi_code, t.season,
                t.create_time, t.update_time, t.create_by, t.update_by, t.is_deleted,
+               b.batch_name,
                (select count(1) from trial_plot_relation r where r.trial_id = t.trial_id and r.is_deleted = 0) as plot_count
         from trial_basic t
+        left join breeding_batch b on t.batch_id = b.batch_id and b.is_deleted = 0
     </sql>
 
     <select id="selectTrialBasicList" parameterType="com.inspur.seed.domain.TrialBasic" resultMap="TrialBasicResult">
@@ -77,8 +80,10 @@
                t.region, t.zone, t.woreda, t.kebele, t.agricultural_eco_zone,
                t.gps_location, t.start_date, t.activity_code, t.kpi_code, t.season,
                t.create_time, t.update_time, t.create_by, t.update_by, t.is_deleted,
+               b.batch_name,
                p.ground_id, p.trial_field_name, p.gps_location as plot_gps_location
         from trial_basic t
+        left join breeding_batch b on t.batch_id = b.batch_id and b.is_deleted = 0
         left join trial_plot_relation r on t.trial_id = r.trial_id and r.is_deleted = 0
         left join plot_info p on r.ground_id = p.ground_id and p.is_deleted = 0
         where t.trial_id = #{trialId} and t.is_deleted = 0

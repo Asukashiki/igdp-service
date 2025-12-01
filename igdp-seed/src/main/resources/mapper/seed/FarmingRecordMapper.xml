@@ -19,42 +19,45 @@
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
+        <result property="batchName" column="batch_name"/>
     </resultMap>
 
     <sql id="selectFarmingRecordVo">
-        select farming_id, batch_id, trial_id, operation_type, operation_time,
-               fertilizer_type, fertilizer_amount, irrigation_method,
-               pesticide_type, pesticide_dosage, operation_desc,
-               create_time, update_time, create_by, update_by, is_deleted
-        from farming_record
+        select f.farming_id, f.batch_id, f.trial_id, f.operation_type, f.operation_time,
+               f.fertilizer_type, f.fertilizer_amount, f.irrigation_method,
+               f.pesticide_type, f.pesticide_dosage, f.operation_desc,
+               f.create_time, f.update_time, f.create_by, f.update_by, f.is_deleted,
+               b.batch_name
+        from farming_record f
+        left join breeding_batch b on f.batch_id = b.batch_id and b.is_deleted = 0
     </sql>
 
     <select id="selectFarmingRecordList" parameterType="com.inspur.seed.domain.FarmingRecord" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
         <where>
-            is_deleted = 0
+            f.is_deleted = 0
             <if test="batchId != null and batchId != ''">
-                AND batch_id = #{batchId}
+                AND f.batch_id = #{batchId}
             </if>
             <if test="trialId != null and trialId != ''">
-                AND trial_id = #{trialId}
+                AND f.trial_id = #{trialId}
             </if>
             <if test="operationType != null and operationType != ''">
-                AND operation_type = #{operationType}
+                AND f.operation_type = #{operationType}
             </if>
             <if test="startTime != null and startTime != ''">
-                AND operation_time &gt;= #{startTime}
+                AND f.operation_time &gt;= #{startTime}
             </if>
             <if test="endTime != null and endTime != ''">
-                AND operation_time &lt;= #{endTime}
+                AND f.operation_time &lt;= #{endTime}
             </if>
         </where>
-        order by operation_time desc, create_time desc
+        order by f.operation_time desc, f.create_time desc
     </select>
 
     <select id="selectFarmingRecordById" parameterType="String" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
-        where farming_id = #{farmingId} and is_deleted = 0
+        where f.farming_id = #{farmingId} and f.is_deleted = 0
     </select>
 
 </mapper>

@@ -29,6 +29,7 @@
         <result property="cropType" column="crop_type"/>
         <result property="varietyName" column="variety_name"/>
         <result property="sowingCount" column="sowing_count"/>
+        <result property="batchName" column="batch_name"/>
     </resultMap>
 
     <resultMap type="com.inspur.seed.domain.PlotInfo" id="PlotInfoDetailResult" extends="PlotInfoResult">
@@ -48,7 +49,7 @@
                p.region, p.zone, p.woreda, p.kebele, p.agricultural_eco_zone,
                p.gps_location, p.start_date, p.season, p.activity_code, p.kpi_code,
                p.create_time, p.update_time, p.create_by, p.update_by, p.is_deleted,
-               b.crop_type, b.variety_name,
+               b.crop_type, b.variety_name, b.batch_name,
                (select count(1) from sowing_info s where s.ground_id = p.ground_id and s.is_deleted = 0) as sowing_count
         from plot_info p
         left join breeding_batch b on p.batch_id = b.batch_id and b.is_deleted = 0
@@ -83,7 +84,7 @@
                p.region, p.zone, p.woreda, p.kebele, p.agricultural_eco_zone,
                p.gps_location, p.start_date, p.season, p.activity_code, p.kpi_code,
                p.create_time, p.update_time, p.create_by, p.update_by, p.is_deleted,
-               b.crop_type, b.variety_name,
+               b.crop_type, b.variety_name, b.batch_name,
                s.sowing_id, s.ground_id as sowing_ground_id, s.seed_quantity, s.sowing_method,
                s.sowing_time, s.create_time as sowing_create_time
         from plot_info p

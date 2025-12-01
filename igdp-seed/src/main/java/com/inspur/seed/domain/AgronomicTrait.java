@@ -90,4 +90,8 @@ public class AgronomicTrait extends BaseEntity {
     /** 查询结束时间（查询参数，非数据库字段） */
     @TableField(exist = false)
     private Date queryEndTime;
+
+    /** 批次名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String batchName;
 }

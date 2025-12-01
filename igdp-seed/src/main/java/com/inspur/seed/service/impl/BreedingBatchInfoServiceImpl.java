@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.common.utils.MessageUtils;
 import com.inspur.seed.domain.dto.BreedingBatchAddDTO;
 import com.inspur.seed.domain.dto.BreedingBatchQueryDTO;
 import com.inspur.seed.domain.dto.BreedingBatchUpdateDTO;
@@ -183,52 +184,55 @@ public class BreedingBatchInfoServiceImpl extends ServiceImpl<BreedingBatchInfoM
     }
 
     /**
-     * 获取作物类型名称
+     * 获取作物类型名称（支持国际化）
      *
      * @param cropType 作物类型编码
      * @return 作物类型名称
      */
     private String getCropTypeName(String cropType) {
-        if (cropType == null) return "";
-        switch (cropType) {
-            case "WHEAT": return "小麦";
-            case "CORN": return "玉米";
-            case "RICE": return "水稻";
-            case "SOYBEAN": return "大豆";
-            case "COTTON": return "棉花";
-            default: return "";
+        if (cropType == null || cropType.isEmpty()) return "";
+        // 转换为小写进行匹配
+        String lowerCropType = cropType.toLowerCase();
+        String messageKey = "crop.type." + lowerCropType;
+        try {
+            return MessageUtils.message(messageKey);
+        } catch (Exception e) {
+            // 如果找不到对应的国际化key，返回原值
+            return cropType;
         }
     }
 
     /**
-     * 获取繁殖级别名称
+     * 获取繁殖级别名称（支持国际化）
      *
      * @param breedingLevel 繁殖级别编码
      * @return 繁殖级别名称
      */
     private String getBreedingLevelName(String breedingLevel) {
-        if (breedingLevel == null) return "";
-        switch (breedingLevel) {
-            case "01": return "原原种繁殖";
-            case "02": return "原种繁殖";
-            case "03": return "良种生产";
-            default: return "";
+        if (breedingLevel == null || breedingLevel.isEmpty()) return "";
+        String messageKey = "breeding.level." + breedingLevel;
+        try {
+            return MessageUtils.message(messageKey);
+        } catch (Exception e) {
+            // 如果找不到对应的国际化key，返回原值
+            return breedingLevel;
         }
     }
 
     /**
-     * 获取批次状态名称
+     * 获取批次状态名称（支持国际化）
      *
      * @param batchStatus 批次状态编码
      * @return 批次状态名称
      */
     private String getBatchStatusName(String batchStatus) {
-        if (batchStatus == null) return "";
-        switch (batchStatus) {
-            case "01": return "进行中";
-            case "02": return "已完成";
-            case "03": return "已终止";
-            default: return "";
+        if (batchStatus == null || batchStatus.isEmpty()) return "";
+        String messageKey = "batch.status." + batchStatus;
+        try {
+            return MessageUtils.message(messageKey);
+        } catch (Exception e) {
+            // 如果找不到对应的国际化key，返回原值
+            return batchStatus;
         }
     }
 }
