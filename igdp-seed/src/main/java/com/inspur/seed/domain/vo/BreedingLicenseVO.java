@@ -88,6 +88,11 @@ public class BreedingLicenseVO implements Serializable {
     private String certificateFile;
 
     /**
+     * 认证文件名称
+     */
+    private String certificateFileName;
+
+    /**
      * 许可状态
      */
     private String licenseStatus;

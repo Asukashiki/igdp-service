@@ -74,6 +74,11 @@ public class LaboratoryTestDataVO implements Serializable {
     private String labReportFile;
 
     /**
+     * 实验室报告文件名称
+     */
+    private String labReportFileName;
+
+    /**
      * 创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

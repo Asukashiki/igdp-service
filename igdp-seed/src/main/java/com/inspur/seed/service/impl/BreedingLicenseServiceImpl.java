@@ -123,8 +123,8 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
             return AjaxResult.success(result);
         } catch (Exception e) {
-            log.error("获取许可列表失败", e);
-            return AjaxResult.error("获取许可列表失败: " + e.getMessage());
+            log.error("Failed to get license list", e);
+            return AjaxResult.error("Failed to get license list: " + e.getMessage());
         }
     }
 
@@ -151,11 +151,11 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
                 // 检查是否是因为已删除
                 BreedingLicense deletedLicense = licenseMapper.selectById(id);
                 if (deletedLicense != null) {
-                    log.warn("许可ID: {} 已被删除, deleted={}", id, deletedLicense.getDeleted());
-                    return AjaxResult.error("许可已被删除");
+                    log.warn("License ID: {} has been deleted, deleted={}", id, deletedLicense.getDeleted());
+                    return AjaxResult.error("License has been deleted");
                 }
-                log.warn("许可ID: {} 不存在于数据库中", id);
-                return AjaxResult.error("许可不存在");
+                log.warn("License ID: {} does not exist in database", id);
+                return AjaxResult.error("License does not exist");
             }
 
             BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
@@ -178,8 +178,8 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
             return AjaxResult.success(vo);
         } catch (Exception e) {
-            log.error("获取许可详情失败", e);
-            return AjaxResult.error("获取许可详情失败: " + e.getMessage());
+            log.error("Failed to get license details", e);
+            return AjaxResult.error("Failed to get license details: " + e.getMessage());
         }
     }
 
@@ -199,7 +199,7 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             BreedingLicense license = licenseMapper.selectOne(wrapper);
 
             if (license == null) {
-                return AjaxResult.error("该批次暂无许可信息");
+                return AjaxResult.error("No license information for this batch");
             }
 
             BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
@@ -222,8 +222,8 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
             return AjaxResult.success(vo);
         } catch (Exception e) {
-            log.error("根据批次ID获取许可失败", e);
-            return AjaxResult.error("获取许可失败: " + e.getMessage());
+            log.error("Failed to get license by batch ID", e);
+            return AjaxResult.error("Failed to get license: " + e.getMessage());
         }
     }
 
@@ -239,17 +239,17 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
         try {
             // 1. 验证必填字段
             if (StrUtil.isBlank(dto.getBatchId())) {
-                return AjaxResult.error("批次ID不能为空");
+                return AjaxResult.error("Batch ID cannot be empty");
             }
 
             // 2. 验证数据集是否已审核通过
             if (StrUtil.isNotBlank(dto.getDatasetId())) {
                 BreedingDataset dataset = datasetMapper.selectById(dto.getDatasetId());
                 if (dataset == null || "1".equals(dataset.getDeleted())) {
-                    return AjaxResult.error("数据集不存在");
+                    return AjaxResult.error("Dataset does not exist");
                 }
                 if (!"approved".equals(dataset.getDatasetStatus())) {
-                    return AjaxResult.error("数据集尚未审核通过,无法录入许可");
+                    return AjaxResult.error("Dataset has not been approved yet, cannot enter license");
                 }
             }
 
@@ -259,7 +259,7 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             wrapper.eq(BreedingLicense::getDeleted, "0");
             Long count = licenseMapper.selectCount(wrapper);
             if (count > 0) {
-                return AjaxResult.error("该批次已存在许可,一个批次只能有一个许可");
+                return AjaxResult.error("License already exists for this batch, only one license per batch is allowed");
             }
 
             // 4. 检查许可证号是否重复
@@ -269,7 +269,7 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
                 licenseNoWrapper.eq(BreedingLicense::getDeleted, "0");
                 Long licenseNoCount = licenseMapper.selectCount(licenseNoWrapper);
                 if (licenseNoCount > 0) {
-                    return AjaxResult.error("许可证号已存在");
+                    return AjaxResult.error("License number already exists");
                 }
             }
 
@@ -326,10 +326,10 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             traitsMapper.insert(traits);
 
             log.info("新增许可成功,ID: {}", license.getId());
-            return AjaxResult.success("新增许可成功", license.getId());
+            return AjaxResult.success("License added successfully", license.getId());
         } catch (Exception e) {
             log.error("新增许可失败", e);
-            return AjaxResult.error("新增许可失败: " + e.getMessage());
+            return AjaxResult.error("Failed to add license: " + e.getMessage());
         }
     }
 
@@ -346,17 +346,17 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             // 1. 验证许可是否存在
             BreedingLicense existingLicense = licenseMapper.selectById(dto.getId());
             if (existingLicense == null || "1".equals(existingLicense.getDeleted())) {
-                return AjaxResult.error("许可不存在");
+                return AjaxResult.error("License does not exist");
             }
 
             // 2. 验证数据集是否已审核通过
             if (StrUtil.isNotBlank(dto.getDatasetId())) {
                 BreedingDataset dataset = datasetMapper.selectById(dto.getDatasetId());
                 if (dataset == null || "1".equals(dataset.getDeleted())) {
-                    return AjaxResult.error("数据集不存在");
+                    return AjaxResult.error("Dataset does not exist");
                 }
                 if (!"approved".equals(dataset.getDatasetStatus())) {
-                    return AjaxResult.error("数据集尚未审核通过,无法关联许可");
+                    return AjaxResult.error("Dataset has not been approved yet, cannot associate license");
                 }
             }
 
@@ -368,7 +368,7 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
                 wrapper.ne(BreedingLicense::getId, dto.getId());
                 Long count = licenseMapper.selectCount(wrapper);
                 if (count > 0) {
-                    return AjaxResult.error("该批次已存在许可,一个批次只能有一个许可");
+                    return AjaxResult.error("License already exists for this batch, only one license per batch is allowed");
                 }
             }
 
@@ -381,7 +381,7 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
                 licenseNoWrapper.ne(BreedingLicense::getId, dto.getId());
                 Long licenseNoCount = licenseMapper.selectCount(licenseNoWrapper);
                 if (licenseNoCount > 0) {
-                    return AjaxResult.error("许可证号已存在");
+                    return AjaxResult.error("License number already exists");
                 }
             }
 
@@ -453,10 +453,10 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             }
 
             log.info("修改许可成功,ID: {}", dto.getId());
-            return AjaxResult.success("修改许可成功");
+            return AjaxResult.success("License updated successfully");
         } catch (Exception e) {
             log.error("修改许可失败", e);
-            return AjaxResult.error("修改许可失败: " + e.getMessage());
+            return AjaxResult.error("Failed to update license: " + e.getMessage());
         }
     }
 
@@ -471,7 +471,7 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
     public AjaxResult deleteLicense(String[] ids) {
         try {
             if (ids == null || ids.length == 0) {
-                return AjaxResult.error("请选择要删除的许可");
+                return AjaxResult.error("Please select licenses to delete");
             }
 
             // 获取当前用户
@@ -526,10 +526,10 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             }
 
             log.info("删除许可成功,数量: {}", ids.length);
-            return AjaxResult.success("删除成功");
+            return AjaxResult.success("Deleted successfully");
         } catch (Exception e) {
             log.error("删除许可失败", e);
-            return AjaxResult.error("删除许可失败: " + e.getMessage());
+            return AjaxResult.error("Failed to delete license: " + e.getMessage());
         }
     }
 }

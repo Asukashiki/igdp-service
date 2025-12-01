@@ -109,10 +109,10 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
             data.put("list", voList);
             data.put("total", result.getTotal());
 
-            return AjaxResult.success("查询成功", data);
+            return AjaxResult.success("Query successful", data);
         } catch (Exception e) {
-            log.error("查询审核列表失败", e);
-            return AjaxResult.error("查询失败:" + e.getMessage());
+            log.error("Failed to query audit list", e);
+            return AjaxResult.error("Query failed: " + e.getMessage());
         }
     }
 
@@ -121,13 +121,13 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
         try {
             BreedingDatasetAudit audit = this.getById(id);
             if (audit == null || "1".equals(audit.getDeleted())) {
-                return AjaxResult.error("审核记录不存在");
+                return AjaxResult.error("Audit record does not exist");
             }
 
             // 查询数据集信息
             BreedingDataset dataset = datasetMapper.selectById(audit.getDatasetId());
             if (dataset == null) {
-                return AjaxResult.error("数据集不存在");
+                return AjaxResult.error("Dataset does not exist");
             }
 
             // 组装VO
@@ -143,10 +143,10 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
             vo.setLabTestCount(dataset.getLabTestCount());
             vo.setYieldDataCount(dataset.getYieldDataCount());
 
-            return AjaxResult.success("查询成功", vo);
+            return AjaxResult.success("Query successful", vo);
         } catch (Exception e) {
-            log.error("查询审核详情失败", e);
-            return AjaxResult.error("查询失败:" + e.getMessage());
+            log.error("Failed to query audit details", e);
+            return AjaxResult.error("Query failed: " + e.getMessage());
         }
     }
 
@@ -161,13 +161,13 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
 
             BreedingDatasetAudit audit = this.getOne(wrapper);
             if (audit == null) {
-                return AjaxResult.error("审核记录不存在");
+                return AjaxResult.error("Audit record does not exist");
             }
 
             return getAuditById(audit.getId());
         } catch (Exception e) {
-            log.error("根据数据集ID查询审核详情失败", e);
-            return AjaxResult.error("查询失败:" + e.getMessage());
+            log.error("Failed to query audit details by dataset ID", e);
+            return AjaxResult.error("Query failed: " + e.getMessage());
         }
     }
 
@@ -178,22 +178,22 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
             // 1. 校验数据集
             BreedingDataset dataset = datasetMapper.selectById(auditDTO.getDatasetId());
             if (dataset == null || "1".equals(dataset.getDeleted())) {
-                return AjaxResult.error("数据集不存在");
+                return AjaxResult.error("Dataset does not exist");
             }
 
             // 2. 校验数据集状态(必须是已提交或审核中)
             if (!"submitted".equals(dataset.getDatasetStatus()) && !"reviewing".equals(dataset.getDatasetStatus())) {
-                return AjaxResult.error("只能审核已提交或审核中的数据集");
+                return AjaxResult.error("Only submitted or reviewing datasets can be audited");
             }
 
             // 3. 校验审核状态
             if (!"approved".equals(auditDTO.getAuditStatus()) && !"rejected".equals(auditDTO.getAuditStatus())) {
-                return AjaxResult.error("审核状态只能是approved或rejected");
+                return AjaxResult.error("Audit status must be approved or rejected");
             }
 
             // 4. 驳回时必须填写审核意见
             if ("rejected".equals(auditDTO.getAuditStatus()) && StrUtil.isBlank(auditDTO.getAuditOpinion())) {
-                return AjaxResult.error("驳回时必须填写审核意见");
+                return AjaxResult.error("Audit opinion is required when rejecting");
             }
 
             // 5. 查询或创建审核记录
@@ -257,18 +257,18 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
                 dataset.setUpdatedTime(LocalDateTime.now());
                 datasetMapper.updateById(dataset);
 
-                return AjaxResult.success("审核通过,数据集编号:" + dataset.getDatasetCode());
+                return AjaxResult.success("Audit approved, dataset code: " + dataset.getDatasetCode());
             } else {
                 // 审核驳回: 状态变为已驳回
                 dataset.setDatasetStatus("rejected");
                 dataset.setUpdatedTime(LocalDateTime.now());
                 datasetMapper.updateById(dataset);
 
-                return AjaxResult.success("审核已驳回");
+                return AjaxResult.success("Audit rejected");
             }
         } catch (Exception e) {
-            log.error("审核失败", e);
-            return AjaxResult.error("审核失败:" + e.getMessage());
+            log.error("Audit failed", e);
+            return AjaxResult.error("Audit failed: " + e.getMessage());
         }
     }
 
@@ -286,10 +286,10 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
                     .map(audit -> BeanUtil.copyProperties(audit, BreedingDatasetAuditVO.class))
                     .collect(Collectors.toList());
 
-            return AjaxResult.success("查询成功", voList);
+            return AjaxResult.success("Query successful", voList);
         } catch (Exception e) {
-            log.error("查询审核历史失败", e);
-            return AjaxResult.error("查询失败:" + e.getMessage());
+            log.error("Failed to query audit history", e);
+            return AjaxResult.error("Query failed: " + e.getMessage());
         }
     }
 }

@@ -102,6 +102,12 @@ public class BreedingLicense implements Serializable {
     private String certificateFile;
 
     /**
+     * 认证文件名称(原始文件名)
+     */
+    @TableField("certificate_file_name")
+    private String certificateFileName;
+
+    /**
      * 许可状态:valid/expired/revoked
      */
     @TableField("license_status")
