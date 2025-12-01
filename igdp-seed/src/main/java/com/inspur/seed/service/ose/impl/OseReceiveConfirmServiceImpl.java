@@ -1,10 +1,13 @@
 package com.inspur.seed.service.ose.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.inspur.common.exception.ServiceException;
+import com.inspur.seed.domain.oauth.PubOrgan;
 import com.inspur.seed.domain.ose.OseBreedSeedReceiveConfirm;
 import com.inspur.seed.dto.ose.OseReceiveConfirmDTO;
 import com.inspur.seed.dto.ose.OseReceiveConfirmQueryDTO;
+import com.inspur.seed.mapper.oauth.PubOrganMapper;
 import com.inspur.seed.mapper.ose.OseReceiveConfirmMapper;
 import com.inspur.seed.service.ose.IOseReceiveConfirmService;
 import com.inspur.seed.vo.ose.OseReceiveConfirmVO;
@@ -26,8 +29,17 @@ public class OseReceiveConfirmServiceImpl implements IOseReceiveConfirmService {
     @Autowired
     private OseReceiveConfirmMapper receiveConfirmMapper;
 
+    @Autowired
+    private PubOrganMapper pubOrganMapper;
+
     @Override
     public List<OseReceiveConfirmVO> getReceiveConfirmList(OseReceiveConfirmQueryDTO queryDTO) {
+        String oseCode = queryDTO.getOseId();
+        QueryWrapper<PubOrgan> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("CODE", oseCode);
+        PubOrgan organ = pubOrganMapper.selectOne(queryWrapper);
+        String oseId = organ.getId();
+        queryDTO.setOseId(oseId);
         return receiveConfirmMapper.selectReceiveConfirmList(queryDTO);
     }
 

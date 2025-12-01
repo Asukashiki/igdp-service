@@ -46,4 +46,7 @@ public class OseReceiveConfirmQueryDTO implements Serializable {
      * 接收状态(PENDING/CONFIRMED)
      */
     private String receiveStatus;
+
+    private String oseId;
+
 }

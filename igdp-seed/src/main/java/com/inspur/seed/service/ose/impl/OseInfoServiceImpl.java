@@ -3,9 +3,13 @@ package com.inspur.seed.service.ose.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.uuid.IdUtils;
+import com.inspur.seed.domain.oauth.PubOrgan;
+import com.inspur.seed.domain.oauth.PubOrganTree;
 import com.inspur.seed.domain.ose.OseInfo;
 import com.inspur.seed.dto.ose.OseInfoDTO;
 import com.inspur.seed.dto.ose.OseInfoQueryDTO;
+import com.inspur.seed.mapper.oauth.PubOrganMapper;
+import com.inspur.seed.mapper.oauth.PubOrganTreeMapper;
 import com.inspur.seed.mapper.ose.OseInfoMapper;
 import com.inspur.seed.service.ose.IOseInfoService;
 import com.inspur.seed.vo.ose.OseInfoVO;
@@ -14,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +33,12 @@ public class OseInfoServiceImpl implements IOseInfoService {
 
     @Autowired
     private OseInfoMapper oseInfoMapper;
+
+    @Autowired
+    private PubOrganMapper pubOrganMapper;
+
+    @Autowired
+    private PubOrganTreeMapper pubOrganTreeMapper;
 
     @Override
     public List<OseInfoVO> getOseList(OseInfoQueryDTO queryDTO) {
@@ -81,6 +93,34 @@ public class OseInfoServiceImpl implements IOseInfoService {
 
         oseInfoMapper.insert(oseInfo);
 
+        PubOrgan organ = new PubOrgan();
+        organ.setId(oseInfo.getOseId());
+        organ.setName(oseInfo.getOseName());
+        organ.setCode(oseInfo.getOseCode());
+        //TODO: 暂定数据,后续需优化读取正确的区划
+        organ.setRegionCode("001000");
+        organ.setRegionName("Addis Ababa");
+        organ.setType("0");
+        organ.setOrganLevel("3");
+        organ.setAppCode("inputSupply");
+        organ.setOrganType("1");
+        organ.setShortName(oseInfo.getOseName());
+        organ.setSortOrder(1);
+        organ.setCreator("kether");
+        organ.setCreateTime(LocalDateTime.now());
+        organ.setUpdateTime(LocalDateTime.now());
+        pubOrganMapper.insert(organ);
+
+        PubOrganTree organTree = new PubOrganTree();
+        organTree.setOrgCode(oseInfo.getOseCode());
+        organTree.setParentCode("251201110301");
+        organTree.setViewCode("ORG_VERTICAL_VIEW");
+        organTree.setIsLeaf("0");
+        organTree.setSortOrder(1);
+        organTree.setCreator("kether");
+        organTree.setCreateTime(LocalDate.from(LocalDateTime.now()));
+        organTree.setStatus("1");
+        pubOrganTreeMapper.insert(organTree);
         return getOseById(oseInfo.getOseId());
     }
 
