@@ -71,6 +71,9 @@
             <if test="query.receiveStatus != null and query.receiveStatus != ''">
                 AND rc.receive_status = #{query.receiveStatus}
             </if>
+            <if test ="query.oseId != null and query.oseId != ''">
+                AND rc.ose_id = #{query.oseId}
+            </if>
         </where>
         ORDER BY rc.create_time DESC
     </select>
