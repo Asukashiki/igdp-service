@@ -184,7 +184,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>yy-service</finalName>
+        <finalName>agriculture-service</finalName>
         <resources>
             <!-- 指定 src/main/resources下所有文件及文件夹为资源文件 -->
             <resource>
