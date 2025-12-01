@@ -1,0 +1,475 @@
+package com.inspur.seed.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.domain.dto.BreedingLicenseDTO;
+import com.inspur.seed.domain.dto.BreedingLicenseQueryDTO;
+import com.inspur.seed.domain.entity.BreedingDataset;
+import com.inspur.seed.domain.entity.BreedingLicense;
+import com.inspur.seed.domain.entity.BreedingVarietyTraits;
+import com.inspur.seed.domain.vo.BreedingLicenseVO;
+import com.inspur.seed.mapper.BreedingDatasetMapper;
+import com.inspur.seed.mapper.BreedingLicenseMapper;
+import com.inspur.seed.mapper.BreedingVarietyTraitsMapper;
+import com.inspur.seed.service.IBreedingLicenseService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+/**
+ * 育种许可Service实现
+ *
+ * @author system
+ * @since 2025-01-30
+ */
+@Slf4j
+@Service
+public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
+
+    @Autowired
+    private BreedingLicenseMapper licenseMapper;
+
+    @Autowired
+    private BreedingVarietyTraitsMapper traitsMapper;
+
+    @Autowired
+    private BreedingDatasetMapper datasetMapper;
+
+    /**
+     * 获取许可列表(分页)
+     *
+     * @param queryDTO 查询条件
+     * @return 分页结果
+     */
+    @Override
+    public AjaxResult getLicenseList(BreedingLicenseQueryDTO queryDTO) {
+        try {
+            // 构建查询条件
+            LambdaQueryWrapper<BreedingLicense> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(BreedingLicense::getDeleted, "0");
+
+            // 关键词搜索(许可证号、批次名称)
+            if (StrUtil.isNotBlank(queryDTO.getKeyword())) {
+                wrapper.and(w -> w.like(BreedingLicense::getLicenseNo, queryDTO.getKeyword())
+                        .or().like(BreedingLicense::getBatchName, queryDTO.getKeyword()));
+            }
+
+            // 许可状态
+            if (StrUtil.isNotBlank(queryDTO.getLicenseStatus())) {
+                wrapper.eq(BreedingLicense::getLicenseStatus, queryDTO.getLicenseStatus());
+            }
+
+            // 批次ID
+            if (StrUtil.isNotBlank(queryDTO.getBatchId())) {
+                wrapper.eq(BreedingLicense::getBatchId, queryDTO.getBatchId());
+            }
+
+            // 审批日期范围
+            if (StrUtil.isNotBlank(queryDTO.getApprovalDateStart())) {
+                wrapper.ge(BreedingLicense::getApprovalDate, queryDTO.getApprovalDateStart());
+            }
+            if (StrUtil.isNotBlank(queryDTO.getApprovalDateEnd())) {
+                wrapper.le(BreedingLicense::getApprovalDate, queryDTO.getApprovalDateEnd());
+            }
+
+            // 按创建时间倒序
+            wrapper.orderByDesc(BreedingLicense::getCreatedTime);
+
+            // 分页查询
+            Page<BreedingLicense> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+            IPage<BreedingLicense> pageResult = licenseMapper.selectPage(page, wrapper);
+
+            // 转换为VO并关联物种特性
+            List<BreedingLicenseVO> voList = new ArrayList<>();
+            for (BreedingLicense license : pageResult.getRecords()) {
+                BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
+
+                // 查询关联的物种特性
+                LambdaQueryWrapper<BreedingVarietyTraits> traitsWrapper = new LambdaQueryWrapper<>();
+                traitsWrapper.eq(BreedingVarietyTraits::getLicenseId, license.getId());
+                BreedingVarietyTraits traits = traitsMapper.selectOne(traitsWrapper);
+                if (traits != null) {
+                    BeanUtil.copyProperties(traits, vo);
+                }
+
+                voList.add(vo);
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", voList);
+            result.put("total", pageResult.getTotal());
+            result.put("pageNum", pageResult.getCurrent());
+            result.put("pageSize", pageResult.getSize());
+
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            log.error("获取许可列表失败", e);
+            return AjaxResult.error("获取许可列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据ID获取许可详情(包含物种特性)
+     *
+     * @param id 许可ID
+     * @return 许可详情
+     */
+    @Override
+    public AjaxResult getLicenseById(String id) {
+        try {
+            BreedingLicense license = licenseMapper.selectById(id);
+            if (license == null || "1".equals(license.getDeleted())) {
+                return AjaxResult.error("许可不存在");
+            }
+
+            BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
+
+            // 查询关联的物种特性
+            LambdaQueryWrapper<BreedingVarietyTraits> traitsWrapper = new LambdaQueryWrapper<>();
+            traitsWrapper.eq(BreedingVarietyTraits::getLicenseId, id);
+            traitsWrapper.eq(BreedingVarietyTraits::getDeleted, "0");
+            BreedingVarietyTraits traits = traitsMapper.selectOne(traitsWrapper);
+            if (traits != null) {
+                // 将traits字段复制到vo中
+                BeanUtil.copyProperties(traits, vo);
+                vo.setTraitsId(traits.getId());
+            }
+
+            return AjaxResult.success(vo);
+        } catch (Exception e) {
+            log.error("获取许可详情失败", e);
+            return AjaxResult.error("获取许可详情失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据批次ID获取许可详情
+     *
+     * @param batchId 批次ID
+     * @return 许可详情
+     */
+    @Override
+    public AjaxResult getLicenseByBatchId(String batchId) {
+        try {
+            LambdaQueryWrapper<BreedingLicense> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(BreedingLicense::getBatchId, batchId);
+            wrapper.eq(BreedingLicense::getDeleted, "0");
+            BreedingLicense license = licenseMapper.selectOne(wrapper);
+
+            if (license == null) {
+                return AjaxResult.error("该批次暂无许可信息");
+            }
+
+            BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
+
+            // 查询关联的物种特性
+            LambdaQueryWrapper<BreedingVarietyTraits> traitsWrapper = new LambdaQueryWrapper<>();
+            traitsWrapper.eq(BreedingVarietyTraits::getLicenseId, license.getId());
+            BreedingVarietyTraits traits = traitsMapper.selectOne(traitsWrapper);
+            if (traits != null) {
+                BeanUtil.copyProperties(traits, vo);
+            }
+
+            return AjaxResult.success(vo);
+        } catch (Exception e) {
+            log.error("根据批次ID获取许可失败", e);
+            return AjaxResult.error("获取许可失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 新增许可(包含物种特性)
+     *
+     * @param dto 许可信息
+     * @return 操作结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AjaxResult addLicense(BreedingLicenseDTO dto) {
+        try {
+            // 1. 验证必填字段
+            if (StrUtil.isBlank(dto.getBatchId())) {
+                return AjaxResult.error("批次ID不能为空");
+            }
+
+            // 2. 验证数据集是否已审核通过
+            if (StrUtil.isNotBlank(dto.getDatasetId())) {
+                BreedingDataset dataset = datasetMapper.selectById(dto.getDatasetId());
+                if (dataset == null || "1".equals(dataset.getDeleted())) {
+                    return AjaxResult.error("数据集不存在");
+                }
+                if (!"approved".equals(dataset.getDatasetStatus())) {
+                    return AjaxResult.error("数据集尚未审核通过,无法录入许可");
+                }
+            }
+
+            // 3. 检查该批次是否已有许可
+            LambdaQueryWrapper<BreedingLicense> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(BreedingLicense::getBatchId, dto.getBatchId());
+            wrapper.eq(BreedingLicense::getDeleted, "0");
+            Long count = licenseMapper.selectCount(wrapper);
+            if (count > 0) {
+                return AjaxResult.error("该批次已存在许可,一个批次只能有一个许可");
+            }
+
+            // 4. 检查许可证号是否重复
+            if (StrUtil.isNotBlank(dto.getLicenseNo())) {
+                LambdaQueryWrapper<BreedingLicense> licenseNoWrapper = new LambdaQueryWrapper<>();
+                licenseNoWrapper.eq(BreedingLicense::getLicenseNo, dto.getLicenseNo());
+                licenseNoWrapper.eq(BreedingLicense::getDeleted, "0");
+                Long licenseNoCount = licenseMapper.selectCount(licenseNoWrapper);
+                if (licenseNoCount > 0) {
+                    return AjaxResult.error("许可证号已存在");
+                }
+            }
+
+            // 5. 保存许可信息
+            BreedingLicense license = new BreedingLicense();
+            BeanUtil.copyProperties(dto, license);
+            license.setId(IdUtil.randomUUID());
+
+            // 如果有数据集,设置数据集编号
+            if (StrUtil.isNotBlank(dto.getDatasetId())) {
+                BreedingDataset dataset = datasetMapper.selectById(dto.getDatasetId());
+                if (dataset != null) {
+                    license.setDatasetCode(dataset.getDatasetCode());
+                }
+            }
+
+            license.setDeleted("0");
+            license.setCreatedTime(LocalDateTime.now());
+
+            // 设置创建人信息
+            try {
+                String currentUser = SecurityUtils.getUsername();
+                license.setCreatedBy(currentUser);
+                license.setUpdatedBy(currentUser);
+            } catch (Exception ex) {
+                log.warn("获取当前用户信息失败", ex);
+                license.setCreatedBy("system");
+                license.setUpdatedBy("system");
+            }
+            license.setUpdatedTime(LocalDateTime.now());
+
+            licenseMapper.insert(license);
+
+            // 6. 保存物种特性
+            BreedingVarietyTraits traits = new BreedingVarietyTraits();
+            BeanUtil.copyProperties(dto, traits);
+            traits.setId(IdUtil.randomUUID());
+            traits.setLicenseId(license.getId());
+            traits.setDeleted("0");
+            traits.setCreatedTime(LocalDateTime.now());
+
+            // 设置物种特性的创建人信息
+            try {
+                String currentUser = SecurityUtils.getUsername();
+                traits.setCreatedBy(currentUser);
+                traits.setUpdatedBy(currentUser);
+            } catch (Exception ex) {
+                log.warn("获取当前用户信息失败", ex);
+                traits.setCreatedBy("system");
+                traits.setUpdatedBy("system");
+            }
+            traits.setUpdatedTime(LocalDateTime.now());
+
+            traitsMapper.insert(traits);
+
+            log.info("新增许可成功,ID: {}", license.getId());
+            return AjaxResult.success("新增许可成功", license.getId());
+        } catch (Exception e) {
+            log.error("新增许可失败", e);
+            return AjaxResult.error("新增许可失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 修改许可(包含物种特性)
+     *
+     * @param dto 许可信息
+     * @return 操作结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AjaxResult updateLicense(BreedingLicenseDTO dto) {
+        try {
+            // 1. 验证许可是否存在
+            BreedingLicense existingLicense = licenseMapper.selectById(dto.getId());
+            if (existingLicense == null || "1".equals(existingLicense.getDeleted())) {
+                return AjaxResult.error("许可不存在");
+            }
+
+            // 2. 验证数据集是否已审核通过
+            if (StrUtil.isNotBlank(dto.getDatasetId())) {
+                BreedingDataset dataset = datasetMapper.selectById(dto.getDatasetId());
+                if (dataset == null || "1".equals(dataset.getDeleted())) {
+                    return AjaxResult.error("数据集不存在");
+                }
+                if (!"approved".equals(dataset.getDatasetStatus())) {
+                    return AjaxResult.error("数据集尚未审核通过,无法关联许可");
+                }
+            }
+
+            // 3. 如果修改了批次,检查新批次是否已有许可
+            if (!existingLicense.getBatchId().equals(dto.getBatchId())) {
+                LambdaQueryWrapper<BreedingLicense> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(BreedingLicense::getBatchId, dto.getBatchId());
+                wrapper.eq(BreedingLicense::getDeleted, "0");
+                wrapper.ne(BreedingLicense::getId, dto.getId());
+                Long count = licenseMapper.selectCount(wrapper);
+                if (count > 0) {
+                    return AjaxResult.error("该批次已存在许可,一个批次只能有一个许可");
+                }
+            }
+
+            // 4. 如果修改了许可证号,检查是否重复
+            if (StrUtil.isNotBlank(dto.getLicenseNo()) &&
+                !dto.getLicenseNo().equals(existingLicense.getLicenseNo())) {
+                LambdaQueryWrapper<BreedingLicense> licenseNoWrapper = new LambdaQueryWrapper<>();
+                licenseNoWrapper.eq(BreedingLicense::getLicenseNo, dto.getLicenseNo());
+                licenseNoWrapper.eq(BreedingLicense::getDeleted, "0");
+                licenseNoWrapper.ne(BreedingLicense::getId, dto.getId());
+                Long licenseNoCount = licenseMapper.selectCount(licenseNoWrapper);
+                if (licenseNoCount > 0) {
+                    return AjaxResult.error("许可证号已存在");
+                }
+            }
+
+            // 5. 更新许可信息
+            BreedingLicense license = new BreedingLicense();
+            BeanUtil.copyProperties(dto, license);
+
+            // 如果有数据集,设置数据集编号
+            if (StrUtil.isNotBlank(dto.getDatasetId())) {
+                BreedingDataset dataset = datasetMapper.selectById(dto.getDatasetId());
+                if (dataset != null) {
+                    license.setDatasetCode(dataset.getDatasetCode());
+                }
+            }
+
+            license.setUpdatedTime(LocalDateTime.now());
+
+            // 设置更新人信息
+            try {
+                String currentUser = SecurityUtils.getUsername();
+                license.setUpdatedBy(currentUser);
+            } catch (Exception ex) {
+                log.warn("获取当前用户信息失败", ex);
+                license.setUpdatedBy("system");
+            }
+
+            licenseMapper.updateById(license);
+
+            // 7. 更新或新增物种特性
+            if (StrUtil.isNotBlank(dto.getTraitsId())) {
+                // 更新现有特性
+                BreedingVarietyTraits traits = new BreedingVarietyTraits();
+                BeanUtil.copyProperties(dto, traits);
+                traits.setId(dto.getTraitsId());
+                traits.setUpdatedTime(LocalDateTime.now());
+
+                // 设置更新人信息
+                try {
+                    String currentUser = SecurityUtils.getUsername();
+                    traits.setUpdatedBy(currentUser);
+                } catch (Exception ex) {
+                    log.warn("获取当前用户信息失败", ex);
+                    traits.setUpdatedBy("system");
+                }
+
+                traitsMapper.updateById(traits);
+            } else {
+                // 新增特性
+                BreedingVarietyTraits traits = new BreedingVarietyTraits();
+                BeanUtil.copyProperties(dto, traits);
+                traits.setId(IdUtil.randomUUID());
+                traits.setLicenseId(dto.getId());
+                traits.setDeleted("0");
+                traits.setCreatedTime(LocalDateTime.now());
+
+                // 设置创建人信息
+                try {
+                    String currentUser = SecurityUtils.getUsername();
+                    traits.setCreatedBy(currentUser);
+                    traits.setUpdatedBy(currentUser);
+                } catch (Exception ex) {
+                    log.warn("获取当前用户信息失败", ex);
+                    traits.setCreatedBy("system");
+                    traits.setUpdatedBy("system");
+                }
+                traits.setUpdatedTime(LocalDateTime.now());
+
+                traitsMapper.insert(traits);
+            }
+
+            log.info("修改许可成功,ID: {}", dto.getId());
+            return AjaxResult.success("修改许可成功");
+        } catch (Exception e) {
+            log.error("修改许可失败", e);
+            return AjaxResult.error("修改许可失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除许可
+     *
+     * @param ids 许可ID数组
+     * @return 操作结果
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AjaxResult deleteLicense(String[] ids) {
+        try {
+            if (ids == null || ids.length == 0) {
+                return AjaxResult.error("请选择要删除的许可");
+            }
+
+            // 获取当前用户
+            String currentUser;
+            try {
+                currentUser = SecurityUtils.getUsername();
+            } catch (Exception ex) {
+                log.warn("获取当前用户信息失败", ex);
+                currentUser = "system";
+            }
+
+            for (String id : ids) {
+                // 软删除许可
+                BreedingLicense license = new BreedingLicense();
+                license.setId(id);
+                license.setDeleted("1");
+                license.setUpdatedTime(LocalDateTime.now());
+                license.setUpdatedBy(currentUser);
+                licenseMapper.updateById(license);
+
+                // 软删除关联的物种特性
+                LambdaQueryWrapper<BreedingVarietyTraits> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(BreedingVarietyTraits::getLicenseId, id);
+                BreedingVarietyTraits traits = traitsMapper.selectOne(wrapper);
+                if (traits != null) {
+                    traits.setDeleted("1");
+                    traits.setUpdatedTime(LocalDateTime.now());
+                    traits.setUpdatedBy(currentUser);
+                    traitsMapper.updateById(traits);
+                }
+            }
+
+            log.info("删除许可成功,数量: {}", ids.length);
+            return AjaxResult.success("删除成功");
+        } catch (Exception e) {
+            log.error("删除许可失败", e);
+            return AjaxResult.error("删除许可失败: " + e.getMessage());
+        }
+    }
+}
