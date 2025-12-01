@@ -43,8 +43,10 @@ public class BreedingLicenseController {
      */
     @GetMapping("/getById/{id}")
     public AjaxResult getLicenseById(@PathVariable("id") String id) {
-        log.info("获取许可详情,ID: {}", id);
-        return licenseService.getLicenseById(id);
+        log.info("Controller 接收到请求 - 获取许可详情,ID: {}, ID长度: {}", id, id != null ? id.length() : 0);
+        AjaxResult result = licenseService.getLicenseById(id);
+        log.info("Controller 返回结果 - code: {}, msg: {}", result.get("code"), result.get("msg"));
+        return result;
     }
 
     /**
@@ -91,7 +93,9 @@ public class BreedingLicenseController {
      */
     @PostMapping("/delete")
     public AjaxResult deleteLicense(@RequestBody String[] ids) {
-        log.info("删除许可,数量: {}", ids.length);
-        return licenseService.deleteLicense(ids);
+        log.info("Controller 接收到删除请求,数量: {}, IDs: {}", ids.length, String.join(",", ids));
+        AjaxResult result = licenseService.deleteLicense(ids);
+        log.info("Controller 删除完成 - code: {}, msg: {}", result.get("code"), result.get("msg"));
+        return result;
     }
 }

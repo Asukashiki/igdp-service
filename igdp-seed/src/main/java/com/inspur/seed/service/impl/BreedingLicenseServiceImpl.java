@@ -57,7 +57,8 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
         try {
             // 构建查询条件
             LambdaQueryWrapper<BreedingLicense> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(BreedingLicense::getDeleted, "0");
+            // 只查询未删除的记录（兼容 NULL 和 "0"）
+            wrapper.and(w -> w.eq(BreedingLicense::getDeleted, "0").or().isNull(BreedingLicense::getDeleted));
 
             // 关键词搜索(许可证号、批次名称)
             if (StrUtil.isNotBlank(queryDTO.getKeyword())) {
@@ -95,12 +96,20 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             for (BreedingLicense license : pageResult.getRecords()) {
                 BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
 
-                // 查询关联的物种特性
+                // 查询关联的物种特性（只查询未删除的）
                 LambdaQueryWrapper<BreedingVarietyTraits> traitsWrapper = new LambdaQueryWrapper<>();
                 traitsWrapper.eq(BreedingVarietyTraits::getLicenseId, license.getId());
+                traitsWrapper.and(w -> w.eq(BreedingVarietyTraits::getDeleted, "0").or().isNull(BreedingVarietyTraits::getDeleted));
                 BreedingVarietyTraits traits = traitsMapper.selectOne(traitsWrapper);
                 if (traits != null) {
+                    // 保存 traits 的 ID
+                    String traitsId = traits.getId();
+                    // 复制 traits 的其他属性到 vo（会覆盖 id）
                     BeanUtil.copyProperties(traits, vo);
+                    // 恢复 license 的 ID（重要！）
+                    vo.setId(license.getId());
+                    // 设置 traits 的 ID 到专门的字段
+                    vo.setTraitsId(traitsId);
                 }
 
                 voList.add(vo);
@@ -128,22 +137,43 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
     @Override
     public AjaxResult getLicenseById(String id) {
         try {
-            BreedingLicense license = licenseMapper.selectById(id);
-            if (license == null || "1".equals(license.getDeleted())) {
+            log.info("查询许可详情,ID: {}", id);
+
+            // 使用条件查询，确保只查询未删除的记录（兼容 NULL 和 "0"）
+            LambdaQueryWrapper<BreedingLicense> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(BreedingLicense::getId, id);
+            wrapper.and(w -> w.eq(BreedingLicense::getDeleted, "0").or().isNull(BreedingLicense::getDeleted));
+            BreedingLicense license = licenseMapper.selectOne(wrapper);
+
+            log.info("查询结果: {}", license != null ? "找到记录,deleted=" + (license != null ? license.getDeleted() : "null") : "未找到记录");
+
+            if (license == null) {
+                // 检查是否是因为已删除
+                BreedingLicense deletedLicense = licenseMapper.selectById(id);
+                if (deletedLicense != null) {
+                    log.warn("许可ID: {} 已被删除, deleted={}", id, deletedLicense.getDeleted());
+                    return AjaxResult.error("许可已被删除");
+                }
+                log.warn("许可ID: {} 不存在于数据库中", id);
                 return AjaxResult.error("许可不存在");
             }
 
             BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
 
-            // 查询关联的物种特性
+            // 查询关联的物种特性（只查询未删除的）
             LambdaQueryWrapper<BreedingVarietyTraits> traitsWrapper = new LambdaQueryWrapper<>();
             traitsWrapper.eq(BreedingVarietyTraits::getLicenseId, id);
-            traitsWrapper.eq(BreedingVarietyTraits::getDeleted, "0");
+            traitsWrapper.and(w -> w.eq(BreedingVarietyTraits::getDeleted, "0").or().isNull(BreedingVarietyTraits::getDeleted));
             BreedingVarietyTraits traits = traitsMapper.selectOne(traitsWrapper);
             if (traits != null) {
-                // 将traits字段复制到vo中
+                // 保存 traits 的 ID
+                String traitsId = traits.getId();
+                // 将traits字段复制到vo中（会覆盖 id）
                 BeanUtil.copyProperties(traits, vo);
-                vo.setTraitsId(traits.getId());
+                // 恢复 license 的 ID（重要！）
+                vo.setId(license.getId());
+                // 设置 traits 的 ID 到专门的字段
+                vo.setTraitsId(traitsId);
             }
 
             return AjaxResult.success(vo);
@@ -162,9 +192,10 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
     @Override
     public AjaxResult getLicenseByBatchId(String batchId) {
         try {
+            // 只查询未删除的记录（兼容 NULL 和 "0"）
             LambdaQueryWrapper<BreedingLicense> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(BreedingLicense::getBatchId, batchId);
-            wrapper.eq(BreedingLicense::getDeleted, "0");
+            wrapper.and(w -> w.eq(BreedingLicense::getDeleted, "0").or().isNull(BreedingLicense::getDeleted));
             BreedingLicense license = licenseMapper.selectOne(wrapper);
 
             if (license == null) {
@@ -173,12 +204,20 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
             BreedingLicenseVO vo = BeanUtil.copyProperties(license, BreedingLicenseVO.class);
 
-            // 查询关联的物种特性
+            // 查询关联的物种特性（只查询未删除的）
             LambdaQueryWrapper<BreedingVarietyTraits> traitsWrapper = new LambdaQueryWrapper<>();
             traitsWrapper.eq(BreedingVarietyTraits::getLicenseId, license.getId());
+            traitsWrapper.and(w -> w.eq(BreedingVarietyTraits::getDeleted, "0").or().isNull(BreedingVarietyTraits::getDeleted));
             BreedingVarietyTraits traits = traitsMapper.selectOne(traitsWrapper);
             if (traits != null) {
+                // 保存 traits 的 ID
+                String traitsId = traits.getId();
+                // 将traits字段复制到vo中（会覆盖 id）
                 BeanUtil.copyProperties(traits, vo);
+                // 恢复 license 的 ID（重要！）
+                vo.setId(license.getId());
+                // 设置 traits 的 ID 到专门的字段
+                vo.setTraitsId(traitsId);
             }
 
             return AjaxResult.success(vo);
@@ -445,23 +484,44 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             }
 
             for (String id : ids) {
-                // 软删除许可
-                BreedingLicense license = new BreedingLicense();
-                license.setId(id);
-                license.setDeleted("1");
-                license.setUpdatedTime(LocalDateTime.now());
-                license.setUpdatedBy(currentUser);
-                licenseMapper.updateById(license);
+                log.info("开始删除许可,ID: {}", id);
 
-                // 软删除关联的物种特性
-                LambdaQueryWrapper<BreedingVarietyTraits> wrapper = new LambdaQueryWrapper<>();
-                wrapper.eq(BreedingVarietyTraits::getLicenseId, id);
-                BreedingVarietyTraits traits = traitsMapper.selectOne(wrapper);
-                if (traits != null) {
-                    traits.setDeleted("1");
-                    traits.setUpdatedTime(LocalDateTime.now());
-                    traits.setUpdatedBy(currentUser);
-                    traitsMapper.updateById(traits);
+                // 使用 UpdateWrapper 强制更新 deleted 字段
+                LambdaQueryWrapper<BreedingLicense> updateWrapper = new LambdaQueryWrapper<>();
+                updateWrapper.eq(BreedingLicense::getId, id);
+
+                BreedingLicense updateEntity = new BreedingLicense();
+                updateEntity.setDeleted("1");
+                updateEntity.setUpdatedTime(LocalDateTime.now());
+                updateEntity.setUpdatedBy(currentUser);
+
+                int updateCount = licenseMapper.update(updateEntity, updateWrapper);
+                log.info("许可删除结果,ID: {}, 更新行数: {}", id, updateCount);
+
+                if (updateCount > 0) {
+                    // 验证是否真的更新成功
+                    BreedingLicense verifyLicense = licenseMapper.selectById(id);
+                    log.info("验证删除结果,ID: {}, deleted={}", id, verifyLicense != null ? verifyLicense.getDeleted() : "null");
+
+                    // 删除关联的物种特性
+                    LambdaQueryWrapper<BreedingVarietyTraits> traitsQueryWrapper = new LambdaQueryWrapper<>();
+                    traitsQueryWrapper.eq(BreedingVarietyTraits::getLicenseId, id);
+                    List<BreedingVarietyTraits> traitsList = traitsMapper.selectList(traitsQueryWrapper);
+
+                    for (BreedingVarietyTraits trait : traitsList) {
+                        LambdaQueryWrapper<BreedingVarietyTraits> traitsUpdateWrapper = new LambdaQueryWrapper<>();
+                        traitsUpdateWrapper.eq(BreedingVarietyTraits::getId, trait.getId());
+
+                        BreedingVarietyTraits updateTrait = new BreedingVarietyTraits();
+                        updateTrait.setDeleted("1");
+                        updateTrait.setUpdatedTime(LocalDateTime.now());
+                        updateTrait.setUpdatedBy(currentUser);
+
+                        traitsMapper.update(updateTrait, traitsUpdateWrapper);
+                    }
+                    log.info("物种特性删除结果,许可ID: {}, 删除数量: {}", id, traitsList.size());
+                } else {
+                    log.error("许可删除失败,ID: {}, 更新行数为0", id);
                 }
             }
 
