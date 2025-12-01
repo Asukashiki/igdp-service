@@ -23,45 +23,51 @@
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
+        <result property="batchName" column="batch_name"/>
+        <result property="plotFieldName" column="plot_field_name"/>
     </resultMap>
 
     <sql id="selectEnvironmentDataVo">
-        select env_id, batch_id, trial_id, ground_id, data_type, collect_time,
-               soil_ph, soil_temperature, soil_moisture, air_temperature,
-               air_humidity, rainfall, water_ph, data_source, remarks,
-               create_time, update_time, create_by, update_by, is_deleted
-        from environment_data
+        select e.env_id, e.batch_id, e.trial_id, e.ground_id, e.data_type, e.collect_time,
+               e.soil_ph, e.soil_temperature, e.soil_moisture, e.air_temperature,
+               e.air_humidity, e.rainfall, e.water_ph, e.data_source, e.remarks,
+               e.create_time, e.update_time, e.create_by, e.update_by, e.is_deleted,
+               b.batch_name,
+               p.trial_field_name as plot_field_name
+        from environment_data e
+        left join breeding_batch b on e.batch_id = b.batch_id and b.is_deleted = 0
+        left join plot_info p on e.ground_id = p.ground_id and p.is_deleted = 0
     </sql>
 
     <select id="selectEnvironmentDataList" parameterType="com.inspur.seed.domain.EnvironmentData" resultMap="EnvironmentDataResult">
         <include refid="selectEnvironmentDataVo"/>
         <where>
-            is_deleted = 0
+            e.is_deleted = 0
             <if test="batchId != null and batchId != ''">
-                AND batch_id = #{batchId}
+                AND e.batch_id = #{batchId}
             </if>
             <if test="trialId != null and trialId != ''">
-                AND trial_id = #{trialId}
+                AND e.trial_id = #{trialId}
             </if>
             <if test="groundId != null and groundId != ''">
-                AND ground_id = #{groundId}
+                AND e.ground_id = #{groundId}
             </if>
             <if test="dataType != null and dataType != ''">
-                AND data_type = #{dataType}
+                AND e.data_type = #{dataType}
             </if>
             <if test="startTime != null and startTime != ''">
-                AND collect_time &gt;= #{startTime}
+                AND e.collect_time &gt;= #{startTime}
             </if>
             <if test="endTime != null and endTime != ''">
-                AND collect_time &lt;= #{endTime}
+                AND e.collect_time &lt;= #{endTime}
             </if>
         </where>
-        order by collect_time desc, create_time desc
+        order by e.collect_time desc, e.create_time desc
     </select>
 
     <select id="selectEnvironmentDataById" parameterType="String" resultMap="EnvironmentDataResult">
         <include refid="selectEnvironmentDataVo"/>
-        where env_id = #{envId} and is_deleted = 0
+        where e.env_id = #{envId} and e.is_deleted = 0
     </select>
 
 </mapper>

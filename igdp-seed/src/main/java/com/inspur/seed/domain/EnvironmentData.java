@@ -94,4 +94,16 @@ public class EnvironmentData extends BaseEntity {
     /** 查询结束时间（查询参数，非数据库字段） */
     @TableField(exist = false)
     private String queryEndTime;
+
+    /** 批次名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String batchName;
+
+    /** 地块名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String plotFieldName;
+
+    /** 数据类型名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String dataTypeName;
 }

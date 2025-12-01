@@ -118,4 +118,12 @@ public class TrialBasic extends BaseEntity {
     /** 关联地块数量（非数据库字段） */
     @TableField(exist = false)
     private Integer plotCount;
+
+    /** 批次名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String batchName;
+
+    /** 季节名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String seasonName;
 }

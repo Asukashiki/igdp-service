@@ -15,6 +15,9 @@ import java.util.List;
 /**
  * 农艺性状数据Service实现类
  *
+ * 注意: photoUrl字段用于存储照片URL。照片上传功能应在前端实现，
+ * 前端需要先上传照片到文件服务器，然后将返回的URL保存到photoUrl字段中。
+ *
  * @author inspur
  */
 @Service
@@ -60,10 +63,11 @@ public class AgronomicTraitServiceImpl implements IAgronomicTraitService {
     public int deleteAgronomicTraitByIds(String[] traitIds) {
         int count = 0;
         for (String traitId : traitIds) {
-            AgronomicTrait trait = new AgronomicTrait();
-            trait.setTraitId(traitId);
-            trait.setIsDeleted(1);
-            count += agronomicTraitMapper.updateById(trait);
+            // 使用deleteById方法，让@TableLogic自动处理逻辑删除
+            boolean success = agronomicTraitMapper.deleteById(traitId) > 0;
+            if (success) {
+                count++;
+            }
         }
         return count;
     }

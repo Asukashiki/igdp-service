@@ -20,7 +20,7 @@
         <result property="personInCharge" column="person_in_charge"/>
         <result property="startDate" column="start_date"/>
         <result property="endDate" column="end_date"/>
-        <result property="remark" column="remarks"/>
+        <result property="remarks" column="remarks"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>

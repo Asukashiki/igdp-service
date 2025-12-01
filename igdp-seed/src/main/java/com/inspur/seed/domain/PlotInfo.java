@@ -118,4 +118,8 @@ public class PlotInfo extends BaseEntity {
     /** 播种记录数量（关联字段，非数据库字段） */
     @TableField(exist = false)
     private Integer sowingCount;
+
+    /** 批次名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String batchName;
 }
