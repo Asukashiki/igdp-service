@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.ose.OseReceiveConfirmMapper">
+
+    <resultMap id="OseReceiveConfirmVOResult" type="com.inspur.seed.vo.ose.OseReceiveConfirmVO">
+        <id property="receiveConfirmId" column="receive_confirm_id"/>
+        <result property="distributeId" column="distribute_id"/>
+        <result property="oseId" column="ose_id"/>
+        <result property="oseName" column="ose_name"/>
+        <result property="confirmTime" column="confirm_time"/>
+        <result property="confirmPeople" column="confirm_people"/>
+        <result property="receiveStatus" column="receive_status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <association property="distributeDetail" javaType="com.inspur.seed.vo.ose.OseReceiveConfirmVO$DistributeDetailWrapper">
+            <result property="totalDistributeQuantity" column="total_distribute_quantity"/>
+            <collection property="detailList" ofType="com.inspur.seed.vo.ose.OseReceiveConfirmVO$DetailItem"
+                        column="distribute_id" select="selectDistributeDetailList"/>
+        </association>
+    </resultMap>
+
+    <sql id="selectReceiveConfirmVo">
+        SELECT
+            rc.receive_confirm_id,
+            rc.distribute_id,
+            rc.ose_id,
+            o.ose_name,
+            rc.confirm_time,
+            rc.confirm_people,
+            rc.receive_status,
+            rc.remark,
+            rc.create_time,
+            rc.update_time,
+            m.total_distribute_quantity
+        FROM ose_breed_seed_receive_confirm rc
+        LEFT JOIN ose_info o ON rc.ose_id = o.ose_id
+        LEFT JOIN breed_seed_distribute_main m ON rc.distribute_id = m.distribute_id
+    </sql>
+
+    <select id="selectReceiveConfirmList" resultMap="OseReceiveConfirmVOResult">
+        <include refid="selectReceiveConfirmVo"/>
+        <where>
+            <if test="query.breedSeedProduceBatchId != null and query.breedSeedProduceBatchId != ''">
+                AND EXISTS (
+                    SELECT 1 FROM breed_seed_distribute_detail d
+                    WHERE d.distribute_id = rc.distribute_id
+                    AND d.breed_seed_produce_batch_id = #{query.breedSeedProduceBatchId}
+                )
+            </if>
+            <if test="query.cropType != null and query.cropType != ''">
+                AND EXISTS (
+                    SELECT 1 FROM breed_seed_distribute_detail d
+                    WHERE d.distribute_id = rc.distribute_id
+                    AND d.crop_type = #{query.cropType}
+                )
+            </if>
+            <if test="query.varietyName != null and query.varietyName != ''">
+                AND EXISTS (
+                    SELECT 1 FROM breed_seed_distribute_detail d
+                    WHERE d.distribute_id = rc.distribute_id
+                    AND d.variety_name LIKE CONCAT('%', #{query.varietyName}, '%')
+                )
+            </if>
+            <if test="query.startTime != null">
+                AND DATE(rc.create_time) &gt;= #{query.startTime}
+            </if>
+            <if test="query.endTime != null">
+                AND DATE(rc.create_time) &lt;= #{query.endTime}
+            </if>
+            <if test="query.receiveStatus != null and query.receiveStatus != ''">
+                AND rc.receive_status = #{query.receiveStatus}
+            </if>
+        </where>
+        ORDER BY rc.create_time DESC
+    </select>
+
+    <select id="selectReceiveConfirmById" resultMap="OseReceiveConfirmVOResult">
+        <include refid="selectReceiveConfirmVo"/>
+        WHERE rc.receive_confirm_id = #{receiveConfirmId}
+    </select>
+
+    <select id="selectDistributeDetailList" resultType="com.inspur.seed.vo.ose.OseReceiveConfirmVO$DetailItem">
+        SELECT
+            d.breed_seed_produce_batch_id AS breedSeedProduceBatchId,
+            d.variety_name AS varietyName,
+            d.crop_type AS cropType,
+            d.distribute_quantity AS distributeQuantity
+        FROM breed_seed_distribute_detail d
+        WHERE d.distribute_id = #{distribute_id}
+        ORDER BY d.create_time ASC
+    </select>
+
+</mapper>

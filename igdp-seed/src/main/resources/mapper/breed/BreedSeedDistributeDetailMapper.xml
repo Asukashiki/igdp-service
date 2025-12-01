@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.breed.BreedSeedDistributeDetailMapper">
+
+    <resultMap id="DistributeDetailVOResult" type="com.inspur.seed.vo.breed.BreedSeedDistributeVO$DistributeDetailVO">
+        <id property="distributeDetailId" column="distribute_detail_id"/>
+        <result property="breedSeedProduceBatchId" column="breed_seed_produce_batch_id"/>
+        <result property="varietyName" column="variety_name"/>
+        <result property="cropType" column="crop_type"/>
+        <result property="distributeQuantity" column="distribute_quantity"/>
+        <result property="produceBatchRemaining" column="produce_batch_remaining"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectDetailsByDistributeId" resultMap="DistributeDetailVOResult">
+        SELECT
+            d.distribute_detail_id,
+            d.breed_seed_produce_batch_id,
+            d.variety_name,
+            d.crop_type,
+            d.distribute_quantity,
+            d.produce_batch_remaining,
+            d.create_time
+        FROM breed_seed_distribute_detail d
+        WHERE d.distribute_id = #{distributeId}
+        ORDER BY d.create_time ASC
+    </select>
+
+    <insert id="batchInsert">
+        INSERT INTO breed_seed_distribute_detail (
+            distribute_detail_id,
+            distribute_id,
+            breed_seed_produce_batch_id,
+            variety_name,
+            crop_type,
+            distribute_quantity,
+            produce_batch_remaining,
+            create_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.distributeDetailId},
+                #{item.distributeId},
+                #{item.breedSeedProduceBatchId},
+                #{item.varietyName},
+                #{item.cropType},
+                #{item.distributeQuantity},
+                #{item.produceBatchRemaining},
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+</mapper>
