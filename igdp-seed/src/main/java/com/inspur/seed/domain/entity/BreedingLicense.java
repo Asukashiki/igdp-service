@@ -3,6 +3,7 @@ package com.inspur.seed.domain.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -99,6 +100,12 @@ public class BreedingLicense implements Serializable {
      */
     @TableField("certificate_file")
     private String certificateFile;
+
+    /**
+     * 认证文件名称(原始文件名)
+     */
+    @TableField("certificate_file_name")
+    private String certificateFileName;
 
     /**
      * 许可状态:valid/expired/revoked
