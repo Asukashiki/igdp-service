@@ -55,11 +55,11 @@
             <if test="dataType != null and dataType != ''">
                 AND e.data_type = #{dataType}
             </if>
-            <if test="startTime != null and startTime != ''">
-                AND e.collect_time &gt;= #{startTime}
+            <if test="queryStartTime != null and queryStartTime != ''">
+                AND e.collect_time &gt;= #{queryStartTime}
             </if>
-            <if test="endTime != null and endTime != ''">
-                AND e.collect_time &lt;= #{endTime}
+            <if test="queryEndTime != null and queryEndTime != ''">
+                AND e.collect_time &lt;= #{queryEndTime}
             </if>
         </where>
         order by e.collect_time desc, e.create_time desc
