@@ -11,7 +11,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * 地块信息实体类
@@ -25,37 +24,51 @@ public class PlotInfo extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 地块ID(主键) */
-    @TableId(value = "ground_id", type = IdType.ASSIGN_UUID)
-    private String groundId;
-
-    /** 育种批次ID */
-    @TableField("batch_id")
-    private String batchId;
+    /** 地块ID(主键) - 格式: {trial_id}-P{replication_no}{row_no}{column_no} */
+    @TableId(value = "plot_id", type = IdType.INPUT)
+    private String plotId;
 
     /** 试验ID */
     @TableField("trial_id")
     private String trialId;
 
-    /** 试验田名称 */
-    @TableField("trial_field_name")
-    private String trialFieldName;
+    /** 育种批次ID */
+    @TableField("batch_id")
+    private String batchId;
 
-    /** 研究中心ID */
-    @TableField("research_center_id")
-    private String researchCenterId;
+    /** 重复组编号 */
+    @TableField("replication_no")
+    private Integer replicationNo;
 
-    /** 程序ID */
-    @TableField("program_id")
-    private String programId;
+    /** 行号 */
+    @TableField("row_no")
+    private Integer rowNo;
 
-    /** 子程序ID */
-    @TableField("sub_program_id")
-    private String subProgramId;
+    /** 列号 */
+    @TableField("column_no")
+    private Integer columnNo;
 
-    /** 主题研究领域ID */
-    @TableField("research_field_id")
-    private String researchFieldId;
+    /** 品种编码 */
+    @TableField("variety_code")
+    private String varietyCode;
+
+    /** 播种日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @TableField("sowing_date")
+    private Date sowingDate;
+
+    /** 种子数量(kg) */
+    @TableField("seed_quantity")
+    private Double seedQuantity;
+
+    /** 播种方式 */
+    @TableField("sowing_method")
+    private String sowingMethod;
+
+    /** 播种时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("sowing_time")
+    private Date sowingTime;
 
     /** 地区 */
     @TableField("region")
@@ -73,53 +86,24 @@ public class PlotInfo extends BaseEntity {
     @TableField("kebele")
     private String kebele;
 
-    /** 农业生态区 */
-    @TableField("agricultural_eco_zone")
-    private String agriculturalEcoZone;
+    /** 地块面积(平方米) */
+    @TableField("plot_area_m2")
+    private Double plotAreaM2;
 
-    /** GPS位置 */
-    @TableField("gps_location")
-    private String gpsLocation;
+    /** GPS纬度 */
+    @TableField("gps_lat")
+    private Double gpsLat;
 
-    /** 开始日期 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @TableField("start_date")
-    private Date startDate;
-
-    /** 季节 */
-    @TableField("season")
-    private String season;
-
-    /** 活动代码 */
-    @TableField("activity_code")
-    private String activityCode;
-
-    /** KPI代码 */
-    @TableField("kpi_code")
-    private String kpiCode;
+    /** GPS经度 */
+    @TableField("gps_long")
+    private Double gpsLong;
 
     /** 逻辑删除标识(0=未删除,1=已删除) */
     @TableLogic
     @TableField("is_deleted")
     private Integer isDeleted;
 
-    /** 播种信息列表（非数据库字段） */
-    @TableField(exist = false)
-    private List<SowingInfo> sowingList;
-
-    /** 作物类型（关联字段，非数据库字段） */
-    @TableField(exist = false)
-    private String cropType;
-
     /** 品种名称（关联字段，非数据库字段） */
     @TableField(exist = false)
     private String varietyName;
-
-    /** 播种记录数量（关联字段，非数据库字段） */
-    @TableField(exist = false)
-    private Integer sowingCount;
-
-    /** 批次名称（关联字段，非数据库字段） */
-    @TableField(exist = false)
-    private String batchName;
 }

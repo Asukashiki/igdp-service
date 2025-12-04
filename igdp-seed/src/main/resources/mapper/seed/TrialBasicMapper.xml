@@ -13,6 +13,7 @@
         <result property="designType" column="design_type"/>
         <result property="replications" column="replications"/>
         <result property="cropType" column="crop_type"/>
+        <result property="varietyCode" column="variety_code"/>
         <result property="varietyName" column="variety_name"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
@@ -23,7 +24,7 @@
 
     <sql id="selectTrialBasicVo">
         select t.trial_id, t.batch_id, t.trial_name, t.location_id, t.gps_location,
-               t.season, t.year, t.design_type, t.replications, t.crop_type, t.variety_name,
+               t.season, t.year, t.design_type, t.replications, t.crop_type, t.variety_code, t.variety_name,
                t.create_time, t.update_time, t.create_by, t.update_by, t.is_deleted
         from trial_basic t
     </sql>
@@ -73,7 +74,7 @@
     </select>
 
     <select id="selectTrialOptions" resultMap="TrialBasicResult">
-        select trial_id, batch_id, trial_name, location_id, season, year, design_type, replications, crop_type, variety_name
+        select trial_id, batch_id, trial_name, location_id, season, year, design_type, replications, crop_type, variety_code, variety_name
         from trial_basic
         where is_deleted = 0
         <if test="batchId != null and batchId != ''">

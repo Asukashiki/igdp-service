@@ -24,12 +24,12 @@ public interface PlotInfoMapper extends BaseMapper<PlotInfo> {
     List<PlotInfo> selectPlotInfoList(PlotInfo plotInfo);
 
     /**
-     * 根据地块ID查询地块详情（含播种信息）
+     * 根据地块ID查询地块详情
      *
-     * @param groundId 地块ID
+     * @param plotId 地块ID
      * @return 地块信息
      */
-    PlotInfo selectPlotInfoById(@Param("groundId") String groundId);
+    PlotInfo selectPlotInfoById(@Param("plotId") String plotId);
 
     /**
      * 根据试验ID查询关联地块列表

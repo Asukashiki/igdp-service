@@ -61,6 +61,10 @@ public class TrialBasic extends BaseEntity {
     @TableField("crop_type")
     private String cropType;
 
+    /** 品种编码 */
+    @TableField("variety_code")
+    private String varietyCode;
+
     /** 品种名称 */
     @TableField("variety_name")
     private String varietyName;
