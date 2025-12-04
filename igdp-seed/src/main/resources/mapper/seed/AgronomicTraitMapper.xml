@@ -52,11 +52,11 @@
             <if test="varietyName != null and varietyName != ''">
                 AND b.variety_name like concat('%', #{varietyName}, '%')
             </if>
-            <if test="startTime != null and startTime != ''">
-                AND a.record_time &gt;= #{startTime}
+            <if test="queryStartTime != null">
+                AND a.record_time &gt;= #{queryStartTime}
             </if>
-            <if test="endTime != null and endTime != ''">
-                AND a.record_time &lt;= #{endTime}
+            <if test="queryEndTime != null">
+                AND a.record_time &lt;= #{queryEndTime}
             </if>
         </where>
         order by a.record_time desc, a.create_time desc

@@ -180,11 +180,11 @@ public class BreedingTrackingInfoServiceImpl extends ServiceImpl<BreedingTrackin
     private String getCropTypeName(String cropType) {
         if (cropType == null) return "";
         switch (cropType) {
-            case "WHEAT": return "小麦";
-            case "CORN": return "玉米";
-            case "RICE": return "水稻";
-            case "SOYBEAN": return "大豆";
-            case "COTTON": return "棉花";
+            case "WHEAT": return "WHEAT";
+            case "CORN": return "CORN";
+            case "RICE": return "RICE";
+            case "SOYBEAN": return "SOYBEAN";
+            case "COTTON": return "COTTON";
             default: return "";
         }
     }
