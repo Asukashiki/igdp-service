@@ -5,8 +5,14 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.inspur.agriculture.input.domain.allocate.dto.QuotaAllocationAddDTO;
 import com.inspur.agriculture.input.domain.allocate.dto.QuotaAllocationDeleteDTO;
 import com.inspur.agriculture.input.domain.allocate.dto.QuotaAllocationUpdateDTO;
+import com.inspur.agriculture.input.domain.allocate.dto.QuotaBatchAllocationDTO;
 import com.inspur.agriculture.input.domain.allocate.entity.QuotaAllocation;
+import com.inspur.agriculture.input.domain.allocate.vo.ChildDivisionVO;
+import com.inspur.agriculture.input.domain.allocate.vo.QuotaAllocationSummaryVO;
 import com.inspur.agriculture.input.domain.allocate.vo.QuotaAllocationVO;
+import com.inspur.agriculture.input.domain.allocate.vo.ReceivedQuotaVO;
+
+import java.util.List;
 
 /**
  * Quota Allocation Service
@@ -64,4 +70,51 @@ public interface QuotaAllocationService extends IService<QuotaAllocation> {
      * @return Delete result
      */
     Boolean delete(QuotaAllocationDeleteDTO dto);
+
+    /**
+     * Batch allocate quotas to multiple children
+     *
+     * @param dto Batch allocation DTO
+     * @return List of created allocations
+     */
+    List<QuotaAllocationVO> batchAllocate(QuotaBatchAllocationDTO dto);
+
+    /**
+     * Get allocation summary for a state quota
+     *
+     * @param quotaId State quota ID
+     * @param operatorDivisionId Operator division ID
+     * @return Allocation summary
+     */
+    QuotaAllocationSummaryVO getAllocationSummary(String quotaId, String operatorDivisionId);
+
+    /**
+     * Get child divisions available for allocation
+     *
+     * @param parentDivisionId Parent division ID
+     * @param year Year
+     * @param categoryId Category ID
+     * @param quotaId State quota ID
+     * @return List of child divisions
+     */
+    List<ChildDivisionVO> getChildDivisions(String parentDivisionId, Integer year, String categoryId, String quotaId);
+
+    /**
+     * Get quotas received by a division
+     *
+     * @param divisionId Division ID
+     * @param year Year filter (optional)
+     * @param categoryId Category ID filter (optional)
+     * @return List of received quotas
+     */
+    List<ReceivedQuotaVO> getReceivedQuotas(String divisionId, Integer year, String categoryId);
+
+    /**
+     * Get allocations by state quota ID
+     *
+     * @param quotaId State quota ID
+     * @param fromDivisionId Optional filter by from division
+     * @return List of allocations
+     */
+    List<QuotaAllocationVO> getAllocationsByQuotaId(String quotaId, String fromDivisionId);
 }

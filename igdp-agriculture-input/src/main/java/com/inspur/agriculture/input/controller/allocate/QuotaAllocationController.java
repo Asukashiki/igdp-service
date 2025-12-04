@@ -4,12 +4,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.inspur.agriculture.input.domain.allocate.dto.QuotaAllocationAddDTO;
 import com.inspur.agriculture.input.domain.allocate.dto.QuotaAllocationDeleteDTO;
 import com.inspur.agriculture.input.domain.allocate.dto.QuotaAllocationUpdateDTO;
+import com.inspur.agriculture.input.domain.allocate.dto.QuotaBatchAllocationDTO;
+import com.inspur.agriculture.input.domain.allocate.vo.ChildDivisionVO;
+import com.inspur.agriculture.input.domain.allocate.vo.QuotaAllocationSummaryVO;
 import com.inspur.agriculture.input.domain.allocate.vo.QuotaAllocationVO;
+import com.inspur.agriculture.input.domain.allocate.vo.ReceivedQuotaVO;
 import com.inspur.agriculture.input.service.allocate.QuotaAllocationService;
 import com.inspur.common.core.domain.AjaxResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * Quota Allocation Controller
@@ -118,6 +123,100 @@ public class QuotaAllocationController {
             } else {
                 return AjaxResult.error("Delete failed");
             }
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Batch allocate quotas to multiple children
+     *
+     * @param dto Batch allocation DTO
+     * @return AjaxResult
+     */
+    @PostMapping("/batch")
+    public AjaxResult batchAllocate(@RequestBody QuotaBatchAllocationDTO dto) {
+        try {
+            List<QuotaAllocationVO> result = quotaAllocationService.batchAllocate(dto);
+            return AjaxResult.success("Batch allocation successful", result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Get allocation summary for a state quota
+     *
+     * @param quotaId State quota ID
+     * @param operatorDivisionId Operator division ID
+     * @return AjaxResult
+     */
+    @GetMapping("/summary")
+    public AjaxResult getAllocationSummary(@RequestParam(required = true) String quotaId,
+                                           @RequestParam(required = true) String operatorDivisionId) {
+        try {
+            QuotaAllocationSummaryVO summary = quotaAllocationService.getAllocationSummary(quotaId, operatorDivisionId);
+            return AjaxResult.success("Summary query successful", summary);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Get child divisions available for allocation
+     *
+     * @param parentDivisionId Parent division ID
+     * @param year Year
+     * @param categoryId Category ID
+     * @param quotaId State quota ID
+     * @return AjaxResult
+     */
+    @GetMapping("/children")
+    public AjaxResult getChildDivisions(@RequestParam(required = true) String parentDivisionId,
+                                        @RequestParam(required = false) Integer year,
+                                        @RequestParam(required = false) String categoryId,
+                                        @RequestParam(required = false) String quotaId) {
+        try {
+            List<ChildDivisionVO> children = quotaAllocationService.getChildDivisions(parentDivisionId, year, categoryId, quotaId);
+            return AjaxResult.success("Children query successful", children);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Get quotas received by a division
+     *
+     * @param divisionId Division ID
+     * @param year Year filter
+     * @param categoryId Category ID filter
+     * @return AjaxResult
+     */
+    @GetMapping("/received")
+    public AjaxResult getReceivedQuotas(@RequestParam(required = true) String divisionId,
+                                        @RequestParam(required = false) Integer year,
+                                        @RequestParam(required = false) String categoryId) {
+        try {
+            List<ReceivedQuotaVO> receivedQuotas = quotaAllocationService.getReceivedQuotas(divisionId, year, categoryId);
+            return AjaxResult.success("Received quotas query successful", receivedQuotas);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Get allocations by state quota ID
+     *
+     * @param quotaId State quota ID
+     * @param fromDivisionId Optional filter by from division
+     * @return AjaxResult
+     */
+    @GetMapping("/by-quota")
+    public AjaxResult getAllocationsByQuotaId(@RequestParam(required = true) String quotaId,
+                                              @RequestParam(required = false) String fromDivisionId) {
+        try {
+            List<QuotaAllocationVO> allocations = quotaAllocationService.getAllocationsByQuotaId(quotaId, fromDivisionId);
+            return AjaxResult.success("Allocations query successful", allocations);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }
