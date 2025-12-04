@@ -29,42 +29,46 @@ public class FarmingRecord extends BaseEntity {
     @TableId(value = "farming_id", type = IdType.ASSIGN_UUID)
     private String farmingId;
 
-    /** 育种批次ID */
-    @TableField("batch_id")
-    private String batchId;
+    /** 农事记录编号 */
+    @TableField("farming_record_id")
+    private String farmingRecordId;
+
+    /** 地块ID */
+    @TableField("plot_id")
+    private String plotId;
 
     /** 试验ID */
     @TableField("trial_id")
     private String trialId;
 
-    /** 操作类型 */
-    @TableField("operation_type")
-    private String operationType;
+    /** 育种批次ID */
+    @TableField("batch_id")
+    private String batchId;
 
-    /** 操作时间 */
+    /** 活动日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
-    @TableField("operation_time")
-    private Date operationTime;
+    @TableField("activity_date")
+    private Date activityDate;
 
-    /** 肥料类型(施肥操作必填) */
-    @TableField("fertilizer_type")
-    private String fertilizerType;
+    /** 活动类型 */
+    @TableField("activity_type")
+    private String activityType;
 
-    /** 施肥量(kg/亩，施肥操作必填) */
-    @TableField("fertilizer_amount")
-    private BigDecimal fertilizerAmount;
+    /** 投入品名称 */
+    @TableField("input_name")
+    private String inputName;
 
-    /** 灌溉方式(灌溉操作必填) */
-    @TableField("irrigation_method")
-    private String irrigationMethod;
+    /** 数量 */
+    @TableField("quantity")
+    private BigDecimal quantity;
 
-    /** 农药类型(病虫害防治必填) */
-    @TableField("pesticide_type")
-    private String pesticideType;
+    /** 单位 */
+    @TableField("unit")
+    private String unit;
 
-    /** 农药用量(病虫害防治必填) */
-    @TableField("pesticide_dosage")
-    private String pesticideDosage;
+    /** 操作员ID */
+    @TableField("operator_id")
+    private String operatorId;
 
     /** 操作描述 */
     @TableField("operation_desc")
@@ -74,20 +78,4 @@ public class FarmingRecord extends BaseEntity {
     @TableLogic
     @TableField("is_deleted")
     private Integer isDeleted;
-
-    /** 查询起始时间（查询参数，非数据库字段） */
-    @TableField(exist = false)
-    private Date queryStartTime;
-
-    /** 查询结束时间（查询参数，非数据库字段） */
-    @TableField(exist = false)
-    private Date queryEndTime;
-
-    /** 批次名称（关联字段，非数据库字段） */
-    @TableField(exist = false)
-    private String batchName;
-
-    /** 操作类型名称（关联字段，非数据库字段） */
-    @TableField(exist = false)
-    private String operationTypeName;
 }

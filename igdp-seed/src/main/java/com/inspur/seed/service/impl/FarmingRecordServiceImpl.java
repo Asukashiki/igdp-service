@@ -1,7 +1,7 @@
 package com.inspur.seed.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import com.inspur.common.utils.MessageUtils;
+import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.FarmingRecord;
 import com.inspur.seed.mapper.FarmingRecordMapper;
@@ -25,19 +25,12 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
 
     @Override
     public List<FarmingRecord> selectFarmingRecordList(FarmingRecord farmingRecord) {
-        List<FarmingRecord> list = farmingRecordMapper.selectFarmingRecordList(farmingRecord);
-        // 为每个对象设置翻译名称
-        list.forEach(this::setTranslatedNames);
-        return list;
+        return farmingRecordMapper.selectFarmingRecordList(farmingRecord);
     }
 
     @Override
     public FarmingRecord selectFarmingRecordById(String farmingId) {
-        FarmingRecord record = farmingRecordMapper.selectFarmingRecordById(farmingId);
-        if (record != null) {
-            setTranslatedNames(record);
-        }
-        return record;
+        return farmingRecordMapper.selectFarmingRecordById(farmingId);
     }
 
     @Override
@@ -45,6 +38,10 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
         // 生成主键
         String farmingId = IdUtil.simpleUUID();
         farmingRecord.setFarmingId(farmingId);
+
+        // 生成农事记录ID: {plot_id}-F{record_no}
+        String farmingRecordId = generateFarmingRecordId(farmingRecord.getPlotId());
+        farmingRecord.setFarmingRecordId(farmingRecordId);
 
         // 设置创建信息
         farmingRecord.setCreateTime(LocalDateTime.now());
@@ -77,29 +74,18 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
     }
 
     /**
-     * 设置翻译名称
+     * 生成农事记录ID
+     * 格式: {plot_id}-F{record_no}
      */
-    private void setTranslatedNames(FarmingRecord record) {
-        if (record == null) {
-            return;
+    private String generateFarmingRecordId(String plotId) {
+        if (plotId == null || plotId.isEmpty()) {
+            throw new ServiceException("地块ID不能为空");
         }
-        // 设置操作类型名称（国际化）
-        record.setOperationTypeName(getOperationTypeName(record.getOperationType()));
-    }
 
-    /**
-     * 获取操作类型名称（支持国际化）
-     */
-    private String getOperationTypeName(String operationType) {
-        if (operationType == null || operationType.isEmpty()) {
-            return "";
-        }
-        String messageKey = "operation.type." + operationType.toLowerCase();
-        try {
-            return MessageUtils.message(messageKey);
-        } catch (Exception e) {
-            // 如果找不到对应的国际化key，返回原值
-            return operationType;
-        }
+        // 查询该地块下的最大记录编号
+        int maxRecordNo = farmingRecordMapper.getMaxRecordNoByPlotId(plotId);
+        int nextRecordNo = maxRecordNo + 1;
+
+        return String.format("%s-F%d", plotId, nextRecordNo);
     }
 }

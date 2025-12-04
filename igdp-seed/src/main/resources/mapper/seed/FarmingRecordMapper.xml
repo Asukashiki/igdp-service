@@ -4,60 +4,62 @@
 
     <resultMap type="com.inspur.seed.domain.FarmingRecord" id="FarmingRecordResult">
         <id property="farmingId" column="farming_id"/>
-        <result property="batchId" column="batch_id"/>
+        <result property="farmingRecordId" column="farming_record_id"/>
+        <result property="plotId" column="plot_id"/>
         <result property="trialId" column="trial_id"/>
-        <result property="operationType" column="operation_type"/>
-        <result property="operationTime" column="operation_time"/>
-        <result property="fertilizerType" column="fertilizer_type"/>
-        <result property="fertilizerAmount" column="fertilizer_amount"/>
-        <result property="irrigationMethod" column="irrigation_method"/>
-        <result property="pesticideType" column="pesticide_type"/>
-        <result property="pesticideDosage" column="pesticide_dosage"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="activityDate" column="activity_date"/>
+        <result property="activityType" column="activity_type"/>
+        <result property="inputName" column="input_name"/>
+        <result property="quantity" column="quantity"/>
+        <result property="unit" column="unit"/>
+        <result property="operatorId" column="operator_id"/>
         <result property="operationDesc" column="operation_desc"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
-        <result property="batchName" column="batch_name"/>
     </resultMap>
 
     <sql id="selectFarmingRecordVo">
-        select f.farming_id, f.batch_id, f.trial_id, f.operation_type, f.operation_time,
-               f.fertilizer_type, f.fertilizer_amount, f.irrigation_method,
-               f.pesticide_type, f.pesticide_dosage, f.operation_desc,
-               f.create_time, f.update_time, f.create_by, f.update_by, f.is_deleted,
-               b.batch_name
+        select f.farming_id, f.farming_record_id, f.plot_id, f.trial_id, f.batch_id,
+               f.activity_date, f.activity_type, f.input_name, f.quantity, f.unit,
+               f.operator_id, f.operation_desc,
+               f.create_time, f.update_time, f.create_by, f.update_by, f.is_deleted
         from farming_record f
-        left join breeding_batch b on f.batch_id = b.batch_id and b.is_deleted = 0
     </sql>
 
     <select id="selectFarmingRecordList" parameterType="com.inspur.seed.domain.FarmingRecord" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
         <where>
             f.is_deleted = 0
-            <if test="batchId != null and batchId != ''">
-                AND f.batch_id = #{batchId}
+            <if test="plotId != null and plotId != ''">
+                AND f.plot_id = #{plotId}
             </if>
-            <if test="trialId != null and trialId != ''">
-                AND f.trial_id = #{trialId}
+            <if test="activityType != null and activityType != ''">
+                AND f.activity_type = #{activityType}
             </if>
-            <if test="operationType != null and operationType != ''">
-                AND f.operation_type = #{operationType}
-            </if>
-            <if test="queryStartTime != null and queryStartTime != ''">
-                AND f.operation_time &gt;= #{queryStartTime}
-            </if>
-            <if test="queryEndTime != null and queryEndTime != ''">
-                AND f.operation_time &lt;= #{queryEndTime}
+            <if test="activityDate != null and activityDate != ''">
+                AND f.activity_date = #{activityDate}
             </if>
         </where>
-        order by f.operation_time desc, f.create_time desc
+        order by f.activity_date desc, f.create_time desc
     </select>
 
     <select id="selectFarmingRecordById" parameterType="String" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
         where f.farming_id = #{farmingId} and f.is_deleted = 0
+    </select>
+
+    <select id="getMaxRecordNoByPlotId" parameterType="String" resultType="int">
+        select COALESCE(MAX(
+            CAST(SUBSTRING(farming_record_id, LOCATE('-F', farming_record_id) + 2) AS UNSIGNED)
+        ), 0) as max_record_no
+        from farming_record
+        where plot_id = #{plotId}
+        and is_deleted = 0
+        and farming_record_id like CONCAT(#{plotId}, '-F%')
     </select>
 
 </mapper>

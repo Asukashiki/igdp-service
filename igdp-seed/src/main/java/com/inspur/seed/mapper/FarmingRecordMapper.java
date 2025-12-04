@@ -30,4 +30,12 @@ public interface FarmingRecordMapper extends BaseMapper<FarmingRecord> {
      * @return 农事记录
      */
     FarmingRecord selectFarmingRecordById(@Param("farmingId") String farmingId);
+
+    /**
+     * 查询指定地块下的最大记录编号
+     *
+     * @param plotId 地块ID
+     * @return 最大记录编号
+     */
+    int getMaxRecordNoByPlotId(@Param("plotId") String plotId);
 }
