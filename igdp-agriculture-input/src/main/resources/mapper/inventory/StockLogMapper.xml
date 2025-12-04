@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.StockLogMapper">
+
+    <resultMap id="StockLogResult" type="com.inspur.agriculture.input.domain.inventory.StockLog">
+        <id property="id" column="id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialBatchId" column="material_batch_id"/>
+        <result property="operationType" column="operation_type"/>
+        <result property="changeQuantity" column="change_quantity"/>
+        <result property="beforeQuantity" column="before_quantity"/>
+        <result property="afterQuantity" column="after_quantity"/>
+        <result property="referenceOrderId" column="reference_order_id"/>
+        <result property="operator" column="operator"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <sql id="selectStockLogVo">
+        select sl.id, sl.warehouse_id, w.warehouse_name,
+               sl.material_id, sl.material_batch_id,
+               sl.operation_type,
+               CASE sl.operation_type
+                   WHEN 'inbound' THEN '入库'
+                   WHEN 'outbound' THEN '出库'
+                   ELSE ''
+               END as operation_type_name,
+               sl.change_quantity, sl.before_quantity, sl.after_quantity,
+               sl.reference_order_id, sl.operator, sl.created_at
+        from stock_log sl
+        left join inv_warehouse w on sl.warehouse_id = w.warehouse_id and w.del_flag = '0'
+    </sql>
+
+    <select id="selectStockLogList" resultType="map">
+        <include refid="selectStockLogVo"/>
+        <where>
+            <if test="params.warehouseId != null and params.warehouseId != ''">
+                and sl.warehouse_id = #{params.warehouseId}
+            </if>
+            <if test="params.materialId != null and params.materialId != ''">
+                and sl.material_id = #{params.materialId}
+            </if>
+            <if test="params.materialBatchId != null and params.materialBatchId != ''">
+                and sl.material_batch_id = #{params.materialBatchId}
+            </if>
+            <if test="params.operationType != null and params.operationType != ''">
+                and sl.operation_type = #{params.operationType}
+            </if>
+            <if test="params.startDate != null and params.startDate != ''">
+                and date(sl.created_at) &gt;= #{params.startDate}
+            </if>
+            <if test="params.endDate != null and params.endDate != ''">
+                and date(sl.created_at) &lt;= #{params.endDate}
+            </if>
+            <if test="params.referenceOrderId != null and params.referenceOrderId != ''">
+                and sl.reference_order_id = #{params.referenceOrderId}
+            </if>
+        </where>
+        order by sl.created_at desc
+    </select>
+
+    <select id="selectByReferenceOrderId" resultMap="StockLogResult">
+        select * from stock_log
+        where reference_order_id = #{referenceOrderId}
+        order by created_at
+    </select>
+
+    <select id="selectByMaterialId" resultType="map">
+        <include refid="selectStockLogVo"/>
+        where sl.material_id = #{materialId}
+        <if test="startDate != null and startDate != ''">
+            and date(sl.created_at) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and date(sl.created_at) &lt;= #{endDate}
+        </if>
+        order by sl.created_at desc
+    </select>
+
+    <select id="selectByWarehouseId" resultType="map">
+        <include refid="selectStockLogVo"/>
+        where sl.warehouse_id = #{warehouseId}
+        <if test="startDate != null and startDate != ''">
+            and date(sl.created_at) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and date(sl.created_at) &lt;= #{endDate}
+        </if>
+        order by sl.created_at desc
+    </select>
+
+    <select id="sumChangeQuantity" resultType="map">
+        select
+            count(1) as log_count,
+            sum(case when operation_type = 'inbound' then change_quantity else 0 end) as total_inbound,
+            sum(case when operation_type = 'outbound' then change_quantity else 0 end) as total_outbound,
+            sum(change_quantity) as total_change
+        from stock_log
+        <where>
+            <if test="warehouseId != null and warehouseId != ''">
+                and warehouse_id = #{warehouseId}
+            </if>
+            <if test="materialId != null and materialId != ''">
+                and material_id = #{materialId}
+            </if>
+            <if test="operationType != null and operationType != ''">
+                and operation_type = #{operationType}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and date(created_at) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and date(created_at) &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="countByDate" resultType="map">
+        select
+            date(sl.created_at) as log_date,
+            count(1) as log_count,
+            sum(case when sl.operation_type = 'inbound' then sl.change_quantity else 0 end) as inbound_quantity,
+            sum(case when sl.operation_type = 'outbound' then sl.change_quantity else 0 end) as outbound_quantity
+        from stock_log sl
+        <where>
+            <if test="warehouseId != null and warehouseId != ''">
+                and sl.warehouse_id = #{warehouseId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and date(sl.created_at) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and date(sl.created_at) &lt;= #{endDate}
+            </if>
+        </where>
+        group by date(sl.created_at)
+        order by log_date desc
+    </select>
+
+    <select id="countByOperationType" resultType="map">
+        select
+            sl.operation_type,
+            CASE sl.operation_type
+                WHEN 'inbound' THEN '入库'
+                WHEN 'outbound' THEN '出库'
+                ELSE ''
+            END as operation_type_name,
+            count(1) as log_count,
+            sum(sl.change_quantity) as total_quantity
+        from stock_log sl
+        <where>
+            <if test="warehouseId != null and warehouseId != ''">
+                and sl.warehouse_id = #{warehouseId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and date(sl.created_at) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and date(sl.created_at) &lt;= #{endDate}
+            </if>
+        </where>
+        group by sl.operation_type
+    </select>
+
+    <insert id="batchInsert">
+        insert into stock_log (
+            id, warehouse_id, material_id, material_batch_id,
+            operation_type, change_quantity, before_quantity, after_quantity,
+            reference_order_id, operator
+        ) values
+        <foreach collection="logs" item="item" separator=",">
+            (
+                #{item.id}, #{item.warehouseId}, #{item.materialId}, #{item.materialBatchId},
+                #{item.operationType}, #{item.changeQuantity}, #{item.beforeQuantity}, #{item.afterQuantity},
+                #{item.referenceOrderId}, #{item.operator}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

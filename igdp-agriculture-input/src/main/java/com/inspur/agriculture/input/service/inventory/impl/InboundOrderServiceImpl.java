@@ -1,0 +1,379 @@
+package com.inspur.agriculture.input.service.inventory.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.inspur.agriculture.input.domain.inventory.InboundOrder;
+import com.inspur.agriculture.input.domain.inventory.InboundOrderDetail;
+import com.inspur.agriculture.input.domain.inventory.Stock;
+import com.inspur.agriculture.input.domain.inventory.StockLog;
+import com.inspur.agriculture.input.domain.inventory.Warehouse;
+import com.inspur.agriculture.input.mapper.inventory.InboundOrderDetailMapper;
+import com.inspur.agriculture.input.mapper.inventory.InboundOrderMapper;
+import com.inspur.agriculture.input.mapper.inventory.StockLogMapper;
+import com.inspur.agriculture.input.mapper.inventory.StockMapper;
+import com.inspur.agriculture.input.mapper.inventory.WarehouseMapper;
+import com.inspur.agriculture.input.service.inventory.IBatchService;
+import com.inspur.agriculture.input.service.inventory.IInboundOrderService;
+import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.*;
+
+/**
+ * 入库单服务实现类
+ *
+ * @author igdp
+ */
+@Service
+public class InboundOrderServiceImpl implements IInboundOrderService {
+
+    @Autowired
+    private InboundOrderMapper inboundOrderMapper;
+
+    @Autowired
+    private InboundOrderDetailMapper inboundOrderDetailMapper;
+
+    @Autowired
+    private StockMapper stockMapper;
+
+    @Autowired
+    private StockLogMapper stockLogMapper;
+
+    @Autowired
+    private WarehouseMapper warehouseMapper;
+
+    @Autowired
+    private IBatchService batchService;
+
+    @Override
+    public List<Map<String, Object>> selectInboundOrderList(Map<String, Object> params) {
+        return inboundOrderMapper.selectInboundOrderList(params);
+    }
+
+    @Override
+    public Map<String, Object> selectInboundOrderById(String inboundOrderId) {
+        if (StringUtils.isEmpty(inboundOrderId)) {
+            throw new ServiceException("入库单ID不能为空");
+        }
+        Map<String, Object> result = inboundOrderMapper.selectInboundOrderById(inboundOrderId);
+        if (result == null) {
+            throw new ServiceException("入库单不存在");
+        }
+        // 查询明细
+        List<Map<String, Object>> details = inboundOrderDetailMapper.selectDetailsByOrderId(inboundOrderId);
+        result.put("details", details);
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String createInboundOrder(InboundOrder inboundOrder, List<Map<String, Object>> details) {
+        // 校验参数
+        if (inboundOrder == null) {
+            throw new ServiceException("入库单信息不能为空");
+        }
+        if (details == null || details.isEmpty()) {
+            throw new ServiceException("入库明细不能为空");
+        }
+
+        // 校验仓库是否存在
+        if (StringUtils.isEmpty(inboundOrder.getWarehouseId())) {
+            throw new ServiceException("仓库ID不能为空");
+        }
+        Warehouse warehouse = warehouseMapper.selectById(Long.valueOf(inboundOrder.getWarehouseId()));
+        if (warehouse == null) {
+            throw new ServiceException("仓库不存在，请先配置仓库");
+        }
+        if (!"1".equals(warehouse.getStatus())) {
+            throw new ServiceException("仓库已停用，无法入库");
+        }
+
+        // 生成入库单ID和批次号
+        String inboundOrderId = "INB-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String inboundBatchId = "BATCH-INB-" + System.currentTimeMillis();
+
+        // 设置入库单信息
+        inboundOrder.setId(UUID.randomUUID().toString().replace("-", ""));
+        inboundOrder.setInboundOrderId(inboundOrderId);
+        inboundOrder.setInboundBatchId(inboundBatchId);
+        inboundOrder.setInboundStatus("pending");
+        inboundOrder.setCreatedAt(new Date());
+        inboundOrder.setUpdatedAt(new Date());
+
+        // 计算总数量
+        BigDecimal totalQuantity = BigDecimal.ZERO;
+        for (Map<String, Object> detail : details) {
+            BigDecimal quantity = new BigDecimal(detail.get("quantity").toString());
+            totalQuantity = totalQuantity.add(quantity);
+        }
+        inboundOrder.setTotalQuantity(totalQuantity);
+
+        // 插入入库单
+        inboundOrderMapper.insert(inboundOrder);
+
+        // 插入入库明细
+        List<InboundOrderDetail> detailList = new ArrayList<>();
+        for (Map<String, Object> detail : details) {
+            InboundOrderDetail detailEntity = new InboundOrderDetail();
+            detailEntity.setId(UUID.randomUUID().toString().replace("-", ""));
+            detailEntity.setDetailId("DET-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
+            detailEntity.setInboundOrderId(inboundOrderId);
+            detailEntity.setMaterialId(detail.get("materialId").toString());
+            detailEntity.setMaterialBatchId(detail.get("materialBatchId").toString());
+            detailEntity.setMaterialName(detail.get("materialName").toString());
+            detailEntity.setMaterialType(detail.get("materialType").toString());
+            detailEntity.setQuantity(new BigDecimal(detail.get("quantity").toString()));
+            detailEntity.setSpecModel(detail.get("specModel") != null ? detail.get("specModel").toString() : null);
+            detailEntity.setUnitOfMeasure(detail.get("unitOfMeasure") != null ? detail.get("unitOfMeasure").toString() : null);
+            detailEntity.setExpiryDate((Date) detail.get("expiryDate"));
+            detailEntity.setOperator(inboundOrder.getOperator());
+            detailEntity.setCreatedAt(new Date());
+            detailEntity.setUpdatedAt(new Date());
+            detailList.add(detailEntity);
+        }
+        inboundOrderDetailMapper.batchInsert(detailList);
+
+        return inboundOrderId;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean auditInboundOrder(String inboundOrderId, String auditStatus, String auditUser, Date auditTime, String remark) {
+        // 校验参数
+        if (StringUtils.isEmpty(inboundOrderId)) {
+            throw new ServiceException("入库单ID不能为空");
+        }
+        if (StringUtils.isEmpty(auditStatus)) {
+            throw new ServiceException("审核状态不能为空");
+        }
+        if (!Arrays.asList("approved", "rejected").contains(auditStatus)) {
+            throw new ServiceException("审核状态无效");
+        }
+
+        // 查询入库单
+        LambdaQueryWrapper<InboundOrder> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InboundOrder::getInboundOrderId, inboundOrderId);
+        InboundOrder inboundOrder = inboundOrderMapper.selectOne(wrapper);
+        if (inboundOrder == null) {
+            throw new ServiceException("入库单不存在");
+        }
+
+        // 校验状态
+        if (!"pending".equals(inboundOrder.getInboundStatus())) {
+            throw new ServiceException("只有待审核状态的入库单才能审核");
+        }
+
+        // 更新入库单
+        inboundOrder.setAuditUser(auditUser);
+        inboundOrder.setAuditTime(auditTime != null ? auditTime : new Date());
+        inboundOrder.setRemark(remark);
+        inboundOrder.setUpdatedAt(new Date());
+
+        // 根据审核结果更新状态
+        if ("approved".equals(auditStatus)) {
+            inboundOrder.setInboundStatus("approved");
+        } else {
+            inboundOrder.setInboundStatus("rejected");
+        }
+
+        return inboundOrderMapper.updateById(inboundOrder) > 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> confirmInbound(String inboundOrderId, Date inboundTime, String operator) {
+        // 校验参数
+        if (StringUtils.isEmpty(inboundOrderId)) {
+            throw new ServiceException("入库单ID不能为空");
+        }
+
+        // 查询入库单
+        LambdaQueryWrapper<InboundOrder> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InboundOrder::getInboundOrderId, inboundOrderId);
+        InboundOrder inboundOrder = inboundOrderMapper.selectOne(wrapper);
+        if (inboundOrder == null) {
+            throw new ServiceException("入库单不存在");
+        }
+
+        // 校验状态（必须是已审核状态）
+        if (!"approved".equals(inboundOrder.getInboundStatus())) {
+            throw new ServiceException("只有已审核的入库单才能执行入库");
+        }
+
+        // 校验仓库
+        Warehouse warehouse = warehouseMapper.selectById(Long.valueOf(inboundOrder.getWarehouseId()));
+        if (warehouse == null) {
+            throw new ServiceException("仓库不存在");
+        }
+        if (!"1".equals(warehouse.getStatus())) {
+            throw new ServiceException("仓库已停用，无法入库");
+        }
+
+        // 校验仓库容量
+        BigDecimal usedCapacity = warehouse.getUsedCapacity() != null ? warehouse.getUsedCapacity() : BigDecimal.ZERO;
+        BigDecimal totalQuantity = inboundOrder.getTotalQuantity();
+        BigDecimal availableCapacity = warehouse.getCapacity().subtract(usedCapacity);
+        if (availableCapacity.compareTo(totalQuantity) < 0) {
+            throw new ServiceException("仓库容量不足，可用容量：" + availableCapacity + "，需要容量：" + totalQuantity);
+        }
+
+        // 查询入库明细
+        LambdaQueryWrapper<InboundOrderDetail> detailWrapper = new LambdaQueryWrapper<>();
+        detailWrapper.eq(InboundOrderDetail::getInboundOrderId, inboundOrderId);
+        List<InboundOrderDetail> details = inboundOrderDetailMapper.selectList(detailWrapper);
+
+        List<Map<String, Object>> updatedStock = new ArrayList<>();
+
+        // 处理每个明细
+        for (InboundOrderDetail detail : details) {
+            // 生成批次号和二维码
+            String materialBatchId = batchService.generateBatchId(
+                    detail.getMaterialId(),
+                    inboundOrder.getWarehouseId(),
+                    inboundOrder.getInboundType(),
+                    detail.getQuantity(),
+                    inboundTime != null ? inboundTime : new Date()
+            );
+
+            String qrCode = batchService.generateQrCode(
+                    detail.getMaterialId(),
+                    materialBatchId,
+                    inboundOrder.getWarehouseId(),
+                    detail.getExpiryDate(),
+                    detail.getQuantity()
+            );
+
+            // 更新明细
+            detail.setMaterialBatchId(materialBatchId);
+            detail.setQrCode(qrCode);
+            detail.setInboundTime(inboundTime != null ? inboundTime : new Date());
+            detail.setUpdatedAt(new Date());
+            inboundOrderDetailMapper.updateById(detail);
+
+            // 查询是否已存在该批次的库存
+            Stock existStock = stockMapper.selectByBatch(
+                    inboundOrder.getWarehouseId(),
+                    detail.getMaterialId(),
+                    materialBatchId
+            );
+
+            BigDecimal beforeQuantity = BigDecimal.ZERO;
+            BigDecimal afterQuantity = detail.getQuantity();
+
+            if (existStock != null) {
+                // 更新现有库存
+                beforeQuantity = existStock.getQuantity();
+                afterQuantity = beforeQuantity.add(detail.getQuantity());
+
+                existStock.setQuantity(afterQuantity);
+                existStock.setInboundQuantity(existStock.getInboundQuantity().add(detail.getQuantity()));
+                existStock.setUpdatedAt(new Date());
+                stockMapper.updateById(existStock);
+            } else {
+                // 创建新库存
+                Stock newStock = new Stock();
+                newStock.setId(UUID.randomUUID().toString().replace("-", ""));
+                newStock.setWarehouseId(inboundOrder.getWarehouseId());
+                newStock.setWarehouseName(warehouse.getWarehouseName());
+                newStock.setMaterialId(detail.getMaterialId());
+                newStock.setMaterialBatchId(materialBatchId);
+                newStock.setMaterialName(detail.getMaterialName());
+                newStock.setQuantity(detail.getQuantity());
+                newStock.setInboundQuantity(detail.getQuantity());
+                newStock.setOutboundQuantity(BigDecimal.ZERO);
+                newStock.setExpiryDate(detail.getExpiryDate());
+                newStock.setQrCode(qrCode);
+                newStock.setStatus("0");
+                newStock.setCreatedAt(new Date());
+                newStock.setUpdatedAt(new Date());
+                stockMapper.insert(newStock);
+            }
+
+            // 记录库存变动日志
+            StockLog stockLog = new StockLog();
+            stockLog.setId(UUID.randomUUID().toString().replace("-", ""));
+            stockLog.setWarehouseId(inboundOrder.getWarehouseId());
+            stockLog.setMaterialId(detail.getMaterialId());
+            stockLog.setMaterialBatchId(materialBatchId);
+            stockLog.setOperationType("inbound");
+            stockLog.setChangeQuantity(detail.getQuantity());
+            stockLog.setBeforeQuantity(beforeQuantity);
+            stockLog.setAfterQuantity(afterQuantity);
+            stockLog.setReferenceOrderId(inboundOrderId);
+            stockLog.setOperator(operator != null ? operator : inboundOrder.getOperator());
+            stockLog.setCreatedAt(new Date());
+            stockLogMapper.insert(stockLog);
+
+            // 添加到返回结果
+            Map<String, Object> stockInfo = new HashMap<>();
+            stockInfo.put("material_id", detail.getMaterialId());
+            stockInfo.put("warehouse_id", inboundOrder.getWarehouseId());
+            stockInfo.put("batch_id", materialBatchId);
+            stockInfo.put("new_quantity", afterQuantity);
+            updatedStock.add(stockInfo);
+        }
+
+        // 更新仓库已用容量
+        warehouseMapper.updateUsedCapacity(Long.valueOf(inboundOrder.getWarehouseId()), totalQuantity);
+
+        // 更新入库单状态
+        inboundOrder.setInboundStatus("completed");
+        inboundOrder.setInboundTime(inboundTime != null ? inboundTime : new Date());
+        inboundOrder.setInboundUser(operator != null ? operator : inboundOrder.getOperator());
+        inboundOrder.setUpdatedAt(new Date());
+        inboundOrderMapper.updateById(inboundOrder);
+
+        // 返回结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("inbound_order_id", inboundOrderId);
+        result.put("updated_stock", updatedStock);
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean cancelInboundOrder(String inboundOrderId, String operator) {
+        if (StringUtils.isEmpty(inboundOrderId)) {
+            throw new ServiceException("入库单ID不能为空");
+        }
+
+        LambdaQueryWrapper<InboundOrder> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InboundOrder::getInboundOrderId, inboundOrderId);
+        InboundOrder inboundOrder = inboundOrderMapper.selectOne(wrapper);
+
+        if (inboundOrder == null) {
+            throw new ServiceException("入库单不存在");
+        }
+
+        if ("completed".equals(inboundOrder.getInboundStatus())) {
+            throw new ServiceException("已完成的入库单不能取消");
+        }
+
+        inboundOrder.setInboundStatus("cancelled");
+        inboundOrder.setUpdatedAt(new Date());
+        return inboundOrderMapper.updateById(inboundOrder) > 0;
+    }
+
+    @Override
+    public int countInboundOrders(Map<String, Object> params) {
+        return inboundOrderMapper.countInboundOrders(params);
+    }
+
+    @Override
+    public int countPendingOrders(String warehouseId) {
+        return inboundOrderMapper.countPendingOrders(warehouseId);
+    }
+
+    @Override
+    public List<Map<String, Object>> countByStatus(String warehouseId) {
+        return inboundOrderMapper.countByStatus(warehouseId);
+    }
+
+    @Override
+    public List<Map<String, Object>> countByType(String startDate, String endDate) {
+        return inboundOrderMapper.countByType(startDate, endDate);
+    }
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.OutboundBatchSplitMapper">
+
+    <resultMap id="OutboundBatchSplitResult" type="com.inspur.agriculture.input.domain.inventory.OutboundBatchSplit">
+        <id property="id" column="id"/>
+        <result property="outboundDetailId" column="outbound_detail_id"/>
+        <result property="inboundBatchId" column="inbound_batch_id"/>
+        <result property="splitQuantity" column="split_quantity"/>
+        <result property="remainingQuantity" column="remaining_quantity"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <sql id="selectBatchSplitVo">
+        select obs.id, obs.outbound_detail_id, obs.inbound_batch_id,
+               obs.split_quantity, obs.remaining_quantity, obs.created_at
+        from outbound_batch_split obs
+    </sql>
+
+    <select id="selectByDetailId" resultMap="OutboundBatchSplitResult">
+        <include refid="selectBatchSplitVo"/>
+        where obs.outbound_detail_id = #{outboundDetailId}
+        order by obs.created_at
+    </select>
+
+    <select id="selectByInboundBatchId" resultMap="OutboundBatchSplitResult">
+        <include refid="selectBatchSplitVo"/>
+        where obs.inbound_batch_id = #{inboundBatchId}
+        order by obs.created_at desc
+    </select>
+
+    <insert id="batchInsert">
+        insert into outbound_batch_split (
+            id, outbound_detail_id, inbound_batch_id,
+            split_quantity, remaining_quantity
+        ) values
+        <foreach collection="splits" item="item" separator=",">
+            (
+                #{item.id}, #{item.outboundDetailId}, #{item.inboundBatchId},
+                #{item.splitQuantity}, #{item.remainingQuantity}
+            )
+        </foreach>
+    </insert>
+
+    <select id="sumSplitQuantity" resultType="map">
+        select
+            sum(split_quantity) as total_split_quantity,
+            count(1) as split_count
+        from outbound_batch_split
+        where inbound_batch_id = #{inboundBatchId}
+    </select>
+
+    <select id="selectSplitDetailsWithOrder" resultType="map">
+        select obs.id, obs.outbound_detail_id, obs.inbound_batch_id,
+               obs.split_quantity, obs.remaining_quantity, obs.created_at,
+               ood.outbound_order_id, ood.material_id, ood.material_batch_id,
+               ood.quantity as detail_quantity,
+               oo.outbound_status, oo.outbound_type, oo.warehouse_id,
+               oo.outbound_time
+        from outbound_batch_split obs
+        left join outbound_order_detail ood on obs.outbound_detail_id = ood.detail_id
+        left join outbound_order oo on ood.outbound_order_id = oo.outbound_order_id
+        where obs.inbound_batch_id = #{inboundBatchId}
+        order by obs.created_at desc
+    </select>
+
+</mapper>

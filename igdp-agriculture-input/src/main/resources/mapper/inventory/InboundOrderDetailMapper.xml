@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.InboundOrderDetailMapper">
+
+    <resultMap id="InboundOrderDetailResult" type="com.inspur.agriculture.input.domain.inventory.InboundOrderDetail">
+        <id property="id" column="id"/>
+        <result property="detailId" column="detail_id"/>
+        <result property="inboundOrderId" column="inbound_order_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialBatchId" column="material_batch_id"/>
+        <result property="materialType" column="material_type"/>
+        <result property="materialName" column="material_name"/>
+        <result property="specModel" column="spec_model"/>
+        <result property="unitOfMeasure" column="unit_of_measure"/>
+        <result property="quantity" column="quantity"/>
+        <result property="inboundTime" column="inbound_time"/>
+        <result property="expiryDate" column="expiry_date"/>
+        <result property="qrCode" column="qr_code"/>
+        <result property="operator" column="operator"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectInboundDetailVo">
+        select iod.id, iod.detail_id, iod.inbound_order_id,
+               iod.material_id, iod.material_batch_id, iod.material_type,iod.material_name,
+               iod.spec_model, iod.unit_of_measure, iod.quantity,
+               iod.inbound_time, iod.expiry_date, iod.qr_code,
+               iod.operator, iod.created_at, iod.updated_at, iod.remark
+        from inbound_order_detail iod
+    </sql>
+
+    <select id="selectDetailsByOrderId" resultType="map">
+        <include refid="selectInboundDetailVo"/>
+        where iod.inbound_order_id = #{inboundOrderId}
+        order by iod.created_at
+    </select>
+
+    <select id="selectDetailById" resultType="map">
+        <include refid="selectInboundDetailVo"/>
+        where iod.detail_id = #{detailId}
+    </select>
+
+    <insert id="batchInsert">
+        insert into inbound_order_detail (
+            id, detail_id, inbound_order_id, material_id, material_batch_id,
+            material_type,material_name,spec_model, unit_of_measure, quantity,
+            inbound_time, expiry_date, qr_code, operator, remark
+        ) values
+        <foreach collection="details" item="item" separator=",">
+            (
+                #{item.id}, #{item.detailId}, #{item.inboundOrderId},
+                #{item.materialId}, #{item.materialBatchId}, #{item.materialType},#{item.materialName},
+                #{item.specModel}, #{item.unitOfMeasure}, #{item.quantity},
+                #{item.inboundTime}, #{item.expiryDate}, #{item.qrCode},
+                #{item.operator}, #{item.remark}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectByMaterialId" resultType="map">
+        <include refid="selectInboundDetailVo"/>
+        left join inbound_order io on iod.inbound_order_id = io.inbound_order_id
+        <where>
+            iod.material_id = #{materialId}
+            <if test="startDate != null and startDate != ''">
+                and date(iod.inbound_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and date(iod.inbound_time) &lt;= #{endDate}
+            </if>
+        </where>
+        order by iod.inbound_time desc
+    </select>
+
+    <select id="selectByBatchId" resultMap="InboundOrderDetailResult">
+        select * from inbound_order_detail
+        where material_batch_id = #{materialBatchId}
+    </select>
+
+    <select id="sumInboundQuantity" resultType="map">
+        select
+            sum(iod.quantity) as total_quantity,
+            count(distinct iod.inbound_order_id) as order_count
+        from inbound_order_detail iod
+        left join inbound_order io on iod.inbound_order_id = io.inbound_order_id
+        <where>
+            iod.material_id = #{materialId}
+            and io.inbound_status = 'completed'
+            <if test="warehouseId != null and warehouseId != ''">
+                and io.warehouse_id = #{warehouseId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                and date(iod.inbound_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and date(iod.inbound_time) &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectExpiringSoon" resultType="map">
+        select iod.detail_id, iod.material_id, iod.material_batch_id,
+               iod.quantity, iod.expiry_date, iod.qr_code,
+               io.warehouse_id, w.warehouse_name,
+               datediff(iod.expiry_date, curdate()) as days_until_expiry
+        from inbound_order_detail iod
+        left join inbound_order io on iod.inbound_order_id = io.inbound_order_id
+        left join inv_warehouse w on io.warehouse_id = w.warehouse_id and w.del_flag = '0'
+        <where>
+            io.inbound_status = 'completed'
+            and iod.expiry_date is not null
+            and datediff(iod.expiry_date, curdate()) between 0 and #{days}
+            <if test="warehouseId != null and warehouseId != ''">
+                and io.warehouse_id = #{warehouseId}
+            </if>
+        </where>
+        order by iod.expiry_date
+    </select>
+
+</mapper>
