@@ -58,6 +58,14 @@
         WHERE batch_id LIKE CONCAT('BREED', #{year}, '%')
     </select>
 
+    <select id="generateBatchIdByVarietyAndYear" resultType="String">
+        SELECT CONCAT('BRD-', #{varietyCode}, '-', #{year}, '-',
+               LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(batch_id, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0'))
+        FROM breeding_batch
+        WHERE batch_id LIKE CONCAT('BRD-', #{varietyCode}, '-', #{year}, '-%')
+        AND is_deleted = 0
+    </select>
+
     <select id="selectBatchOptions" resultMap="BreedingBatchResult">
         select data_id, batch_id, batch_name, crop_type, variety_code, variety_name, year, status
         from breeding_batch

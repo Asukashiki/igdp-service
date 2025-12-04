@@ -41,6 +41,19 @@ public interface TrialBasicMapper extends BaseMapper<TrialBasic> {
     int checkTrialNameUnique(@Param("trialName") String trialName, @Param("trialId") String trialId);
 
     /**
+     * 根据育种批次、研究中心和年份生成新的试验ID
+     * 格式: TR-{variety_code}-{location_id}-{year}-序号
+     *
+     * @param batchId 育种批次ID
+     * @param locationId 研究中心ID
+     * @param year 年份
+     * @return 试验ID
+     */
+    String generateTrialIdByBatchAndLocationAndYear(@Param("batchId") String batchId,
+                                                      @Param("locationId") String locationId,
+                                                      @Param("year") Integer year);
+
+    /**
      * 获取试验下拉列表
      *
      * @param batchId 批次ID（可选）

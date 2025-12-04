@@ -49,9 +49,8 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
         String dataId = IdUtil.simpleUUID();
         breedingBatch.setDataId(dataId);
 
-        // 生成育种批次ID
-        int year = Calendar.getInstance().get(Calendar.YEAR);
-        String batchId = generateBatchId(year);
+        // 生成育种批次ID: BRD-{variety_code}-{year}-序号
+        String batchId = generateBatchId(breedingBatch.getVarietyCode(), breedingBatch.getYear());
         breedingBatch.setBatchId(batchId);
 
         // 设置创建信息
@@ -100,11 +99,19 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
 
     /**
      * 生成育种批次ID
+     * 格式: BRD-{variety_code}-{year}-序号
      */
-    private String generateBatchId(int year) {
-        String batchId = breedingBatchMapper.generateBatchId(year);
+    private String generateBatchId(String varietyCode, Integer year) {
+        if (varietyCode == null || varietyCode.isEmpty()) {
+            throw new ServiceException("品种编码不能为空");
+        }
+        if (year == null) {
+            throw new ServiceException("年份不能为空");
+        }
+
+        String batchId = breedingBatchMapper.generateBatchIdByVarietyAndYear(varietyCode, year);
         if (batchId == null) {
-            batchId = "BREED" + year + "000001";
+            batchId = "BRD-" + varietyCode + "-" + year + "-001";
         }
         return batchId;
     }
