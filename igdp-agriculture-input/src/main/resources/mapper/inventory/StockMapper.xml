@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.StockMapper">
+
+    <resultMap id="StockResult" type="com.inspur.agriculture.input.domain.inventory.Stock">
+        <id property="id" column="id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialBatchId" column="material_batch_id"/>
+        <result property="quantity" column="quantity"/>
+        <result property="inboundQuantity" column="inbound_quantity"/>
+        <result property="outboundQuantity" column="outbound_quantity"/>
+        <result property="expiryDate" column="expiry_date"/>
+        <result property="qrCode" column="qr_code"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <sql id="selectStockVo">
+        select s.id, s.warehouse_id, w.warehouse_name,
+               s.material_id, s.material_batch_id,s.material_name,
+               s.quantity, s.inbound_quantity, s.outbound_quantity,
+               s.expiry_date, s.qr_code, s.status,
+               s.created_at, s.updated_at
+        from stock s
+        left join inv_warehouse w on s.warehouse_id = w.warehouse_id and w.del_flag = '0'
+    </sql>
+
+    <select id="selectStockList" resultType="map">
+        <include refid="selectStockVo"/>
+        <where>
+            <if test="params.warehouseId != null and params.warehouseId != ''">
+                and s.warehouse_id = #{params.warehouseId}
+            </if>
+            <if test="params.materialId != null and params.materialId != ''">
+                and s.material_id = #{params.materialId}
+            </if>
+            <if test="params.materialBatchId != null and params.materialBatchId != ''">
+                and s.material_batch_id = #{params.materialBatchId}
+            </if>
+            <if test="params.status != null and params.status != ''">
+                and s.status = #{params.status}
+            </if>
+            <if test="params.minQuantity != null">
+                and s.quantity &gt;= #{params.minQuantity}
+            </if>
+            <if test="params.maxQuantity != null">
+                and s.quantity &lt;= #{params.maxQuantity}
+            </if>
+        </where>
+        order by s.created_at desc
+    </select>
+
+    <select id="selectStockById" resultType="map">
+        <include refid="selectStockVo"/>
+        where s.id = #{id}
+    </select>
+
+    <select id="selectByWarehouseAndMaterial" resultMap="StockResult">
+        select * from stock
+        where warehouse_id = #{warehouseId}
+          and material_id = #{materialId}
+          and quantity &gt; 0
+        order by created_at
+    </select>
+
+    <select id="selectByBatch" resultMap="StockResult">
+        select * from stock
+        where warehouse_id = #{warehouseId}
+          and material_id = #{materialId}
+          and material_batch_id = #{materialBatchId}
+    </select>
+
+    <update id="updateStockInbound">
+        update stock
+        set quantity = quantity + #{quantity},
+            inbound_quantity = inbound_quantity + #{quantity},
+            updated_at = now()
+        where warehouse_id = #{warehouseId}
+          and material_id = #{materialId}
+          and material_batch_id = #{materialBatchId}
+    </update>
+
+    <update id="updateStockOutbound">
+        update stock
+        set quantity = quantity - #{quantity},
+            outbound_quantity = outbound_quantity + #{quantity},
+            updated_at = now()
+        where warehouse_id = #{warehouseId}
+          and material_id = #{materialId}
+          and material_batch_id = #{materialBatchId}
+          and quantity &gt;= #{quantity}
+    </update>
+
+    <select id="sumWarehouseStock" resultType="map">
+        select
+            count(distinct material_id) as material_count,
+            sum(quantity) as total_quantity,
+            sum(inbound_quantity) as total_inbound,
+            sum(outbound_quantity) as total_outbound
+        from stock
+        where warehouse_id = #{warehouseId}
+          and status = 'active'
+    </select>
+
+    <select id="sumMaterialStock" resultType="map">
+        select
+            s.material_id,
+            count(distinct s.warehouse_id) as warehouse_count,
+            sum(s.quantity) as total_quantity,
+            sum(s.inbound_quantity) as total_inbound,
+            sum(s.outbound_quantity) as total_outbound
+        from stock s
+        where s.material_id = #{materialId}
+          and s.status = 'active'
+        group by s.material_id
+    </select>
+
+    <select id="selectLowStock" resultType="map">
+        <include refid="selectStockVo"/>
+        where s.quantity &lt; #{minQuantity}
+          and s.status = 'active'
+        <if test="warehouseId != null and warehouseId != ''">
+            and s.warehouse_id = #{warehouseId}
+        </if>
+        order by s.quantity
+    </select>
+
+    <select id="selectExpiringSoon" resultType="map">
+        <include refid="selectStockVo"/>
+        where s.expiry_date is not null
+          and datediff(s.expiry_date, curdate()) between 0 and #{days}
+          and s.quantity &gt; 0
+          and s.status = 'active'
+        <if test="warehouseId != null and warehouseId != ''">
+            and s.warehouse_id = #{warehouseId}
+        </if>
+        order by s.expiry_date
+    </select>
+
+    <select id="selectExpired" resultType="map">
+        <include refid="selectStockVo"/>
+        where s.expiry_date is not null
+          and s.expiry_date &lt; curdate()
+          and s.quantity &gt; 0
+          and s.status = 'active'
+        <if test="warehouseId != null and warehouseId != ''">
+            and s.warehouse_id = #{warehouseId}
+        </if>
+        order by s.expiry_date
+    </select>
+
+    <select id="selectAvailableStockFIFO" resultMap="StockResult">
+        select * from stock
+        where warehouse_id = #{warehouseId}
+          and material_id = #{materialId}
+          and quantity &gt; 0
+          and status = '0'
+          and (expiry_date is null or expiry_date &gt; curdate())
+        order by created_at
+    </select>
+
+</mapper>

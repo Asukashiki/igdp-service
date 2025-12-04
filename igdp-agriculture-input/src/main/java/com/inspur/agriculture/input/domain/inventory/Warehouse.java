@@ -17,6 +17,7 @@ import java.util.Date;
  * @author inspur
  * @date 2025-11-26
  */
+
 @Data
 @TableName("inv_warehouse")
 public class Warehouse implements Serializable {
@@ -45,11 +46,6 @@ public class Warehouse implements Serializable {
     /** 已用容量 */
     private BigDecimal usedCapacity;
 
-    /** 拥有者 */
-    private String belongs;
-
-    /** 关联供应商ID */
-    private Long supplierId;
 
     /** 状态: 0-停用/1-启用 */
     private String status;
@@ -84,10 +80,6 @@ public class Warehouse implements Serializable {
     @TableField(exist = false)
     private String warehouseTypeDesc;
 
-    /** 供应商名称(非数据库字段) */
-    @TableField(exist = false)
-    private String supplierName;
-
     /** 可用容量(非数据库字段) */
     @TableField(exist = false)
     private BigDecimal availableCapacity;
@@ -95,4 +87,13 @@ public class Warehouse implements Serializable {
     /** 状态描述(非数据库字段) */
     @TableField(exist = false)
     private String statusDesc;
+
+    @TableField(exist = false)
+    private String organName;
+
+    private String organCode;
+
+    private BigDecimal warehouseArea;
+
+    private String siteCertificate;
 }

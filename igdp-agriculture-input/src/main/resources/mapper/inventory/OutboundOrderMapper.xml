@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.inventory.OutboundOrderMapper">
+
+    <resultMap id="OutboundOrderResult" type="com.inspur.agriculture.input.domain.inventory.OutboundOrder">
+        <id property="id" column="id"/>
+        <result property="outboundOrderId" column="outbound_order_id"/>
+        <result property="outboundBatchId" column="outbound_batch_id"/>
+        <result property="outboundStatus" column="outbound_status"/>
+        <result property="outboundType" column="outbound_type"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="relatedOrderNo" column="related_order_no"/>
+        <result property="outboundObjectId" column="outbound_object_id"/>
+        <result property="outboundUser" column="outbound_user"/>
+        <result property="outboundDept" column="outbound_dept"/>
+        <result property="outboundTime" column="outbound_time"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="auditUser" column="audit_user"/>
+        <result property="operator" column="operator"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectOutboundOrderVo">
+        select oo.id, oo.outbound_order_id, oo.outbound_batch_id, oo.outbound_status,
+               oo.outbound_type,oo.outbound_object_name,oo.outbound_object_id,oo.outbound_user,
+               CASE oo.outbound_type
+                   WHEN 1 THEN '销售出库'
+                   WHEN 2 THEN '调拨出库'
+                   ELSE ''
+               END as outbound_type_name,
+               oo.warehouse_id, w.warehouse_name,
+               oo.related_order_no, oo.outbound_object_id,
+               oo.outbound_user, oo.outbound_dept, oo.outbound_time,
+               oo.audit_time, oo.audit_user, oo.operator,
+               oo.created_at, oo.updated_at, oo.remark
+        from outbound_order oo
+        left join inv_warehouse w on oo.warehouse_id = w.warehouse_id and w.del_flag = '0'
+    </sql>
+
+    <select id="selectOutboundOrderList" resultType="map">
+        <include refid="selectOutboundOrderVo"/>
+        <where>
+            <if test="params.outboundStatus != null and params.outboundStatus != '' and params.outboundStatus != 'all'">
+                and oo.outbound_status = #{params.outboundStatus}
+            </if>
+            <if test="params.outboundType != null and params.outboundType != '' and params.outboundType != 'all'">
+                and oo.outbound_type = #{params.outboundType}
+            </if>
+            <if test="params.outboundOrderId != null and params.outboundOrderId != ''">
+                and oo.outbound_order_id like concat('%', #{params.outboundOrderId}, '%')
+            </if>
+            <if test="params.outboundBatchId != null and params.outboundBatchId != ''">
+                and oo.outbound_batch_id like concat('%', #{params.outboundBatchId}, '%')
+            </if>
+            <if test="params.warehouseId != null and params.warehouseId != ''">
+                and oo.warehouse_id = #{params.warehouseId}
+            </if>
+            <if test="params.outboundObjectId != null and params.outboundObjectId != ''">
+                and oo.outbound_object_id = #{params.outboundObjectId}
+            </if>
+            <if test="params.relatedOrderNo != null and params.relatedOrderNo != ''">
+                and oo.related_order_no like concat('%', #{params.relatedOrderNo}, '%')
+            </if>
+            <if test="params.startDate != null and params.startDate != ''">
+                and date(oo.created_at) &gt;= #{params.startDate}
+            </if>
+            <if test="params.endDate != null and params.endDate != ''">
+                and date(oo.created_at) &lt;= #{params.endDate}
+            </if>
+            <if test="params.keyword != null and params.keyword != ''">
+                and (oo.outbound_order_id like concat('%', #{params.keyword}, '%')
+                     or oo.related_order_no like concat('%', #{params.keyword}, '%')
+                     or w.warehouse_name like concat('%', #{params.keyword}, '%'))
+            </if>
+        </where>
+        order by oo.created_at desc
+    </select>
+
+    <select id="selectOutboundOrderById" resultType="map">
+        <include refid="selectOutboundOrderVo"/>
+        where oo.outbound_order_id = #{outboundOrderId}
+    </select>
+
+    <select id="countOutboundOrders" resultType="int">
+        select count(1)
+        from outbound_order oo
+        <where>
+            <if test="params.outboundStatus != null and params.outboundStatus != '' and params.outboundStatus != 'all'">
+                and oo.outbound_status = #{params.outboundStatus}
+            </if>
+            <if test="params.outboundType != null and params.outboundType != ''">
+                and oo.outbound_type = #{params.outboundType}
+            </if>
+            <if test="params.warehouseId != null and params.warehouseId != ''">
+                and oo.warehouse_id = #{params.warehouseId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByOutboundBatchId" resultMap="OutboundOrderResult">
+        select * from outbound_order
+        where outbound_batch_id = #{outboundBatchId}
+    </select>
+
+    <update id="updateOutboundStatus">
+        update outbound_order
+        set outbound_status = #{status},
+            updated_at = now()
+        where outbound_order_id = #{outboundOrderId}
+    </update>
+
+    <select id="countPendingOrders" resultType="int">
+        select count(1)
+        from outbound_order
+        where outbound_status = 'pending'
+        <if test="warehouseId != null and warehouseId != ''">
+            and warehouse_id = #{warehouseId}
+        </if>
+    </select>
+
+    <select id="countByStatus" resultType="map">
+        select outbound_status as status,
+               count(1) as count
+        from outbound_order
+        <where>
+            <if test="warehouseId != null and warehouseId != ''">
+                warehouse_id = #{warehouseId}
+            </if>
+        </where>
+        group by outbound_status
+    </select>
+
+    <select id="countByType" resultType="map">
+        select outbound_type as type,
+               CASE outbound_type
+                   WHEN 1 THEN '销售出库'
+                   WHEN 2 THEN '调拨出库'
+                   ELSE ''
+               END as type_name,
+               count(1) as count
+        from outbound_order
+        <where>
+            <if test="startDate != null and startDate != ''">
+                and date(created_at) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and date(created_at) &lt;= #{endDate}
+            </if>
+        </where>
+        group by outbound_type
+    </select>
+
+    <select id="selectByOutboundObjectId" resultMap="OutboundOrderResult">
+        select * from outbound_order
+        where outbound_object_id = #{outboundObjectId}
+        order by created_at desc
+    </select>
+
+</mapper>
