@@ -84,4 +84,13 @@ public interface IFarmerInfoService {
      * @param farmerId 农民编码
      */
     void updateLandStatistics(String farmerId);
+
+    /**
+     * 批量导入农民数据
+     *
+     * @param farmerList 农民数据列表
+     * @param updateSupport 是否支持更新已存在的数据
+     * @return 导入结果
+     */
+    Map<String, Object> importFarmerData(List<FarmerInfo> farmerList, boolean updateSupport);
 }

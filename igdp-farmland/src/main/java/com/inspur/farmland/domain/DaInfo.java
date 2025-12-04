@@ -136,4 +136,6 @@ public class DaInfo extends BaseEntity {
      * 更新人姓名
      */
     private String updateByName;
+
+    private String remark;
 }

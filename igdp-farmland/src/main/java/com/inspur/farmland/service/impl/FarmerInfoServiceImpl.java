@@ -251,4 +251,62 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
 
         farmerInfoMapper.update(null, updateWrapper);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> importFarmerData(List<FarmerInfo> farmerList, boolean updateSupport) {
+        int successCount = 0;
+        int failCount = 0;
+        int updateCount = 0;
+        StringBuilder failMsg = new StringBuilder();
+
+        for (FarmerInfo farmer : farmerList) {
+            try {
+                // 验证必填字段
+                if (StrUtil.isBlank(farmer.getFarmerName())) {
+                    failCount++;
+                    failMsg.append("农民姓名不能为空; ");
+                    continue;
+                }
+
+                // 检查身份证是否已存在
+                FarmerInfo existFarmer = null;
+                if (StrUtil.isNotBlank(farmer.getIdCard())) {
+                    LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
+                    wrapper.eq(FarmerInfo::getIdCard, farmer.getIdCard())
+                           .eq(FarmerInfo::getStatus, "1");
+                    existFarmer = farmerInfoMapper.selectOne(wrapper);
+                }
+
+                if (existFarmer != null) {
+                    if (updateSupport) {
+                        // 更新已存在的记录
+                        farmer.setFarmerId(existFarmer.getFarmerId());
+                        updateFarmerInfo(farmer);
+                        updateCount++;
+                    } else {
+                        failCount++;
+                        failMsg.append("身份证号 ").append(farmer.getIdCard()).append(" 已存在; ");
+                    }
+                } else {
+                    // 新增记录
+                    insertFarmerInfo(farmer);
+                    successCount++;
+                }
+            } catch (Exception e) {
+                failCount++;
+                failMsg.append("导入 ").append(farmer.getFarmerName()).append(" 失败: ").append(e.getMessage()).append("; ");
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("successCount", successCount);
+        result.put("updateCount", updateCount);
+        result.put("failCount", failCount);
+        if (failMsg.length() > 0) {
+            result.put("failMsg", failMsg.toString());
+        }
+
+        return result;
+    }
 }
