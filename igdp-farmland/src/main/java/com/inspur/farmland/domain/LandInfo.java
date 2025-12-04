@@ -214,4 +214,6 @@ public class LandInfo extends BaseEntity {
      * 更新人姓名
      */
     private String updateByName;
+
+    private String remark;
 }

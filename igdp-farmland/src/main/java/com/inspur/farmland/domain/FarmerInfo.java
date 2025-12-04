@@ -4,12 +4,13 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.inspur.common.annotation.Excel;
 import com.inspur.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * 农民信息实体类
@@ -35,42 +36,50 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 农民姓名
      */
+    @Excel(name = "Farmer Name", sort = 1)
     private String farmerName;
 
     /**
      * 身份证号/ID
      */
+    @Excel(name = "ID Card", sort = 2)
     private String idCard;
 
     /**
      * 性别：M-男 F-女
      */
+    @Excel(name = "Gender", readConverterExp = "M=Male,F=Female,MALE=Male,FEMALE=Female", sort = 3)
     private String gender;
 
     /**
      * 出生日期
      */
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate birthday;
+    @Excel(name = "Birthday", dateFormat = "yyyy-MM-dd", sort = 4)
+    private Date birthday;
 
     /**
      * 手机号
      */
+    @Excel(name = "Phone", sort = 5)
     private String phone;
 
     /**
      * 邮箱
      */
+    @Excel(name = "Email", sort = 6)
     private String email;
 
     /**
      * 青年类别：1-是 0-否
      */
+    @Excel(name = "Youth Category", readConverterExp = "1=Yes,0=No", sort = 7)
     private String youthCategory;
 
     /**
      * 所属Union ID
      */
+    @Excel(name = "Union ID", sort = 8)
     private String unionId;
 
     /**
@@ -81,6 +90,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 所属Cooperative ID
      */
+    @Excel(name = "Cooperative ID", sort = 9)
     private String cooperativeId;
 
     /**
@@ -91,6 +101,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 州代码
      */
+    @Excel(name = "Region Code", sort = 10)
     private String regionCode;
 
     /**
@@ -101,6 +112,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 区代码
      */
+    @Excel(name = "Zone Code", sort = 11)
     private String zoneCode;
 
     /**
@@ -111,6 +123,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 镇代码
      */
+    @Excel(name = "Woreda Code", sort = 12)
     private String woredaCode;
 
     /**
@@ -121,6 +134,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 村代码
      */
+    @Excel(name = "Kebele Code", sort = 13)
     private String kebeleCode;
 
     /**
@@ -131,6 +145,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 详细地址
      */
+    @Excel(name = "Address", sort = 14)
     private String address;
 
     /**
@@ -146,6 +161,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 负责DA编码
      */
+    @Excel(name = "DA ID", sort = 15)
     private String daId;
 
     /**
@@ -187,4 +203,6 @@ public class FarmerInfo extends BaseEntity {
      * 更新人姓名
      */
     private String updateByName;
+
+    private String remark;
 }

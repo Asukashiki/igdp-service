@@ -3,10 +3,14 @@ package com.inspur.farmland.controller;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.page.TableDataInfo;
+import com.inspur.common.utils.poi.ExcelUtil;
 import com.inspur.farmland.domain.FarmerInfo;
 import com.inspur.farmland.service.IFarmerInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 import java.util.HashMap;
 import java.util.List;
@@ -115,5 +119,35 @@ public class FarmerInfoController extends BaseController {
             @RequestParam(required = false) String keyword) {
         List<Map<String, Object>> options = farmerInfoService.selectFarmerOptions(kebeleCode, keyword);
         return AjaxResult.success(options);
+    }
+
+    /**
+     * 下载导入模板
+     */
+    @GetMapping("/importTemplate")
+    public void importTemplate(HttpServletResponse response) {
+        ExcelUtil<FarmerInfo> util = new ExcelUtil<>(FarmerInfo.class);
+        util.importTemplateExcel(response, "Farmer Import Template");
+    }
+
+    /**
+     * 导入农民数据
+     */
+    @PostMapping("/import")
+    public AjaxResult importData(@RequestParam("file") MultipartFile file,
+                                 @RequestParam(value = "updateSupport", defaultValue = "false") boolean updateSupport) {
+        try {
+            ExcelUtil<FarmerInfo> util = new ExcelUtil<>(FarmerInfo.class);
+            List<FarmerInfo> farmerList = util.importExcel(file.getInputStream());
+
+            if (farmerList == null || farmerList.isEmpty()) {
+                return AjaxResult.error("导入数据为空");
+            }
+
+            Map<String, Object> result = farmerInfoService.importFarmerData(farmerList, updateSupport);
+            return AjaxResult.success("导入完成", result);
+        } catch (Exception e) {
+            return AjaxResult.error("导入失败：" + e.getMessage());
+        }
     }
 }
