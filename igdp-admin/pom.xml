@@ -115,9 +115,15 @@
         </dependency>
 
 
-        <dependency>
+        <!-- <dependency>
             <groupId>com.inspur</groupId>
             <artifactId>igdp-farmland-management</artifactId>
+        </dependency> -->
+
+        <!-- 农田管理新模块 -->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-farmland</artifactId>
         </dependency>
 
         <dependency>
