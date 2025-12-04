@@ -162,25 +162,25 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
      * 数据校验
      */
     private void validateBreedingBatch(BreedingBatch breedingBatch) {
-        // 批次时间校验
-        if (breedingBatch.getBatchTime() != null && breedingBatch.getStartDate() != null) {
-            if (breedingBatch.getBatchTime().after(breedingBatch.getStartDate())) {
-                throw new ServiceException("批次时间不能晚于计划起始时间");
-            }
-        }
-
-        // 起止时间校验
-        if (breedingBatch.getStartDate() != null && breedingBatch.getEndDate() != null) {
-            if (breedingBatch.getStartDate().after(breedingBatch.getEndDate())) {
-                throw new ServiceException("计划起始时间不能晚于计划结束时间");
-            }
-        }
-
-        // 繁育年份校验
-        if (breedingBatch.getYearOfDevelopment() != null) {
-            if (breedingBatch.getYearOfDevelopment() < 1900 || breedingBatch.getYearOfDevelopment() > 2100) {
-                throw new ServiceException("繁育年份需在1900-2100范围内");
-            }
-        }
+//        // 批次时间校验
+//        if (breedingBatch.getBatchTime() != null && breedingBatch.getStartDate() != null) {
+//            if (breedingBatch.getBatchTime().after(breedingBatch.getStartDate())) {
+//                throw new ServiceException("批次时间不能晚于计划起始时间");
+//            }
+//        }
+//
+//        // 起止时间校验
+//        if (breedingBatch.getStartDate() != null && breedingBatch.getEndDate() != null) {
+//            if (breedingBatch.getStartDate().after(breedingBatch.getEndDate())) {
+//                throw new ServiceException("计划起始时间不能晚于计划结束时间");
+//            }
+//        }
+//
+//        // 繁育年份校验
+//        if (breedingBatch.getYearOfDevelopment() != null) {
+//            if (breedingBatch.getYearOfDevelopment() < 1900 || breedingBatch.getYearOfDevelopment() > 2100) {
+//                throw new ServiceException("繁育年份需在1900-2100范围内");
+//            }
+//        }
     }
 }

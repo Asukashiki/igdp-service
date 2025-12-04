@@ -28,18 +28,9 @@ public class BreedingBatch extends BaseEntity {
     @TableId(value = "data_id", type = IdType.ASSIGN_UUID)
     private String dataId;
 
-    /** 计划名称 */
-    @TableField("batch_name")
-    private String batchName;
-
     /** 育种批次ID */
     @TableField("batch_id")
     private String batchId;
-
-    /** 批次时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @TableField("batch_time")
-    private Date batchTime;
 
     /** 作物类型 */
     @TableField("crop_type")
@@ -49,21 +40,13 @@ public class BreedingBatch extends BaseEntity {
     @TableField(exist = false)
     private String cropTypeName;
 
+    /** 品种编码 */
+    @TableField("variety_code")
+    private String varietyCode;
+
     /** 品种名称 */
     @TableField("variety_name")
     private String varietyName;
-
-    /** 物种 */
-    @TableField("species")
-    private String species;
-
-    /** 属 */
-    @TableField("genus")
-    private String genus;
-
-    /** 科 */
-    @TableField("family")
-    private String family;
 
     /** 繁育方法 */
     @TableField("breeding_method")
@@ -73,35 +56,17 @@ public class BreedingBatch extends BaseEntity {
     @TableField(exist = false)
     private String breedingMethodName;
 
-    /** 血统 */
-    @TableField("pedigree")
-    private String pedigree;
+    /** 育种目标（原计划名称） */
+    @TableField("batch_name")
+    private String batchName;
 
-    /** 繁育年份 */
-    @TableField("year_of_development")
-    private Integer yearOfDevelopment;
+    /** 开展年份 */
+    @TableField("year")
+    private Integer year;
 
-    /** 生产地 */
-    @TableField("product_place")
-    private String productPlace;
-
-    /** 产量说明 */
-    @TableField("yield")
-    private String yield;
-
-    /** 负责人 */
-    @TableField("person_in_charge")
-    private String personInCharge;
-
-    /** 计划起始时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @TableField("start_date")
-    private Date startDate;
-
-    /** 计划结束时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @TableField("end_date")
-    private Date endDate;
+    /** 批次状态 (not_approved/approved/ongoing/done) */
+    @TableField("status")
+    private String status;
 
     /** 备注 - 映射到数据库remarks字段 */
     @TableField("remarks")
