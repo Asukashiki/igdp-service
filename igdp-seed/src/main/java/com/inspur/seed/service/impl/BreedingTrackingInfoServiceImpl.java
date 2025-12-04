@@ -180,11 +180,11 @@ public class BreedingTrackingInfoServiceImpl extends ServiceImpl<BreedingTrackin
     private String getCropTypeName(String cropType) {
         if (cropType == null) return "";
         switch (cropType) {
-            case "WHEAT": return "小麦";
-            case "CORN": return "玉米";
-            case "RICE": return "水稻";
-            case "SOYBEAN": return "大豆";
-            case "COTTON": return "棉花";
+            case "WHEAT": return "WHEAT";
+            case "CORN": return "CORN";
+            case "RICE": return "RICE";
+            case "SOYBEAN": return "SOYBEAN";
+            case "COTTON": return "COTTON";
             default: return "";
         }
     }
@@ -195,10 +195,10 @@ public class BreedingTrackingInfoServiceImpl extends ServiceImpl<BreedingTrackin
     private String getStageName(String stageName) {
         if (stageName == null) return "";
         switch (stageName) {
-            case "01": return "亲本系准备";
-            case "02": return "原原种繁殖";
-            case "03": return "原种繁殖";
-            case "04": return "良种生产";
+            case "01": return "Parental strain preparation";
+            case "02": return "Seed propagation by seed sowing";
+            case "03": return "Seed propagation";
+            case "04": return "Breeding of superior varieties";
             default: return "";
         }
     }
@@ -209,9 +209,9 @@ public class BreedingTrackingInfoServiceImpl extends ServiceImpl<BreedingTrackin
     private String getTrackingResultName(String trackingResult) {
         if (trackingResult == null) return "";
         switch (trackingResult) {
-            case "01": return "正常";
-            case "02": return "异常";
-            case "03": return "待观察";
+            case "01": return "normal";
+            case "02": return "error";
+            case "03": return "to be observed";
             default: return "";
         }
     }
