@@ -2,6 +2,7 @@ package com.inspur.framework.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +43,12 @@ public class MybatisPlusConfig {
             default:
                 break;
         }
+        // Add pagination interceptor
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(dbType));
+
+        // Add optimistic lock interceptor for @Version annotation support
+        interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
+
         return interceptor;
     }
 }
