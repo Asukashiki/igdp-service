@@ -69,6 +69,26 @@ public class BreedingYieldDataDTO {
      */
     private String remark;
 
+    /**
+     * 检验日期
+     */
+    private LocalDate inspectionDate;
+
+    /**
+     * 检验类型
+     */
+    private String inspectionType;
+
+    /**
+     * 评分代码
+     */
+    private String scoreCode;
+
+    /**
+     * 评分值
+     */
+    private String scoreValue;
+
     // 查询条件字段
     /**
      * 收获日期开始

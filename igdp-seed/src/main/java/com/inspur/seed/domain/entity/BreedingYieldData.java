@@ -117,6 +117,26 @@ public class BreedingYieldData {
     private String remark;
 
     /**
+     * 检验日期
+     */
+    private LocalDate inspectionDate;
+
+    /**
+     * 检验类型
+     */
+    private String inspectionType;
+
+    /**
+     * 评分代码
+     */
+    private String scoreCode;
+
+    /**
+     * 评分值
+     */
+    private String scoreValue;
+
+    /**
      * 删除标记:0未删除1已删除
      */
     private String deleted;

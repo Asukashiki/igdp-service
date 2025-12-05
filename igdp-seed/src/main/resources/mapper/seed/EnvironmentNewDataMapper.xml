@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.EnvironmentNewDataMapper">
+
+    <resultMap type="com.inspur.seed.domain.EnvironmentNewData" id="EnvironmentNewDataResult">
+        <id property="envRecordId" column="env_record_id"/>
+        <result property="trialId" column="trial_id"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="plotId" column="plot_id"/>
+        <result property="stationId" column="station_id"/>
+        <result property="timestamp" column="timestamp"/>
+        <result property="parameterCode" column="parameter_code"/>
+        <result property="value" column="value"/>
+        <result property="unit" column="unit"/>
+        <result property="source" column="source"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="batchName" column="batch_name"/>
+        <result property="trialName" column="trial_name"/>
+        <result property="plotName" column="plot_name"/>
+    </resultMap>
+
+    <sql id="selectEnvironmentNewDataVo">
+        select e.env_record_id, e.trial_id, e.batch_id, e.plot_id, e.station_id,
+               e.timestamp, e.parameter_code, e.value, e.unit, e.source, e.remark,
+               e.create_time, e.update_time, e.create_by, e.update_by, e.is_deleted
+        from environment_new_data e
+    </sql>
+
+    <select id="selectEnvironmentNewDataList" parameterType="com.inspur.seed.domain.EnvironmentNewData" resultMap="EnvironmentNewDataResult">
+        <include refid="selectEnvironmentNewDataVo"/>
+        <where>
+            e.is_deleted = 0
+            <if test="batchId != null and batchId != ''">
+                AND e.batch_id = #{batchId}
+            </if>
+            <if test="trialId != null and trialId != ''">
+                AND e.trial_id = #{trialId}
+            </if>
+            <if test="plotId != null and plotId != ''">
+                AND e.plot_id = #{plotId}
+            </if>
+            <if test="stationId != null and stationId != ''">
+                AND e.station_id like concat('%', #{stationId}, '%')
+            </if>
+            <if test="parameterCode != null and parameterCode != ''">
+                AND e.parameter_code = #{parameterCode}
+            </if>
+            <if test="queryStartTime != null and queryStartTime != ''">
+                AND e.timestamp &gt;= #{queryStartTime}
+            </if>
+            <if test="queryEndTime != null and queryEndTime != ''">
+                AND e.timestamp &lt;= #{queryEndTime}
+            </if>
+        </where>
+        order by e.timestamp desc, e.create_time desc
+    </select>
+
+    <select id="selectEnvironmentNewDataById" parameterType="String" resultMap="EnvironmentNewDataResult">
+        <include refid="selectEnvironmentNewDataVo"/>
+        where e.env_record_id = #{envRecordId} and e.is_deleted = 0
+    </select>
+
+</mapper>
