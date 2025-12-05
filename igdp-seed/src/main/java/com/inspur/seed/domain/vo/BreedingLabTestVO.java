@@ -100,6 +100,26 @@ public class BreedingLabTestVO {
     private String testerName;
 
     /**
+     * 样本类型
+     */
+    private String sampleType;
+
+    /**
+     * 实验参数
+     */
+    private String labParameter;
+
+    /**
+     * 实验结果值
+     */
+    private String resultValue;
+
+    /**
+     * 实验结果标识:true通过false不通过
+     */
+    private String passFailFlag;
+
+    /**
      * 备注
      */
     private String remark;

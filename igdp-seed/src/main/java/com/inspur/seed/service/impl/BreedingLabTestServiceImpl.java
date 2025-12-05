@@ -82,6 +82,16 @@ public class BreedingLabTestServiceImpl implements IBreedingLabTestService {
             queryWrapper.like("sample_id", dto.getSampleId());
         }
 
+        // 样本类型模糊查询
+        if (StrUtil.isNotBlank(dto.getSampleType())) {
+            queryWrapper.like("sample_type", dto.getSampleType());
+        }
+
+        // 实验结果标识精确查询
+        if (StrUtil.isNotBlank(dto.getPassFailFlag())) {
+            queryWrapper.eq("pass_fail_flag", dto.getPassFailFlag());
+        }
+
         // 检测日期范围
         if (dto.getTestDateStart() != null) {
             queryWrapper.ge("test_date", dto.getTestDateStart());
