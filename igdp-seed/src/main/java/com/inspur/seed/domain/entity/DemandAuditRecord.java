@@ -20,13 +20,13 @@ public class DemandAuditRecord implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Primary Key UUID
+     * Primary Key ID
      */
-    @TableId(type = IdType.ASSIGN_UUID)
+    @TableId(type = IdType.ASSIGN_ID)
     private String id;
 
     /**
-     * Batch ID
+     * Batch ID (关联demand_collection_batch)
      */
     private String batchId;
 

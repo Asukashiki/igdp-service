@@ -24,6 +24,7 @@ import com.inspur.seed.mapper.DemandAuditRecordMapper;
 import com.inspur.seed.mapper.DemandCollectionBatchMapper;
 import com.inspur.seed.mapper.DemandFarmerDetailMapper;
 import com.inspur.seed.mapper.DemandFarmerInputItemMapper;
+import com.inspur.seed.service.IDemandCollectionBatchService;
 import com.inspur.seed.service.IFarmerDemandService;
 import com.inspur.seed.service.IDemandSummaryService;
 import lombok.extern.slf4j.Slf4j;
@@ -58,17 +59,18 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Autowired
     private IDemandSummaryService summaryService;
 
+    @Autowired
+    private IDemandCollectionBatchService batchService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String addFarmerDemand(FarmerDemandAddDTO dto) {
-        // 1. Validate batch exists and status is collecting
-        DemandCollectionBatch batch = batchMapper.selectById(dto.getBatchId());
-        if (batch == null || batch.getIsDeleted() == 1) {
-            throw new ServiceException("Batch not found");
-        }
-        if (!BatchStatusEnum.COLLECTING.getCode().equals(batch.getStatus())) {
-            throw new ServiceException("Batch is not in collecting status");
-        }
+        // 1. 根据当前年份自动获取或创建批次
+        int currentYear = java.time.Year.now().getValue();
+        DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(currentYear);
+
+        // 设置批次ID
+        dto.setBatchId(batch.getId());
 
         // 2. Validate input categories
         for (FarmerDemandAddDTO.InputItemDTO item : dto.getInputItems()) {
@@ -363,10 +365,13 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         }
 
         // 5. Delete demand (logic delete)
-        demand.setIsDeleted(1);
-        demand.setUpdatedBy(currentUserId);
-        demand.setUpdatedTime(new Date());
-        if (!this.updateById(demand)) {
+        LambdaUpdateWrapper<DemandFarmerDetail> demandDeleteWrapper = new LambdaUpdateWrapper<>();
+        demandDeleteWrapper.eq(DemandFarmerDetail::getId, id);
+        demandDeleteWrapper.eq(DemandFarmerDetail::getVersion, demand.getVersion()); // Optimistic lock
+        demandDeleteWrapper.set(DemandFarmerDetail::getIsDeleted, 1);
+        demandDeleteWrapper.set(DemandFarmerDetail::getUpdatedBy, currentUserId);
+        demandDeleteWrapper.set(DemandFarmerDetail::getUpdatedTime, new Date());
+        if (!this.update(demandDeleteWrapper)) {
             throw new ServiceException("Delete failed");
         }
 

@@ -96,6 +96,7 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                 // 4. Create audit record
                 DemandAuditRecord auditRecord = new DemandAuditRecord();
                 auditRecord.setBatchId(demand.getBatchId());
+
                 auditRecord.setDemandId(demandId);
                 auditRecord.setAuditType("single");
                 auditRecord.setAuditLevel(AuditLevelEnum.VILLAGE.getCode());
@@ -269,6 +270,7 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                 // 5. Create audit record
                 DemandAuditRecord auditRecord = new DemandAuditRecord();
                 auditRecord.setBatchId(demand.getBatchId());
+
                 auditRecord.setDemandId(demandId);
                 auditRecord.setAuditType("single");
                 auditRecord.setAuditLevel(currentAuditLevel);
@@ -345,6 +347,7 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                 // 4. Create audit record
                 DemandAuditRecord auditRecord = new DemandAuditRecord();
                 auditRecord.setBatchId(demand.getBatchId());
+
                 auditRecord.setDemandId(demandId);
                 auditRecord.setAuditType("single");
                 auditRecord.setAuditLevel(currentAuditLevel);
