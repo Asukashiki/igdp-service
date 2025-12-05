@@ -18,9 +18,8 @@ import java.util.List;
 public class FarmerDemandAddDTO {
 
     /**
-     * Batch ID
+     * Batch ID (自动由后端根据年份设置)
      */
-    @NotBlank(message = "Batch ID cannot be empty")
     private String batchId;
 
     /**
