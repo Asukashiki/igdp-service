@@ -30,9 +30,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select io.id, io.inbound_order_id, io.inbound_batch_id, io.inbound_status,
                io.inbound_type,
                CASE io.inbound_type
-                   WHEN 0 THEN '生产入库'
-                   WHEN 1 THEN '采购入库'
-                   WHEN 2 THEN '调拨入库'
+                   WHEN 0 THEN 'production'
+                   WHEN 1 THEN 'purchase'
+                   WHEN 2 THEN 'transfer'
                    ELSE ''
                END as inbound_type_name,
                io.warehouse_id, w.warehouse_name,
