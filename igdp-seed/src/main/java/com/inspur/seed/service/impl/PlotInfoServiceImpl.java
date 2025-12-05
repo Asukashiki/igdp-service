@@ -1,19 +1,15 @@
 package com.inspur.seed.service.impl;
 
-import cn.hutool.core.util.IdUtil;
+import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.PlotInfo;
-import com.inspur.seed.domain.SowingInfo;
 import com.inspur.seed.mapper.PlotInfoMapper;
-import com.inspur.seed.mapper.SowingInfoMapper;
 import com.inspur.seed.service.IPlotInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -27,25 +23,23 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
     @Autowired
     private PlotInfoMapper plotInfoMapper;
 
-    @Autowired
-    private SowingInfoMapper sowingInfoMapper;
-
     @Override
     public List<PlotInfo> selectPlotInfoList(PlotInfo plotInfo) {
         return plotInfoMapper.selectPlotInfoList(plotInfo);
     }
 
     @Override
-    public PlotInfo selectPlotInfoById(String groundId) {
-        return plotInfoMapper.selectPlotInfoById(groundId);
+    public PlotInfo selectPlotInfoById(String plotId) {
+        return plotInfoMapper.selectPlotInfoById(plotId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String insertPlotInfo(PlotInfo plotInfo) {
-        // 生成主键
-        String groundId = IdUtil.simpleUUID();
-        plotInfo.setGroundId(groundId);
+        // 生成地块ID: {trial_id}-P{replication_no}{row_no}{column_no}
+        String plotId = generatePlotId(plotInfo.getTrialId(), plotInfo.getReplicationNo(),
+                                        plotInfo.getRowNo(), plotInfo.getColumnNo());
+        plotInfo.setPlotId(plotId);
 
         // 设置创建信息
         plotInfo.setCreateTime(LocalDateTime.now());
@@ -54,10 +48,7 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
         // 保存地块信息
         plotInfoMapper.insert(plotInfo);
 
-        // 保存播种信息
-        saveSowingList(groundId, plotInfo.getSowingList());
-
-        return groundId;
+        return plotId;
     }
 
     @Override
@@ -68,27 +59,16 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
         plotInfo.setUpdateBy(SecurityUtils.getUsername());
 
         // 更新地块信息
-        int rows = plotInfoMapper.updateById(plotInfo);
-
-        // 删除原有播种信息
-        sowingInfoMapper.deleteByGroundId(plotInfo.getGroundId());
-
-        // 保存新的播种信息
-        saveSowingList(plotInfo.getGroundId(), plotInfo.getSowingList());
-
-        return rows;
+        return plotInfoMapper.updateById(plotInfo);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int deletePlotInfoByIds(String[] groundIds) {
+    public int deletePlotInfoByIds(String[] plotIds) {
         int count = 0;
-        for (String groundId : groundIds) {
-            // 删除播种信息
-            sowingInfoMapper.deleteByGroundId(groundId);
-
-            // 删除地块信息 - 使用removeById方法，让@TableLogic自动处理逻辑删除
-            boolean success = plotInfoMapper.deleteById(groundId) > 0;
+        for (String plotId : plotIds) {
+            // 删除地块信息 - 使用deleteById方法，让@TableLogic自动处理逻辑删除
+            boolean success = plotInfoMapper.deleteById(plotId) > 0;
             if (success) {
                 count++;
             }
@@ -107,20 +87,23 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
     }
 
     /**
-     * 保存播种信息列表
+     * 生成地块ID
+     * 格式: {trial_id}-P{replication_no}{row_no}{column_no}
      */
-    private void saveSowingList(String groundId, List<SowingInfo> sowingList) {
-        if (CollectionUtils.isEmpty(sowingList)) {
-            return;
+    private String generatePlotId(String trialId, Integer replicationNo, Integer rowNo, Integer columnNo) {
+        if (trialId == null || trialId.isEmpty()) {
+            throw new ServiceException("试验ID不能为空");
+        }
+        if (replicationNo == null) {
+            throw new ServiceException("重复组编号不能为空");
+        }
+        if (rowNo == null) {
+            throw new ServiceException("行号不能为空");
+        }
+        if (columnNo == null) {
+            throw new ServiceException("列号不能为空");
         }
 
-        Date now = new Date();
-        for (SowingInfo sowing : sowingList) {
-            sowing.setSowingId(IdUtil.simpleUUID());
-            sowing.setGroundId(groundId);
-            sowing.setCreateTime(now);
-        }
-
-        sowingInfoMapper.batchInsert(sowingList);
+        return String.format("%s-P%d%d%d", trialId, replicationNo, rowNo, columnNo);
     }
 }

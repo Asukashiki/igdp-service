@@ -275,9 +275,16 @@
             </dependency>
 
             <!-- 农田管理模块-->
-            <dependency>
+            <!-- <dependency>
                 <groupId>com.inspur</groupId>
                 <artifactId>igdp-farmland-management</artifactId>
+                <version>${igdp.version}</version>
+            </dependency> -->
+
+            <!-- 农田管理新模块-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-farmland</artifactId>
                 <version>${igdp.version}</version>
             </dependency>
         </dependencies>
@@ -295,8 +302,9 @@
         <module>igdp-agriculture-input</module>
         <module>igdp-doc</module>
 
-        <module>igdp-farmland-management</module>
+        <!-- <module>igdp-farmland-management</module> -->
         <module>igdp-seed</module>
+        <module>igdp-farmland</module>
     </modules>
     <packaging>pom</packaging>
 

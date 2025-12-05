@@ -1,5 +1,6 @@
 package com.inspur.agriculture.input.dto.inventory;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import javax.validation.constraints.DecimalMin;
@@ -36,12 +37,7 @@ public class WarehouseDTO {
     @DecimalMin(value = "0.01", message = "仓库容量必须大于0")
     private BigDecimal capacity;
 
-    /** 拥有者 */
-    @NotBlank(message = "拥有者不能为空")
-    private String belongs;
-
-    /** 关联供应商ID */
-    private Long supplierId;
+    private BigDecimal warehouseArea;
 
     /** 状态: 0-停用/1-启用 */
     private String status;
@@ -54,4 +50,10 @@ public class WarehouseDTO {
 
     /** 备注 */
     private String remark;
+
+    private String organName;
+
+    private String organCode;
+
+    private String siteCertificate;
 }

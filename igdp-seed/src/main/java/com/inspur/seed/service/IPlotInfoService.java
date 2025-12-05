@@ -46,10 +46,10 @@ public interface IPlotInfoService {
     /**
      * 批量删除地块信息（含关联播种信息）
      *
-     * @param groundIds 地块ID数组
+     * @param plotIds 地块ID数组
      * @return 影响行数
      */
-    int deletePlotInfoByIds(String[] groundIds);
+    int deletePlotInfoByIds(String[] plotIds);
 
     /**
      * 根据批次ID查询地块列表

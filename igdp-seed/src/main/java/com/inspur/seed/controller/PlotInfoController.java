@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 地块及播种信息管理Controller
+ * 地块信息管理Controller
  *
  * @author inspur
  */
@@ -23,7 +23,7 @@ public class PlotInfoController extends BaseController {
     private IPlotInfoService plotInfoService;
 
     /**
-     * 分页查询地块及播种信息列表
+     * 分页查询地块信息列表
      */
     @GetMapping("/list")
     public TableDataInfo list(PlotInfo plotInfo) {
@@ -33,24 +33,24 @@ public class PlotInfoController extends BaseController {
     }
 
     /**
-     * 获取地块及播种信息详情
+     * 获取地块信息详情
      */
     @GetMapping("/getInfo")
-    public AjaxResult getInfo(@RequestParam("groundId") String groundId) {
-        return AjaxResult.success(plotInfoService.selectPlotInfoById(groundId));
+    public AjaxResult getInfo(@RequestParam("plotId") String plotId) {
+        return AjaxResult.success(plotInfoService.selectPlotInfoById(plotId));
     }
 
     /**
-     * 新增地块及播种信息
+     * 新增地块信息
      */
     @PostMapping("/add")
     public AjaxResult add(@RequestBody PlotInfo plotInfo) {
-        String groundId = plotInfoService.insertPlotInfo(plotInfo);
-        return AjaxResult.success("新增成功", groundId);
+        String plotId = plotInfoService.insertPlotInfo(plotInfo);
+        return AjaxResult.success("新增成功", plotId);
     }
 
     /**
-     * 修改地块及播种信息
+     * 修改地块信息
      */
     @PostMapping("/edit")
     public AjaxResult edit(@RequestBody PlotInfo plotInfo) {
@@ -58,11 +58,11 @@ public class PlotInfoController extends BaseController {
     }
 
     /**
-     * 删除地块及播种信息
+     * 删除地块信息
      */
     @GetMapping("/remove")
-    public AjaxResult remove(@RequestParam("groundIds") String groundIds) {
-        String[] ids = groundIds.split(",");
+    public AjaxResult remove(@RequestParam("plotIds") String plotIds) {
+        String[] ids = plotIds.split(",");
         return toAjax(plotInfoService.deletePlotInfoByIds(ids));
     }
 

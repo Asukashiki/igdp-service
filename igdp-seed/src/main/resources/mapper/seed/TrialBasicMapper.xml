@@ -4,88 +4,53 @@
 
     <resultMap type="com.inspur.seed.domain.TrialBasic" id="TrialBasicResult">
         <id property="trialId" column="trial_id"/>
-        <result property="trialName" column="trial_name"/>
         <result property="batchId" column="batch_id"/>
-        <result property="cropType" column="crop_type"/>
-        <result property="varietyName" column="variety_name"/>
-        <result property="researchCenterId" column="research_center_id"/>
-        <result property="projectId" column="project_id"/>
-        <result property="subProjectId" column="sub_project_id"/>
-        <result property="themeFieldId" column="theme_field_id"/>
-        <result property="region" column="region"/>
-        <result property="zone" column="zone"/>
-        <result property="woreda" column="woreda"/>
-        <result property="kebele" column="kebele"/>
-        <result property="agriculturalEcoZone" column="agricultural_eco_zone"/>
+        <result property="trialName" column="trial_name"/>
+        <result property="locationId" column="location_id"/>
         <result property="gpsLocation" column="gps_location"/>
-        <result property="startDate" column="start_date"/>
-        <result property="activityCode" column="activity_code"/>
-        <result property="kpiCode" column="kpi_code"/>
         <result property="season" column="season"/>
+        <result property="year" column="year"/>
+        <result property="designType" column="design_type"/>
+        <result property="replications" column="replications"/>
+        <result property="cropType" column="crop_type"/>
+        <result property="varietyCode" column="variety_code"/>
+        <result property="varietyName" column="variety_name"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
-        <result property="plotCount" column="plot_count"/>
-        <result property="batchName" column="batch_name"/>
-    </resultMap>
-
-    <resultMap type="com.inspur.seed.domain.TrialBasic" id="TrialBasicDetailResult" extends="TrialBasicResult">
-        <collection property="plotList" ofType="com.inspur.seed.domain.PlotInfo">
-            <id property="groundId" column="ground_id"/>
-            <result property="trialFieldName" column="trial_field_name"/>
-            <result property="gpsLocation" column="plot_gps_location"/>
-        </collection>
     </resultMap>
 
     <sql id="selectTrialBasicVo">
-        select t.trial_id, t.trial_name, t.batch_id, t.crop_type, t.variety_name,
-               t.research_center_id, t.project_id, t.sub_project_id, t.theme_field_id,
-               t.region, t.zone, t.woreda, t.kebele, t.agricultural_eco_zone,
-               t.gps_location, t.start_date, t.activity_code, t.kpi_code, t.season,
-               t.create_time, t.update_time, t.create_by, t.update_by, t.is_deleted,
-               b.batch_name,
-               (select count(1) from trial_plot_relation r where r.trial_id = t.trial_id and r.is_deleted = 0) as plot_count
+        select t.trial_id, t.batch_id, t.trial_name, t.location_id, t.gps_location,
+               t.season, t.year, t.design_type, t.replications, t.crop_type, t.variety_code, t.variety_name,
+               t.create_time, t.update_time, t.create_by, t.update_by, t.is_deleted
         from trial_basic t
-        left join breeding_batch b on t.batch_id = b.batch_id and b.is_deleted = 0
     </sql>
 
     <select id="selectTrialBasicList" parameterType="com.inspur.seed.domain.TrialBasic" resultMap="TrialBasicResult">
         <include refid="selectTrialBasicVo"/>
         <where>
             t.is_deleted = 0
-            <if test="batchId != null and batchId != ''">
-                AND t.batch_id = #{batchId}
-            </if>
             <if test="trialId != null and trialId != ''">
                 AND t.trial_id like concat('%', #{trialId}, '%')
+            </if>
+            <if test="batchId != null and batchId != ''">
+                AND t.batch_id = #{batchId}
             </if>
             <if test="trialName != null and trialName != ''">
                 AND t.trial_name like concat('%', #{trialName}, '%')
             </if>
-            <if test="cropType != null and cropType != ''">
-                AND t.crop_type = #{cropType}
-            </if>
-            <if test="varietyName != null and varietyName != ''">
-                AND t.variety_name like concat('%', #{varietyName}, '%')
+            <if test="season != null and season != ''">
+                AND t.season = #{season}
             </if>
         </where>
         order by t.create_time desc
     </select>
 
-    <select id="selectTrialBasicById" parameterType="String" resultMap="TrialBasicDetailResult">
-        select t.trial_id, t.trial_name, t.batch_id, t.crop_type, t.variety_name,
-               t.research_center_id, t.project_id, t.sub_project_id, t.theme_field_id,
-               t.region, t.zone, t.woreda, t.kebele, t.agricultural_eco_zone,
-               t.gps_location, t.start_date, t.activity_code, t.kpi_code, t.season,
-               t.create_time, t.update_time, t.create_by, t.update_by, t.is_deleted,
-               b.batch_name,
-               p.ground_id, p.trial_field_name, p.gps_location as plot_gps_location
-        from trial_basic t
-        left join breeding_batch b on t.batch_id = b.batch_id and b.is_deleted = 0
-        left join trial_plot_relation r on t.trial_id = r.trial_id and r.is_deleted = 0
-        left join plot_info p on r.ground_id = p.ground_id and p.is_deleted = 0
+    <select id="selectTrialBasicById" parameterType="String" resultMap="TrialBasicResult">
+        <include refid="selectTrialBasicVo"/>
         where t.trial_id = #{trialId} and t.is_deleted = 0
     </select>
 
@@ -97,8 +62,19 @@
         </if>
     </select>
 
+    <select id="generateTrialIdByBatchAndLocationAndYear" resultType="String">
+        SELECT CONCAT('TR-', b.variety_code, '-', #{locationId}, '-', #{year}, '-',
+               LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(t.trial_id, '-', -1) AS UNSIGNED)), 0) + 1, 3, '0'))
+        FROM breeding_batch b
+        LEFT JOIN trial_basic t ON t.trial_id LIKE CONCAT('TR-', b.variety_code, '-', #{locationId}, '-', #{year}, '-%')
+                                AND t.is_deleted = 0
+        WHERE b.batch_id = #{batchId}
+        AND b.is_deleted = 0
+        GROUP BY b.variety_code
+    </select>
+
     <select id="selectTrialOptions" resultMap="TrialBasicResult">
-        select trial_id, trial_name, batch_id, crop_type, variety_name
+        select trial_id, batch_id, trial_name, location_id, season, year, design_type, replications, crop_type, variety_code, variety_name
         from trial_basic
         where is_deleted = 0
         <if test="batchId != null and batchId != ''">

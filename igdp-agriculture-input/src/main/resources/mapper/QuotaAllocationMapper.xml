@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.allocate.QuotaAllocationMapper">
+
+    <!-- Result Map -->
+    <resultMap id="QuotaAllocationVOMap" type="com.inspur.agriculture.input.domain.allocate.vo.QuotaAllocationVO">
+        <id column="allocation_id" property="allocationId"/>
+        <result column="allocation_name" property="allocationName"/>
+        <result column="year" property="year"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="from_division_id" property="fromDivisionId"/>
+        <result column="from_division_name" property="fromDivisionName"/>
+        <result column="from_division_level" property="fromDivisionLevel"/>
+        <result column="from_parent_division_id" property="fromParentDivisionId"/>
+        <result column="from_parent_division_name" property="fromParentDivisionName"/>
+        <result column="to_division_id" property="toDivisionId"/>
+        <result column="to_division_name" property="toDivisionName"/>
+        <result column="to_farmer_id" property="toFarmerId"/>
+        <result column="to_farmer_name" property="toFarmerName"/>
+        <result column="allocated_quota" property="allocatedQuota"/>
+        <result column="quota_id" property="quotaId"/>
+        <result column="quota_name" property="quotaName"/>
+        <result column="total_received_quota" property="totalReceivedQuota"/>
+        <result column="total_allocated_quota" property="totalAllocatedQuota"/>
+        <result column="remaining_quota" property="remainingQuota"/>
+        <result column="allocation_status" property="allocationStatus"/>
+        <result column="allocation_status_name" property="allocationStatusName"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator_name" property="operatorName"/>
+        <result column="operator_division_id" property="operatorDivisionId"/>
+        <result column="operator_division_name" property="operatorDivisionName"/>
+        <result column="modifier_id" property="modifierId"/>
+        <result column="modifier_name" property="modifierName"/>
+        <result column="modifier_division_name" property="modifierDivisionName"/>
+        <result column="operate_time" property="operateTime"/>
+        <result column="progress_update_time" property="progressUpdateTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- Page query with detail -->
+    <select id="selectPageWithDetail" resultMap="QuotaAllocationVOMap">
+        SELECT
+            qa.allocation_id,
+            qa.allocation_name,
+            qa.year,
+            qa.category_id,
+            '' AS category_name,
+            qa.from_division_id,
+            '' AS from_division_name,
+            qa.from_division_level,
+            qa.from_parent_division_id,
+            '' AS from_parent_division_name,
+            qa.to_division_id,
+            '' AS to_division_name,
+            qa.to_farmer_id,
+            '' AS to_farmer_name,
+            qa.allocated_quota,
+            qa.quota_id,
+            '' AS quota_name,
+            qa.total_received_quota,
+            qa.total_allocated_quota,
+            qa.remaining_quota,
+            qa.allocation_status,
+            CASE qa.allocation_status
+                WHEN 0 THEN 'Not Allocated'
+                WHEN 1 THEN 'Partially Allocated'
+                WHEN 2 THEN 'Completed'
+                ELSE 'Unknown'
+            END AS allocation_status_name,
+            qa.operator_id,
+            '' AS operator_name,
+            qa.operator_division_id,
+            '' AS operator_division_name,
+            qa.modifier_id,
+            '' AS modifier_name,
+            '' AS modifier_division_name,
+            qa.operate_time,
+            qa.progress_update_time,
+            qa.create_time,
+            qa.update_time
+        FROM
+            t_quota_allocation qa
+        <where>
+            <if test="year != null">
+                AND qa.year = #{year}
+            </if>
+            <if test="categoryId != null and categoryId != ''">
+                AND qa.category_id = #{categoryId}
+            </if>
+            <if test="fromDivisionId != null and fromDivisionId != ''">
+                AND qa.from_division_id = #{fromDivisionId}
+            </if>
+            <if test="fromDivisionLevel != null">
+                AND qa.from_division_level = #{fromDivisionLevel}
+            </if>
+            <if test="allocationStatus != null">
+                AND qa.allocation_status = #{allocationStatus}
+            </if>
+            <if test="operatorDivisionId != null and operatorDivisionId != ''">
+                AND qa.operator_division_id = #{operatorDivisionId}
+            </if>
+        </where>
+        ORDER BY qa.operate_time DESC
+    </select>
+
+    <!-- Get detail by ID -->
+    <select id="selectDetailById" resultMap="QuotaAllocationVOMap">
+        SELECT
+            qa.allocation_id,
+            qa.allocation_name,
+            qa.year,
+            qa.category_id,
+            '' AS category_name,
+            qa.from_division_id,
+            '' AS from_division_name,
+            qa.from_division_level,
+            qa.from_parent_division_id,
+            '' AS from_parent_division_name,
+            qa.to_division_id,
+            '' AS to_division_name,
+            qa.to_farmer_id,
+            '' AS to_farmer_name,
+            qa.allocated_quota,
+            qa.quota_id,
+            '' AS quota_name,
+            qa.total_received_quota,
+            qa.total_allocated_quota,
+            qa.remaining_quota,
+            qa.allocation_status,
+            CASE qa.allocation_status
+                WHEN 0 THEN 'Not Allocated'
+                WHEN 1 THEN 'Partially Allocated'
+                WHEN 2 THEN 'Completed'
+                ELSE 'Unknown'
+            END AS allocation_status_name,
+            qa.operator_id,
+            '' AS operator_name,
+            qa.operator_division_id,
+            '' AS operator_division_name,
+            qa.modifier_id,
+            '' AS modifier_name,
+            '' AS modifier_division_name,
+            qa.operate_time,
+            qa.progress_update_time,
+            qa.create_time,
+            qa.update_time
+        FROM
+            t_quota_allocation qa
+        WHERE
+            qa.allocation_id = #{allocationId}
+            <if test="operatorDivisionId != null and operatorDivisionId != ''">
+                AND qa.operator_division_id = #{operatorDivisionId}
+            </if>
+    </select>
+
+</mapper>

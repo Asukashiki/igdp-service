@@ -36,21 +36,12 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
     @Override
     public List<TrialBasic> selectTrialBasicList(TrialBasic trialBasic) {
         List<TrialBasic> list = trialBasicMapper.selectTrialBasicList(trialBasic);
-        // 为每个对象设置中文名称
-        list.forEach(this::setTranslatedNames);
         return list;
     }
 
     @Override
     public TrialBasic selectTrialBasicById(String trialId) {
         TrialBasic trialBasic = trialBasicMapper.selectTrialBasicById(trialId);
-        if (trialBasic != null) {
-            // 查询关联地块ID列表
-            List<String> plotIds = trialPlotRelationMapper.selectPlotIdsByTrialId(trialId);
-            trialBasic.setPlotIds(plotIds);
-            // 设置翻译名称
-            setTranslatedNames(trialBasic);
-        }
         return trialBasic;
     }
 
@@ -62,8 +53,8 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
             throw new ServiceException("试验名称已存在");
         }
 
-        // 生成主键
-        String trialId = IdUtil.simpleUUID();
+        // 生成试验ID: TR-{variety_code}-{location_id}-{year}-序号
+        String trialId = generateTrialId(trialBasic.getBatchId(), trialBasic.getLocationId(), trialBasic.getYear());
         trialBasic.setTrialId(trialId);
 
         // 设置创建信息
@@ -72,9 +63,6 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
 
         // 保存试验信息
         trialBasicMapper.insert(trialBasic);
-
-        // 保存地块关联关系
-        savePlotRelations(trialId, trialBasic.getPlotIds());
 
         return trialId;
     }
@@ -97,8 +85,6 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         // 删除原有关联关系
         trialPlotRelationMapper.deleteByTrialId(trialBasic.getTrialId());
 
-        // 保存新的关联关系
-        savePlotRelations(trialBasic.getTrialId(), trialBasic.getPlotIds());
 
         return rows;
     }
@@ -126,6 +112,30 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
     }
 
     /**
+     * 生成试验ID
+     * 格式: TR-{variety_code}-{location_id}-{year}-序号
+     */
+    private String generateTrialId(String batchId, String locationId, Integer year) {
+        if (batchId == null || batchId.isEmpty()) {
+            throw new ServiceException("育种批次ID不能为空");
+        }
+        if (locationId == null || locationId.isEmpty()) {
+            throw new ServiceException("研究中心ID不能为空");
+        }
+        if (year == null) {
+            throw new ServiceException("年份不能为空");
+        }
+
+        String trialId = trialBasicMapper.generateTrialIdByBatchAndLocationAndYear(batchId, locationId, year);
+        if (trialId == null) {
+            // 如果没有找到记录，需要从batch中获取variety_code来生成默认ID
+            // 这里假设返回null时使用一个默认格式，实际应该从batch表查询variety_code
+            throw new ServiceException("无法生成试验ID，请检查育种批次信息");
+        }
+        return trialId;
+    }
+
+    /**
      * 保存地块关联关系
      */
     private void savePlotRelations(String trialId, List<String> plotIds) {
@@ -145,17 +155,6 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         }
 
         trialPlotRelationMapper.batchInsert(relationList);
-    }
-
-    /**
-     * 设置翻译名称
-     */
-    private void setTranslatedNames(TrialBasic trialBasic) {
-        if (trialBasic == null) {
-            return;
-        }
-        // 设置季节名称（国际化）
-        trialBasic.setSeasonName(getSeasonName(trialBasic.getSeason()));
     }
 
     /**

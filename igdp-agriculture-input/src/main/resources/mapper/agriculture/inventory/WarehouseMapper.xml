@@ -14,9 +14,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="capacity" column="capacity"/>
         <result property="usedCapacity" column="used_capacity"/>
         <result property="availableCapacity" column="available_capacity"/>
-        <result property="belongs" column="belongs"/>
-        <result property="supplierId" column="supplier_id"/>
-        <result property="supplierName" column="supplier_name"/>
         <result property="status" column="status"/>
         <result property="statusDesc" column="status_desc"/>
         <result property="contactPerson" column="contact_person"/>
@@ -38,14 +35,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                END as warehouse_type_desc,
                w.location, w.capacity, w.used_capacity,
                (w.capacity - w.used_capacity) as available_capacity,
-               w.belongs, w.supplier_id,
-               sc.org_name as supplier_name,
                w.status,
                CASE w.status WHEN '0' THEN '停用' WHEN '1' THEN '启用' ELSE '' END as status_desc,
                w.contact_person, w.contact_phone, w.remark,
                w.create_people, w.create_time, w.update_people, w.update_time
         from inv_warehouse w
-        left join supplier_cert sc on w.supplier_id = sc.user_id and sc.del_flag = '0'
     </sql>
 
     <select id="selectWarehouseList" resultMap="WarehouseVOResult">
