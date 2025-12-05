@@ -139,27 +139,30 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
     @Override
     public Page<DemandPendingPageVO> getPendingAuditPage(DemandAuditPendingPageDTO dto) {
         // TODO: Get current user's audit level and administrative division from security context
-        String currentAuditLevel = "village"; // Should be determined by user role
-        String currentAdminCode = "kebele_code"; // Should be from user's admin division
+        // Temporarily disable user-level filtering for testing and development
+        // String currentAuditLevel = "village"; // Should be determined by user role
+        // String currentAdminCode = "kebele_code"; // Should be from user's admin division
 
         // 1. Build query wrapper
         LambdaQueryWrapper<DemandFarmerDetail> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DemandFarmerDetail::getIsDeleted, 0);
         wrapper.eq(DemandFarmerDetail::getStatus, DemandStatusEnum.SUBMITTED.getCode());
-        wrapper.eq(DemandFarmerDetail::getCurrentAuditLevel, currentAuditLevel);
+        // Temporarily disable audit level filtering - show all submitted demands regardless of audit level
+        // wrapper.eq(DemandFarmerDetail::getCurrentAuditLevel, currentAuditLevel);
 
         // Filter by user's administrative division
         // This should be more sophisticated based on audit level
         // For example, village level checks kebele, town level checks woreda, etc.
-        if (AuditLevelEnum.VILLAGE.getCode().equals(currentAuditLevel)) {
-            wrapper.eq(DemandFarmerDetail::getKebele, currentAdminCode);
-        } else if (AuditLevelEnum.TOWN.getCode().equals(currentAuditLevel)) {
-            wrapper.eq(DemandFarmerDetail::getWoreda, currentAdminCode);
-        } else if (AuditLevelEnum.DISTRICT.getCode().equals(currentAuditLevel)) {
-            wrapper.eq(DemandFarmerDetail::getZone, currentAdminCode);
-        } else if (AuditLevelEnum.STATE.getCode().equals(currentAuditLevel)) {
-            wrapper.eq(DemandFarmerDetail::getRegion, currentAdminCode);
-        }
+        // Temporarily disabled to show all submitted demands
+        // if (AuditLevelEnum.VILLAGE.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getKebele, currentAdminCode);
+        // } else if (AuditLevelEnum.TOWN.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getWoreda, currentAdminCode);
+        // } else if (AuditLevelEnum.DISTRICT.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getZone, currentAdminCode);
+        // } else if (AuditLevelEnum.STATE.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getRegion, currentAdminCode);
+        // }
 
         // Filter by batch ID
         if (StrUtil.isNotBlank(dto.getBatchId())) {
@@ -213,15 +216,11 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
         int successCount = 0;
         int failCount = 0;
 
-        // TODO: Get current user info and audit level from security context
+        // TODO: Get current user info from security context
         String currentUserId = "current_user_id";
         String currentUserName = "current_user_name";
-        String currentAuditLevel = "village"; // Should be from user role
-
-        AuditLevelEnum currentLevel = AuditLevelEnum.fromCode(currentAuditLevel);
-        if (currentLevel == null) {
-            throw new ServiceException("Invalid audit level");
-        }
+        // Temporarily disable user audit level check - use demand's current audit level instead
+        // String currentAuditLevel = "village"; // Should be from user role
 
         for (String demandId : dto.getIds()) {
             try {
@@ -239,9 +238,17 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                     continue;
                 }
 
-                // 2. Validate current audit level matches user's audit level
-                if (!currentAuditLevel.equals(demand.getCurrentAuditLevel())) {
-                    log.warn("Audit level mismatch for demand: {}", demandId);
+                // 2. Get demand's current audit level and determine next level
+                String demandAuditLevel = demand.getCurrentAuditLevel();
+                if (demandAuditLevel == null) {
+                    log.warn("Demand has no current audit level: {}", demandId);
+                    failCount++;
+                    continue;
+                }
+
+                AuditLevelEnum currentLevel = AuditLevelEnum.fromCode(demandAuditLevel);
+                if (currentLevel == null) {
+                    log.warn("Invalid audit level for demand {}: {}", demandId, demandAuditLevel);
                     failCount++;
                     continue;
                 }
@@ -273,9 +280,9 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
 
                 auditRecord.setDemandId(demandId);
                 auditRecord.setAuditType("single");
-                auditRecord.setAuditLevel(currentAuditLevel);
-                auditRecord.setAdminCode(getAdminCodeByLevel(demand, currentAuditLevel));
-                auditRecord.setAdminName(getAdminNameByLevel(demand, currentAuditLevel));
+                auditRecord.setAuditLevel(demandAuditLevel);
+                auditRecord.setAdminCode(getAdminCodeByLevel(demand, demandAuditLevel));
+                auditRecord.setAdminName(getAdminNameByLevel(demand, demandAuditLevel));
                 auditRecord.setAuditUserId(currentUserId);
                 auditRecord.setAuditUserName(currentUserName);
                 auditRecord.setAuditTime(new Date());
@@ -306,10 +313,11 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
         int successCount = 0;
         int failCount = 0;
 
-        // TODO: Get current user info and audit level from security context
+        // TODO: Get current user info from security context
         String currentUserId = "current_user_id";
         String currentUserName = "current_user_name";
-        String currentAuditLevel = "village"; // Should be from user role
+        // Temporarily disable user audit level check - use demand's current audit level instead
+        // String currentAuditLevel = "village"; // Should be from user role
 
         for (String demandId : dto.getIds()) {
             try {
@@ -327,11 +335,12 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                     continue;
                 }
 
-                // 2. Validate current audit level matches user's audit level
-                if (!currentAuditLevel.equals(demand.getCurrentAuditLevel())) {
-                    log.warn("Audit level mismatch for demand: {}", demandId);
-                    failCount++;
-                    continue;
+                // 2. Get demand's current audit level for audit record
+                String demandAuditLevel = demand.getCurrentAuditLevel();
+                if (demandAuditLevel == null) {
+                    log.warn("Demand has no current audit level: {}", demandId);
+                    // Still allow rejection even if no audit level
+                    demandAuditLevel = "unknown";
                 }
 
                 // 3. Update demand status to rejected and clear audit level
@@ -350,9 +359,9 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
 
                 auditRecord.setDemandId(demandId);
                 auditRecord.setAuditType("single");
-                auditRecord.setAuditLevel(currentAuditLevel);
-                auditRecord.setAdminCode(getAdminCodeByLevel(demand, currentAuditLevel));
-                auditRecord.setAdminName(getAdminNameByLevel(demand, currentAuditLevel));
+                auditRecord.setAuditLevel(demandAuditLevel);
+                auditRecord.setAdminCode(getAdminCodeByLevel(demand, demandAuditLevel));
+                auditRecord.setAdminName(getAdminNameByLevel(demand, demandAuditLevel));
                 auditRecord.setAuditUserId(currentUserId);
                 auditRecord.setAuditUserName(currentUserName);
                 auditRecord.setAuditTime(new Date());
