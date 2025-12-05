@@ -50,4 +50,12 @@ public interface LocationMasterService {
      * @return 研究中心信息
      */
     AjaxResult detail(String locationId);
+    
+    /**
+     * 查询研究中心列表
+     * 
+     * @param queryDTO 查询条件
+     * @return 研究中心列表
+     */
+    AjaxResult list(LocationMasterQueryDTO queryDTO);
 }

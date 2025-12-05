@@ -127,6 +127,34 @@ public class LocationMasterServiceImpl extends ServiceImpl<LocationMasterMapper,
         return AjaxResult.success(vo);
     }
     
+    @Override
+    public AjaxResult list(LocationMasterQueryDTO queryDTO) {
+        QueryWrapper<LocationMaster> queryWrapper = new QueryWrapper<>();
+        
+        if (StrUtil.isNotBlank(queryDTO.getLocationId())) {
+            queryWrapper.eq("location_id", queryDTO.getLocationId());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getLocationName())) {
+            queryWrapper.like("location_name", queryDTO.getLocationName());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getRegion())) {
+            queryWrapper.like("region", queryDTO.getRegion());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getZone())) {
+            queryWrapper.like("zone", queryDTO.getZone());
+        }
+        if (StrUtil.isNotBlank(queryDTO.getWoneda())) {
+            queryWrapper.like("woneda", queryDTO.getWoneda());
+        }
+        
+        queryWrapper.orderByDesc("create_time");
+        
+        List<LocationMaster> locationMasterList = locationMasterMapper.selectList(queryWrapper);
+        List<LocationMasterVO> voList = locationMasterList.stream().map(this::convertToVO).collect(Collectors.toList());
+        
+        return AjaxResult.success(voList);
+    }
+    
     private LocationMasterDTO convertToDTO(LocationMaster locationMaster) {
         if (locationMaster == null) {
             return null;

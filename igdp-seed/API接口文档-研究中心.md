@@ -165,6 +165,47 @@
 }
 ```
 
+### 6. 查询研究中心列表
+- **接口地址**: `/seed/locationMaster/list`
+- **请求方式**: POST
+- **接口描述**: 查询研究中心列表信息（不分页）
+- **请求参数**:
+
+**Body参数**:
+```json
+{
+  "locationId": "string",      // 位置ID
+  "locationName": "string",    // 位置名称
+  "region": "string",          // 地区
+  "zone": "string",          // 区域
+  "woneda": "string"         // 沃雷达
+}
+```
+
+**响应参数**:
+```json
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": [
+    {
+      "locationId": "string",
+      "locationName": "string",
+      "region": "string",
+      "zone": "string",
+      "woneda": "string",
+      "latitude": "decimal",
+      "longitude": "decimal",
+      "createBy": "string",
+      "createTime": "2024-01-01 12:00:00",
+      "updateBy": "string",
+      "updateTime": "2024-01-01 12:00:00",
+      "remark": "string"
+    }
+  ]
+}
+```
+
 ## 状态码说明
 
 | 状态码 | 说明 |

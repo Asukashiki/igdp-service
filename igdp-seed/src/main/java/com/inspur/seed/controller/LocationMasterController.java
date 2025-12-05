@@ -78,4 +78,15 @@ public class LocationMasterController {
     public AjaxResult detail(@RequestParam String locationId) {
         return locationMasterService.detail(locationId);
     }
+    
+    /**
+     * 查询研究中心列表
+     * 
+     * @param queryDTO 查询条件
+     * @return 研究中心列表
+     */
+    @PostMapping("/list")
+    public AjaxResult list(@RequestBody LocationMasterQueryDTO queryDTO) {
+        return locationMasterService.list(queryDTO);
+    }
 }
