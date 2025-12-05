@@ -25,19 +25,56 @@ public class AgronomicTrait extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    /** 性状记录ID(主键) */
-    @TableId(value = "trait_id", type = IdType.ASSIGN_UUID)
+    /** 性状记录ID(主键) - 格式: {plot_id}-T{record_no} */
+    @TableId(value = "trait_id", type = IdType.INPUT)
     private String traitId;
 
-    /** 育种批次ID */
-    @TableField("batch_id")
-    private String batchId;
+    /** 性状记录编号 - 格式: {plot_id}-T{record_no} */
+    @TableField("trait_record_id")
+    private String traitRecordId;
+
+    /** 地块ID */
+    @TableField("plot_id")
+    private String plotId;
 
     /** 试验ID */
     @TableField("trial_id")
     private String trialId;
 
-    /** 记录时间 */
+    /** 育种批次ID */
+    @TableField("batch_id")
+    private String batchId;
+
+    /** 观测日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @TableField("observation_date")
+    private Date observationDate;
+
+    /** 生长阶段 */
+    @TableField("growth_stage")
+    private String growthStage;
+
+    /** 性状代码 */
+    @TableField("trait_code")
+    private String traitCode;
+
+    /** 性状名称 */
+    @TableField("trait_name")
+    private String traitName;
+
+    /** 性状值 */
+    @TableField("trait_value")
+    private BigDecimal traitValue;
+
+    /** 单位 */
+    @TableField("unit")
+    private String unit;
+
+    /** 观测员ID */
+    @TableField("observer_id")
+    private String observerId;
+
+    /** 记录时间（保留以兼容旧数据） */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @TableField("record_time")
     private Date recordTime;

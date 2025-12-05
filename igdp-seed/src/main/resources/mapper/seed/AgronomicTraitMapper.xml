@@ -14,7 +14,6 @@
         <result property="daysToTillering" column="days_to_tillering"/>
         <result property="daysToHeading" column="days_to_heading"/>
         <result property="photoUrl" column="photo_url"/>
-        <result property="remarks" column="remarks"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
@@ -26,14 +25,9 @@
     </resultMap>
 
     <sql id="selectAgronomicTraitVo">
-        select a.trait_id, a.batch_id, a.trial_id, a.record_time,
-               a.plant_height_cm, a.tiller_count, a.spike_length_cm,
-               a.days_to_emergence, a.days_to_tillering, a.days_to_heading,
-               a.photo_url, a.remarks, a.create_time, a.update_time,
-               a.create_by, a.update_by, a.is_deleted,
-               b.crop_type, b.variety_name, b.batch_name
+        select *
         from agronomic_trait a
-        left join breeding_batch b on a.batch_id = b.batch_id and b.is_deleted = 0
+
     </sql>
 
     <select id="selectAgronomicTraitList" parameterType="com.inspur.seed.domain.AgronomicTrait" resultMap="AgronomicTraitResult">
