@@ -150,4 +150,28 @@ public class BreedingLabTest {
      * 删除标记:0未删除1已删除
      */
     private String deleted;
+
+    /**
+     * 样本类型
+     */
+    private String sampleType;
+
+    /**
+     * 实验参数
+     */
+    private String labParameter;
+
+    /**
+     * 实验结果值
+     */
+    private String resultValue;
+
+    /**
+     * 实验结果标识:true通过false不通过
+     */
+    private String passFailFlag;
+
+
+
+
 }
