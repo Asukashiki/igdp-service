@@ -53,6 +53,37 @@ public class BreedingDatasetAuditVO implements Serializable {
     private String varietyName;
 
     /**
+     * 试验ID
+     */
+    private String trialId;
+
+    /**
+     * 版本号
+     */
+    private String versionNo;
+
+    /**
+     * 编制人
+     */
+    private String compiledBy;
+
+    /**
+     * 编制人姓名
+     */
+    private String compiledByName;
+
+    /**
+     * 编制时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private LocalDateTime compiledAt;
+
+    /**
+     * 记录数量
+     */
+    private Integer recordCount;
+
+    /**
      * 数据集状态
      */
     private String datasetStatus;

@@ -37,6 +37,12 @@ public class BreedingDataset implements Serializable {
     private String datasetCode;
 
     /**
+     * 试验ID(外键关联试验基础信息表)
+     */
+    @TableField("trial_id")
+    private String trialId;
+
+    /**
      * 育种批次ID
      */
     @TableField("batch_id")
@@ -59,6 +65,30 @@ public class BreedingDataset implements Serializable {
      */
     @TableField("variety_name")
     private String varietyName;
+
+    /**
+     * 版本号(默认1.0)
+     */
+    @TableField("version_no")
+    private String versionNo;
+
+    /**
+     * 编制人(外键关联用户表USER_MASTER)
+     */
+    @TableField("compiled_by")
+    private String compiledBy;
+
+    /**
+     * 编制时间
+     */
+    @TableField("compiled_at")
+    private LocalDateTime compiledAt;
+
+    /**
+     * 记录数量(手动输入)
+     */
+    @TableField("record_count")
+    private Integer recordCount;
 
     /**
      * 试验记录数

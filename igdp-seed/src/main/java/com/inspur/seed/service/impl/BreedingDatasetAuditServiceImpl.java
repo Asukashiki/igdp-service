@@ -88,11 +88,22 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
                         if (StrUtil.isNotBlank(audit.getDatasetId())) {
                             BreedingDataset dataset = datasetMapper.selectById(audit.getDatasetId());
                             if (dataset != null) {
+                                // 数据集基础信息
                                 vo.setDatasetCode(dataset.getDatasetCode());
+                                vo.setTrialId(dataset.getTrialId());
                                 vo.setBatchName(dataset.getBatchName());
                                 vo.setCropType(dataset.getCropType());
                                 vo.setVarietyName(dataset.getVarietyName());
+                                vo.setVersionNo(dataset.getVersionNo());
+                                vo.setRecordCount(dataset.getRecordCount());
                                 vo.setDatasetStatus(dataset.getDatasetStatus());
+
+                                // 编制人信息
+                                vo.setCompiledBy(dataset.getCompiledBy());
+                                vo.setCompiledByName(dataset.getCreatedByName());
+                                vo.setCompiledAt(dataset.getCompiledAt());
+
+                                // 统计数据
                                 vo.setTrialCount(dataset.getTrialCount());
                                 vo.setFieldDataCount(dataset.getFieldDataCount());
                                 vo.setEnvDataCount(dataset.getEnvDataCount());
@@ -132,11 +143,23 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
 
             // 组装VO
             BreedingDatasetAuditVO vo = BeanUtil.copyProperties(audit, BreedingDatasetAuditVO.class);
+
+            // 数据集基础信息
             vo.setDatasetCode(dataset.getDatasetCode());
+            vo.setTrialId(dataset.getTrialId());
             vo.setBatchName(dataset.getBatchName());
             vo.setCropType(dataset.getCropType());
             vo.setVarietyName(dataset.getVarietyName());
+            vo.setVersionNo(dataset.getVersionNo());
+            vo.setRecordCount(dataset.getRecordCount());
             vo.setDatasetStatus(dataset.getDatasetStatus());
+
+            // 编制人信息
+            vo.setCompiledBy(dataset.getCompiledBy());
+            vo.setCompiledByName(dataset.getCreatedByName());
+            vo.setCompiledAt(dataset.getCompiledAt());
+
+            // 统计数据
             vo.setTrialCount(dataset.getTrialCount());
             vo.setFieldDataCount(dataset.getFieldDataCount());
             vo.setEnvDataCount(dataset.getEnvDataCount());

@@ -184,6 +184,9 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             }
 
             // 更新字段(允许修改批次ID和冗余字段)
+            if (StrUtil.isNotBlank(dto.getTrialId())) {
+                dataset.setTrialId(dto.getTrialId());
+            }
             if (StrUtil.isNotBlank(dto.getBatchId())) {
                 dataset.setBatchId(dto.getBatchId());
             }
@@ -195,6 +198,15 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             }
             if (StrUtil.isNotBlank(dto.getVarietyName())) {
                 dataset.setVarietyName(dto.getVarietyName());
+            }
+            if (StrUtil.isNotBlank(dto.getVersionNo())) {
+                dataset.setVersionNo(dto.getVersionNo());
+            }
+            if (dto.getRecordCount() != null) {
+                dataset.setRecordCount(dto.getRecordCount());
+            }
+            if (dto.getCompiledAt() != null) {
+                dataset.setCompiledAt(dto.getCompiledAt());
             }
             if (StrUtil.isNotBlank(dto.getRemark())) {
                 dataset.setRemark(dto.getRemark());
@@ -234,7 +246,7 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
                 }
             }
 
-            // 使用MyBatis-Plus的removeByIds方法进行逻辑删除
+            // 使用MyBatis-Plus的removeByIds方法进行逻辑删除数据集
             boolean success = this.removeByIds(Arrays.asList(ids));
 
             if (!success) {
@@ -242,7 +254,31 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
                 return AjaxResult.error("Delete failed");
             }
 
-            log.info("Successfully deleted {} dataset records", ids.length);
+            // 同步删除关联的审核记录
+            for (String datasetId : ids) {
+                try {
+                    QueryWrapper<BreedingDatasetAudit> auditWrapper = new QueryWrapper<>();
+                    auditWrapper.eq("dataset_id", datasetId);
+                    auditWrapper.eq("deleted", "0");
+
+                    List<BreedingDatasetAudit> audits = auditMapper.selectList(auditWrapper);
+
+                    if (audits != null && !audits.isEmpty()) {
+                        // 逻辑删除审核记录
+                        for (BreedingDatasetAudit audit : audits) {
+                            audit.setDeleted("1");
+                            audit.setUpdatedTime(LocalDateTime.now());
+                            auditMapper.updateById(audit);
+                        }
+                        log.info("Deleted {} audit records for dataset {}", audits.size(), datasetId);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to delete audit records for dataset {}: {}", datasetId, e.getMessage());
+                    // 继续处理其他记录，不中断整个删除流程
+                }
+            }
+
+            log.info("Successfully deleted {} dataset records and their audit records", ids.length);
             return AjaxResult.success("Deleted successfully");
         } catch (Exception e) {
             log.error("Failed to delete breeding datasets", e);
