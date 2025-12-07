@@ -4,6 +4,8 @@ import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.seed.domain.dto.BreedingLabTestDTO;
 import com.inspur.seed.domain.vo.BreedingLabTestVO;
 import com.inspur.seed.service.IBreedingLabTestService;
+import com.inspur.seed.service.IBreedingBatchService;
+import com.inspur.seed.service.ITrialBasicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,12 @@ public class BreedingLabTestController {
 
     @Autowired
     private IBreedingLabTestService breedingLabTestService;
+
+    @Autowired
+    private IBreedingBatchService breedingBatchService;
+
+    @Autowired
+    private ITrialBasicService trialBasicService;
 
     /**
      * 查询实验室测试数据列表
@@ -62,5 +70,21 @@ public class BreedingLabTestController {
     @PostMapping("/delete")
     public AjaxResult remove(@RequestBody String[] ids) {
         return AjaxResult.success(breedingLabTestService.deleteBreedingLabTestByIds(ids));
+    }
+
+    /**
+     * 获取育种批次下拉列表
+     */
+    @GetMapping("/batch-options")
+    public AjaxResult getBatchOptions() {
+        return AjaxResult.success(breedingBatchService.selectBatchOptions());
+    }
+
+    /**
+     * 根据育种批次ID获取试验列表
+     */
+    @GetMapping("/trial-options/{batchId}")
+    public AjaxResult getTrialOptions(@PathVariable String batchId) {
+        return AjaxResult.success(trialBasicService.selectTrialOptions(batchId));
     }
 }
