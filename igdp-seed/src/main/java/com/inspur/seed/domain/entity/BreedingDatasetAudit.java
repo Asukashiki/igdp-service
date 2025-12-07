@@ -94,6 +94,12 @@ public class BreedingDatasetAudit implements Serializable {
     private String auditorOrgName;
 
     /**
+     * 锁定标记:0未锁定1已锁定(锁定后不可修改)
+     */
+    @TableField("locked_flag")
+    private Integer lockedFlag;
+
+    /**
      * 提交时间
      */
     @TableField("submit_time")

@@ -34,6 +34,11 @@ public class BreedingDatasetAuditDTO implements Serializable {
     private String auditOpinion;
 
     /**
+     * 锁定标记:0未锁定1已锁定(审核人决定是否锁定数据集)
+     */
+    private Integer lockedFlag;
+
+    /**
      * 审核节点
      */
     private String auditNode;
