@@ -160,6 +160,11 @@ public class BreedingDatasetAuditVO implements Serializable {
     private String auditorOrgName;
 
     /**
+     * 锁定标记:0未锁定1已锁定(锁定后不可修改)
+     */
+    private Integer lockedFlag;
+
+    /**
      * 提交时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

@@ -178,9 +178,26 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
                 return AjaxResult.error("Dataset does not exist");
             }
 
-            // 已审核通过或审核中的数据集不允许修改
-            if (!"draft".equals(dataset.getDatasetStatus()) && !"rejected".equals(dataset.getDatasetStatus())) {
-                return AjaxResult.error("Only draft or rejected datasets can be modified");
+            // 检查数据集是否已被锁定（只有审核通过且锁定的数据集才不可修改）
+            if ("approved".equals(dataset.getDatasetStatus())) {
+                QueryWrapper<BreedingDatasetAudit> auditWrapper = new QueryWrapper<>();
+                auditWrapper.eq("dataset_id", dto.getId());
+                auditWrapper.eq("deleted", "0");
+                auditWrapper.eq("audit_status", "approved");
+                auditWrapper.orderByDesc("created_time");
+                auditWrapper.last("LIMIT 1");
+                BreedingDatasetAudit audit = auditMapper.selectOne(auditWrapper);
+
+                if (audit != null && audit.getLockedFlag() != null && audit.getLockedFlag() == 1) {
+                    log.warn("Attempt to modify locked approved dataset: {}", dto.getId());
+                    return AjaxResult.error("Dataset is approved and locked, cannot be modified. Please contact administrator if you need to unlock it.");
+                }
+                // 如果审核通过但未锁定（locked_flag=0或NULL），允许修改
+            }
+
+            // 提交中或审核中的数据集不允许修改
+            if ("submitted".equals(dataset.getDatasetStatus()) || "reviewing".equals(dataset.getDatasetStatus())) {
+                return AjaxResult.error("Submitted or reviewing datasets cannot be modified");
             }
 
             // 更新字段(允许修改批次ID和冗余字段)
@@ -239,10 +256,31 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
                 return AjaxResult.error("Dataset does not exist");
             }
 
-            // 检查状态
+            // 检查状态和锁定标记
             for (BreedingDataset dataset : datasets) {
-                if (!"draft".equals(dataset.getDatasetStatus()) && !"rejected".equals(dataset.getDatasetStatus())) {
-                    return AjaxResult.error("Only draft or rejected datasets can be deleted, current status: " + dataset.getDatasetStatus());
+                // 检查数据集是否已被锁定（只有审核通过且锁定的数据集才不可删除）
+                if ("approved".equals(dataset.getDatasetStatus())) {
+                    QueryWrapper<BreedingDatasetAudit> auditWrapper = new QueryWrapper<>();
+                    auditWrapper.eq("dataset_id", dataset.getId());
+                    auditWrapper.eq("deleted", "0");
+                    auditWrapper.eq("audit_status", "approved");
+                    auditWrapper.orderByDesc("created_time");
+                    auditWrapper.last("LIMIT 1");
+                    BreedingDatasetAudit audit = auditMapper.selectOne(auditWrapper);
+
+                    if (audit != null && audit.getLockedFlag() != null && audit.getLockedFlag() == 1) {
+                        log.warn("Attempt to delete locked approved dataset: {}", dataset.getId());
+                        return AjaxResult.error("Dataset is approved and locked, cannot be deleted. Dataset code: " + dataset.getDatasetCode());
+                    }
+                    // 如果审核通过但未锁定（locked_flag=0或NULL），允许删除
+                }
+
+                // 检查数据集状态（草稿、驳回、需要修订的数据集可以删除）
+                if (!"draft".equals(dataset.getDatasetStatus())
+                        && !"rejected".equals(dataset.getDatasetStatus())
+                        && !"needs_revision".equals(dataset.getDatasetStatus())
+                        && !"approved".equals(dataset.getDatasetStatus())) {
+                    return AjaxResult.error("Only draft, rejected, needs_revision or unlocked approved datasets can be deleted, current status: " + dataset.getDatasetStatus());
                 }
             }
 

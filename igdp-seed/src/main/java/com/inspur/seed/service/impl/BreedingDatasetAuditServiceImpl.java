@@ -210,13 +210,16 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
             }
 
             // 3. 校验审核状态
-            if (!"approved".equals(auditDTO.getAuditStatus()) && !"rejected".equals(auditDTO.getAuditStatus())) {
-                return AjaxResult.error("Audit status must be approved or rejected");
+            if (!"approved".equals(auditDTO.getAuditStatus())
+                    && !"rejected".equals(auditDTO.getAuditStatus())
+                    && !"needs_revision".equals(auditDTO.getAuditStatus())) {
+                return AjaxResult.error("Audit status must be approved, rejected or needs_revision");
             }
 
-            // 4. 驳回时必须填写审核意见
-            if ("rejected".equals(auditDTO.getAuditStatus()) && StrUtil.isBlank(auditDTO.getAuditOpinion())) {
-                return AjaxResult.error("Audit opinion is required when rejecting");
+            // 4. 驳回或需要修订时必须填写审核意见
+            if (("rejected".equals(auditDTO.getAuditStatus()) || "needs_revision".equals(auditDTO.getAuditStatus()))
+                    && StrUtil.isBlank(auditDTO.getAuditOpinion())) {
+                return AjaxResult.error("Audit opinion is required when rejecting or marking as needs revision");
             }
 
             // 5. 查询或创建审核记录
@@ -266,9 +269,23 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
             audit.setUpdatedTime(LocalDateTime.now());
             audit.setUpdatedBy(auditorId != null ? auditorId : "system");
 
+            // 7. 设置锁定标记（由审核人通过DTO传入，如果未传入则根据审核状态设置默认值）
+            if (auditDTO.getLockedFlag() != null) {
+                // 审核人明确指定了锁定状态
+                audit.setLockedFlag(auditDTO.getLockedFlag());
+            } else {
+                // 未指定时，驳回和需要修订默认不锁定，审核通过默认不锁定（给审核人灵活性）
+                if ("rejected".equals(auditDTO.getAuditStatus()) || "needs_revision".equals(auditDTO.getAuditStatus())) {
+                    audit.setLockedFlag(0);
+                } else if ("approved".equals(auditDTO.getAuditStatus())) {
+                    // 审核通过时默认不锁定（0），审核人需要明确选择锁定
+                    audit.setLockedFlag(0);
+                }
+            }
+
             this.saveOrUpdate(audit);
 
-            // 7. 更新数据集状态
+            // 8. 更新数据集状态
             if ("approved".equals(auditDTO.getAuditStatus())) {
                 // 审核通过: 生成数据集编号, 状态变为已通过
                 dataset.setDatasetStatus("approved");
@@ -280,14 +297,32 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
                 dataset.setUpdatedTime(LocalDateTime.now());
                 datasetMapper.updateById(dataset);
 
-                return AjaxResult.success("Audit approved, dataset code: " + dataset.getDatasetCode());
-            } else {
+                String lockStatus = (audit.getLockedFlag() != null && audit.getLockedFlag() == 1) ? "locked" : "unlocked";
+                log.info("Dataset approved and {}: {}", lockStatus, dataset.getDatasetCode());
+
+                if (audit.getLockedFlag() != null && audit.getLockedFlag() == 1) {
+                    return AjaxResult.success("Audit approved and locked, dataset code: " + dataset.getDatasetCode());
+                } else {
+                    return AjaxResult.success("Audit approved (unlocked), dataset code: " + dataset.getDatasetCode());
+                }
+            } else if ("rejected".equals(auditDTO.getAuditStatus())) {
                 // 审核驳回: 状态变为已驳回
                 dataset.setDatasetStatus("rejected");
                 dataset.setUpdatedTime(LocalDateTime.now());
                 datasetMapper.updateById(dataset);
 
+                log.info("Dataset rejected: {}", dataset.getId());
                 return AjaxResult.success("Audit rejected");
+            } else if ("needs_revision".equals(auditDTO.getAuditStatus())) {
+                // 需要修订: 状态变为需要修订
+                dataset.setDatasetStatus("needs_revision");
+                dataset.setUpdatedTime(LocalDateTime.now());
+                datasetMapper.updateById(dataset);
+
+                log.info("Dataset marked as needs revision: {}", dataset.getId());
+                return AjaxResult.success("Marked as needs revision");
+            } else {
+                return AjaxResult.error("Unknown audit status");
             }
         } catch (Exception e) {
             log.error("Audit failed", e);
