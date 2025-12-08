@@ -76,6 +76,15 @@ public class AgriInputController {
         return AjaxResult.success(result);
     }
 
+    @GetMapping("/getAllInputList")
+    public AjaxResult getAllInputList() {
+        AgriInput agriInput = new AgriInput();
+        agriInput.setDelFlag("0");
+        agriInput.setStatus("active");
+        List<AgriInput> list = agriInputService.selectInputList(agriInput);
+        return AjaxResult.success(list);
+    }
+
     /**
      * 获取投入品详情
      *
