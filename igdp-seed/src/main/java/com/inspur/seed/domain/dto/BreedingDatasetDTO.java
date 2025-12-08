@@ -52,9 +52,9 @@ public class BreedingDatasetDTO implements Serializable {
     private String varietyName;
 
     /**
-     * 版本号(默认1.0)
+     * 版本号（同一试验下每次提交自动递增）
      */
-    private String versionNo;
+    private Integer versionNo;
 
     /**
      * 编制人

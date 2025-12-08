@@ -55,7 +55,7 @@ public class BreedingDatasetVO implements Serializable {
     /**
      * 版本号
      */
-    private String versionNo;
+    private Integer versionNo;
 
     /**
      * 编制人
