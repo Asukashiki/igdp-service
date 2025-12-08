@@ -1,0 +1,40 @@
+-- C1繁殖批次表
+-- @author system
+-- @since 2025-12-08
+
+CREATE TABLE IF NOT EXISTS `c1_breeding_batch` (
+    `id` varchar(64) NOT NULL COMMENT '主键ID',
+    `batch_id` varchar(64) DEFAULT NULL COMMENT '批次编号',
+    `propagation_id` varchar(64) DEFAULT NULL COMMENT '关联的C1繁殖申请ID',
+    `crop_type` varchar(100) DEFAULT NULL COMMENT '作物种类',
+    `variety_name` varchar(200) DEFAULT NULL COMMENT '品种名称',
+    `variety_code` varchar(64) DEFAULT NULL COMMENT '品种代码',
+    `breeding_level` varchar(20) DEFAULT NULL COMMENT '繁殖级别：01-亲本预备，02-原种，03-基础种，04-认证种',
+    `breeding_method` varchar(50) DEFAULT NULL COMMENT '繁育方法',
+    `parent_seed_source` varchar(500) DEFAULT NULL COMMENT '亲本种子来源',
+    `start_date` date DEFAULT NULL COMMENT '开始日期',
+    `end_date` date DEFAULT NULL COMMENT '结束日期',
+    `expected_yield` decimal(15,2) DEFAULT NULL COMMENT '预期产量(kg)',
+    `actual_yield` decimal(15,2) DEFAULT NULL COMMENT '实际产量(kg)',
+    `planting_area` decimal(15,2) DEFAULT NULL COMMENT '种植面积(公顷)',
+    `batch_status` varchar(20) DEFAULT '01' COMMENT '批次状态：01-进行中，02-已完成，03-已中止',
+    `org_id` varchar(64) DEFAULT NULL COMMENT '机构ID',
+    `org_name` varchar(200) DEFAULT NULL COMMENT '机构名称',
+    `org_type` varchar(50) DEFAULT NULL COMMENT '机构类型：union-联合会，cooperative-合作社',
+    `location` varchar(500) DEFAULT NULL COMMENT '繁殖地点',
+    `tracking_count` int DEFAULT 0 COMMENT '跟踪记录数',
+    `test_count` int DEFAULT 0 COMMENT '检测记录数',
+    `remark` text COMMENT '备注',
+    `created_by` varchar(100) DEFAULT NULL COMMENT '创建人',
+    `created_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_by` varchar(100) DEFAULT NULL COMMENT '更新人',
+    `updated_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted` varchar(1) DEFAULT '0' COMMENT '删除标记：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_batch_id` (`batch_id`),
+    KEY `idx_propagation_id` (`propagation_id`),
+    KEY `idx_org_id` (`org_id`),
+    KEY `idx_batch_status` (`batch_status`),
+    KEY `idx_crop_type` (`crop_type`),
+    KEY `idx_start_date` (`start_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='C1繁殖批次表';

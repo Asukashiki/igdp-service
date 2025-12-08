@@ -1,0 +1,56 @@
+package com.inspur.seed.controller;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.seed.domain.entity.C1BreedingTest;
+import com.inspur.seed.service.IC1BreedingTestService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/seed/c1-breeding-test")
+public class C1BreedingTestController {
+
+    @Autowired
+    private IC1BreedingTestService c1BreedingTestService;
+
+    @PostMapping("/list")
+    public AjaxResult list(@RequestBody Map<String, Object> params) {
+        IPage<C1BreedingTest> page = c1BreedingTestService.pageList(params);
+        Map<String, Object> result = new HashMap<>();
+        result.put("records", page.getRecords());
+        result.put("total", page.getTotal());
+        return AjaxResult.success(result);
+    }
+
+    @GetMapping("/getById/{id}")
+    public AjaxResult getById(@PathVariable String id) {
+        C1BreedingTest entity = c1BreedingTestService.getDetailById(id);
+        if (entity == null) return AjaxResult.error("数据不存在");
+        return AjaxResult.success(entity);
+    }
+
+    @PostMapping("/add")
+    public AjaxResult add(@RequestBody C1BreedingTest entity) {
+        boolean result = c1BreedingTestService.add(entity);
+        return result ? AjaxResult.success("新增成功") : AjaxResult.error("新增失败");
+    }
+
+    @PostMapping("/update")
+    public AjaxResult update(@RequestBody C1BreedingTest entity) {
+        if (entity.getId() == null) return AjaxResult.error("ID不能为空");
+        boolean result = c1BreedingTestService.update(entity);
+        return result ? AjaxResult.success("更新成功") : AjaxResult.error("更新失败");
+    }
+
+    @PostMapping("/delete")
+    public AjaxResult delete(@RequestBody List<String> ids) {
+        if (ids == null || ids.isEmpty()) return AjaxResult.error("请选择要删除的数据");
+        boolean result = c1BreedingTestService.deleteByIds(ids);
+        return result ? AjaxResult.success("删除成功") : AjaxResult.error("删除失败");
+    }
+}
