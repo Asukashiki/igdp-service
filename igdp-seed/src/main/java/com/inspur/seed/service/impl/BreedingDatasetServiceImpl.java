@@ -1,7 +1,6 @@
 package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -137,6 +136,9 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             BreedingDataset dataset = new BreedingDataset();
             BeanUtil.copyProperties(dto, dataset);
 
+            // 版本号在提交时生成，新增时不设置
+            dataset.setVersionNo(null);
+
             // 设置默认值
             dataset.setId(IdUtil.simpleUUID());
             dataset.setDatasetStatus("draft");
@@ -216,9 +218,10 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             if (StrUtil.isNotBlank(dto.getVarietyName())) {
                 dataset.setVarietyName(dto.getVarietyName());
             }
-            if (StrUtil.isNotBlank(dto.getVersionNo())) {
-                dataset.setVersionNo(dto.getVersionNo());
-            }
+            // 版本号由系统自动管理，不允许手动修改
+            // if (StrUtil.isNotBlank(dto.getVersionNo())) {
+            //     dataset.setVersionNo(dto.getVersionNo());
+            // }
             if (dto.getRecordCount() != null) {
                 dataset.setRecordCount(dto.getRecordCount());
             }
@@ -344,6 +347,18 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             // if (dataset.getYieldDataCount() == null || dataset.getYieldDataCount() == 0) {
             //     return AjaxResult.error("At least one yield data record is required for submission");
             // }
+
+            // 自动生成版本号：每次提交都递增（包括首次提交和退回后重新提交）
+            if (StrUtil.isNotBlank(dataset.getTrialId())) {
+                Integer maxVersionNo = this.baseMapper.selectMaxVersionNoByTrialId(dataset.getTrialId());
+                // 如果没有记录，从1开始；否则最大版本号+1
+                dataset.setVersionNo(maxVersionNo == null ? 1 : maxVersionNo + 1);
+                log.info("为数据集生成版本号: trialId={}, versionNo={}", dataset.getTrialId(), dataset.getVersionNo());
+            } else {
+                // 如果没有试验ID，默认版本号为1
+                dataset.setVersionNo(1);
+                log.warn("数据集没有试验ID，版本号设为1, datasetId={}", id);
+            }
 
             // 更新状态
             dataset.setDatasetStatus("submitted");

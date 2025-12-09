@@ -11,6 +11,9 @@ import com.inspur.seed.mapper.oauth.PubOrganMapper;
 import com.inspur.seed.mapper.ose.OseReceiveConfirmMapper;
 import com.inspur.seed.service.ose.IOseReceiveConfirmService;
 import com.inspur.seed.vo.ose.OseReceiveConfirmVO;
+
+import cn.hutool.core.util.ObjectUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +37,7 @@ public class OseReceiveConfirmServiceImpl implements IOseReceiveConfirmService {
 
     @Override
     public List<OseReceiveConfirmVO> getReceiveConfirmList(OseReceiveConfirmQueryDTO queryDTO) {
-        String oseCode = queryDTO.getOseId();
-        QueryWrapper<PubOrgan> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("CODE", oseCode);
-        PubOrgan organ = pubOrganMapper.selectOne(queryWrapper);
-        String oseId = organ.getId();
-        queryDTO.setOseId(oseId);
+        
         return receiveConfirmMapper.selectReceiveConfirmList(queryDTO);
     }
 
