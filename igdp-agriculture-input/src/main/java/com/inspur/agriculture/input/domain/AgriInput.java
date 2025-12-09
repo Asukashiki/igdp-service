@@ -30,6 +30,12 @@ public class AgriInput implements Serializable {
     /** 类型(pesticide-农药/fertilizer-化肥/seed-种子/other-其他) */
     private String type;
 
+    /** 农资类型 */
+    private String agriculturalInputType;
+
+    /** 品种 */
+    private String variety;
+
     /** 唯一产品标识码/SKU */
     private String inputSku;
 

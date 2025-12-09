@@ -15,6 +15,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="productionStandard"   column="production_standard"   />
         <result property="producerName"         column="producer_name"         />
         <result property="producerAddress"      column="producer_address"      />
+        <result property="agriculturalInputType" column="agricultural_input_type" />
+        <result property="variety"              column="variety"               />
         <result property="status"               column="status"                />
         <result property="createPeople"         column="create_people"         />
         <result property="createTime"           column="create_time"           />
@@ -78,7 +80,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <sql id="selectAgriInputVo">
         select input_id, input_name, type, input_sku, trademark, register_code,
                production_license, production_standard, producer_name, producer_address,
-               status, create_people, create_time, update_people, update_time, del_flag
+               agricultural_input_type, variety, status, create_people, create_time, update_people, update_time, del_flag
         from agri_input
     </sql>
 
@@ -86,7 +88,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select
             ai.input_id, ai.input_name, ai.type, ai.input_sku, ai.trademark, ai.register_code,
             ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,
-            ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
+            ai.agricultural_input_type, ai.variety, ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
             pp.pesticide_id, pp.total_ingredient_content, pp.toxicity_level, pp.target_crops,
             pp.control_targets, pp.application_method, pp.dosage, pp.dilution_ratio,
             pp.safety_interval, pp.precautions, pp.first_aid, pp.storage_requirements,
@@ -123,7 +125,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select
             ai.input_id, ai.input_name, ai.type, ai.input_sku, ai.trademark, ai.register_code,
             ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,
-            ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
+            ai.agricultural_input_type, ai.variety, ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
             pp.pesticide_id, pp.total_ingredient_content, pp.toxicity_level, pp.target_crops,
             pp.control_targets, pp.application_method, pp.dosage, pp.dilution_ratio,
             pp.safety_interval, pp.precautions, pp.first_aid, pp.storage_requirements,
