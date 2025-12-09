@@ -143,4 +143,34 @@ public class C1BreedingBatchVO implements Serializable {
      * 更新时间
      */
     private String updatedTime;
+
+    /**
+     * 审核状态: pending-待审核, approved-已通过, rejected-已驳回
+     */
+    private String auditStatus;
+
+    /**
+     * 审核人
+     */
+    private String auditor;
+
+    /**
+     * 审核时间
+     */
+    private String auditTime;
+
+    /**
+     * 审核意见
+     */
+    private String auditComment;
+
+    /**
+     * 打印次数
+     */
+    private Integer printCount;
+
+    /**
+     * 最后打印时间
+     */
+    private String lastPrintTime;
 }

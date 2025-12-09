@@ -94,4 +94,56 @@ public class C1BreedingBatchController {
         boolean result = c1BreedingBatchService.deleteByIds(ids);
         return result ? AjaxResult.success("删除成功") : AjaxResult.error("删除失败");
     }
+
+    /**
+     * 审核通过
+     */
+    @PostMapping("/approve")
+    public AjaxResult approve(@RequestBody C1BreedingBatchDTO dto) {
+        if (dto.getId() == null || dto.getId().isEmpty()) {
+            return AjaxResult.error("ID不能为空");
+        }
+        // TODO: 从登录用户获取审核人
+        String auditor = "admin";
+        boolean result = c1BreedingBatchService.approveBatch(dto.getId(), auditor, dto.getAuditComment());
+        return result ? AjaxResult.success("审核通过成功") : AjaxResult.error("审核失败");
+    }
+
+    /**
+     * 审核驳回
+     */
+    @PostMapping("/reject")
+    public AjaxResult reject(@RequestBody C1BreedingBatchDTO dto) {
+        if (dto.getId() == null || dto.getId().isEmpty()) {
+            return AjaxResult.error("ID不能为空");
+        }
+        // TODO: 从登录用户获取审核人
+        String auditor = "admin";
+        boolean result = c1BreedingBatchService.rejectBatch(dto.getId(), auditor, dto.getAuditComment());
+        return result ? AjaxResult.success("审核驳回成功") : AjaxResult.error("审核失败");
+    }
+
+    /**
+     * 记录打印
+     */
+    @PostMapping("/record-print/{id}")
+    public AjaxResult recordPrint(@PathVariable String id) {
+        boolean result = c1BreedingBatchService.recordPrint(id);
+        return result ? AjaxResult.success("记录成功") : AjaxResult.error("记录失败");
+    }
+
+    /**
+     * 获取已审核通过的批次列表（供证书颁发使用）
+     */
+    @PostMapping("/approved-list")
+    public AjaxResult getApprovedList(@RequestBody C1BreedingBatchQueryDTO queryDTO) {
+        queryDTO.setAuditStatus("approved");
+        IPage<C1BreedingBatchVO> page = c1BreedingBatchService.pageList(queryDTO);
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", page.getRecords());
+        result.put("total", page.getTotal());
+        result.put("pageNum", page.getCurrent());
+        result.put("pageSize", page.getSize());
+        return AjaxResult.success(result);
+    }
 }

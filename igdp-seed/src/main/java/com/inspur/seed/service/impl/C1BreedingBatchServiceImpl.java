@@ -79,6 +79,11 @@ public class C1BreedingBatchServiceImpl extends ServiceImpl<C1BreedingBatchMappe
             wrapper.le(C1BreedingBatch::getStartDate, LocalDate.parse(queryDTO.getStartDateEnd(), DATE_FORMATTER));
         }
         
+        // 审核状态
+        if (StringUtils.hasText(queryDTO.getAuditStatus())) {
+            wrapper.eq(C1BreedingBatch::getAuditStatus, queryDTO.getAuditStatus());
+        }
+        
         wrapper.orderByDesc(C1BreedingBatch::getCreatedTime);
         
         IPage<C1BreedingBatch> result = this.page(page, wrapper);
@@ -107,8 +112,10 @@ public class C1BreedingBatchServiceImpl extends ServiceImpl<C1BreedingBatchMappe
         
         // 设置默认值
         entity.setBatchStatus("01"); // 进行中
+        entity.setAuditStatus("pending"); // 待审核
         entity.setTrackingCount(0);
         entity.setTestCount(0);
+        entity.setPrintCount(0);
         entity.setDeleted("0");
         entity.setCreatedTime(LocalDateTime.now());
         
@@ -178,7 +185,54 @@ public class C1BreedingBatchServiceImpl extends ServiceImpl<C1BreedingBatchMappe
         if (entity.getUpdatedTime() != null) {
             vo.setUpdatedTime(entity.getUpdatedTime().format(DATETIME_FORMATTER));
         }
+        if (entity.getAuditTime() != null) {
+            vo.setAuditTime(entity.getAuditTime().format(DATETIME_FORMATTER));
+        }
+        if (entity.getLastPrintTime() != null) {
+            vo.setLastPrintTime(entity.getLastPrintTime().format(DATETIME_FORMATTER));
+        }
         
         return vo;
+    }
+
+    @Override
+    public boolean approveBatch(String id, String auditor, String auditComment) {
+        C1BreedingBatch entity = this.getById(id);
+        if (entity == null) {
+            return false;
+        }
+        entity.setAuditStatus("approved");
+        entity.setAuditor(auditor);
+        entity.setAuditTime(LocalDateTime.now());
+        entity.setAuditComment(auditComment);
+        entity.setUpdatedTime(LocalDateTime.now());
+        return this.updateById(entity);
+    }
+
+    @Override
+    public boolean rejectBatch(String id, String auditor, String auditComment) {
+        C1BreedingBatch entity = this.getById(id);
+        if (entity == null) {
+            return false;
+        }
+        entity.setAuditStatus("rejected");
+        entity.setAuditor(auditor);
+        entity.setAuditTime(LocalDateTime.now());
+        entity.setAuditComment(auditComment);
+        entity.setUpdatedTime(LocalDateTime.now());
+        return this.updateById(entity);
+    }
+
+    @Override
+    public boolean recordPrint(String id) {
+        C1BreedingBatch entity = this.getById(id);
+        if (entity == null) {
+            return false;
+        }
+        Integer currentCount = entity.getPrintCount() != null ? entity.getPrintCount() : 0;
+        entity.setPrintCount(currentCount + 1);
+        entity.setLastPrintTime(LocalDateTime.now());
+        entity.setUpdatedTime(LocalDateTime.now());
+        return this.updateById(entity);
     }
 }

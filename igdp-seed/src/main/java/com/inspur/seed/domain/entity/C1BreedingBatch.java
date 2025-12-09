@@ -179,6 +179,42 @@ public class C1BreedingBatch implements Serializable {
     private LocalDateTime updatedTime;
 
     /**
+     * 审核状态: pending-待审核, approved-已通过, rejected-已驳回
+     */
+    @TableField("audit_status")
+    private String auditStatus;
+
+    /**
+     * 审核人
+     */
+    @TableField("auditor")
+    private String auditor;
+
+    /**
+     * 审核时间
+     */
+    @TableField("audit_time")
+    private LocalDateTime auditTime;
+
+    /**
+     * 审核意见
+     */
+    @TableField("audit_comment")
+    private String auditComment;
+
+    /**
+     * 打印次数
+     */
+    @TableField("print_count")
+    private Integer printCount;
+
+    /**
+     * 最后打印时间
+     */
+    @TableField("last_print_time")
+    private LocalDateTime lastPrintTime;
+
+    /**
      * 删除标记
      */
     @TableField("deleted")
