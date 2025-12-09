@@ -17,6 +17,7 @@ import com.inspur.seed.mapper.DemandAuditRecordMapper;
 import com.inspur.seed.mapper.DemandCollectionBatchMapper;
 import com.inspur.seed.mapper.DemandFarmerDetailMapper;
 import com.inspur.seed.service.IDemandAuditService;
+// import com.inspur.seed.service.IDemandCategorySummaryService;
 import com.inspur.seed.service.IDemandSummaryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
 
     @Autowired
     private IDemandSummaryService summaryService;
+
+    // @Autowired
+    // private IDemandCategorySummaryService categorySummaryService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -238,7 +242,7 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                     continue;
                 }
 
-                // 2. Get demand's current audit level and determine next level
+                // 2. Get demand's current audit level (for audit record only)
                 String demandAuditLevel = demand.getCurrentAuditLevel();
                 if (demandAuditLevel == null) {
                     log.warn("Demand has no current audit level: {}", demandId);
@@ -246,35 +250,22 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                     continue;
                 }
 
-                AuditLevelEnum currentLevel = AuditLevelEnum.fromCode(demandAuditLevel);
-                if (currentLevel == null) {
-                    log.warn("Invalid audit level for demand {}: {}", demandId, demandAuditLevel);
-                    failCount++;
-                    continue;
-                }
-
-                // 3. Determine next audit level
-                AuditLevelEnum nextLevel = currentLevel.getNextLevel();
-
+                // 3. Directly approve demand (no multi-level audit flow)
                 // 4. Update demand
                 LambdaUpdateWrapper<DemandFarmerDetail> updateWrapper = new LambdaUpdateWrapper<>();
                 updateWrapper.eq(DemandFarmerDetail::getId, demandId);
-
-                if (nextLevel == null) {
-                    // Ministry level - final approval, set status to approved
-                    updateWrapper.set(DemandFarmerDetail::getStatus, DemandStatusEnum.APPROVED.getCode());
-                    updateWrapper.set(DemandFarmerDetail::getCurrentAuditLevel, null);
-                } else {
-                    // Set to next audit level
-                    updateWrapper.set(DemandFarmerDetail::getCurrentAuditLevel, nextLevel.getCode());
-                }
+                updateWrapper.set(DemandFarmerDetail::getStatus, DemandStatusEnum.APPROVED.getCode());
+                updateWrapper.set(DemandFarmerDetail::getCurrentAuditLevel, null);
 
                 updateWrapper.set(DemandFarmerDetail::getUpdatedBy, currentUserId);
                 updateWrapper.set(DemandFarmerDetail::getUpdatedTime, new Date());
 
                 demandDetailMapper.update(null, updateWrapper);
 
-                // 5. Create audit record
+                // 5. Update category summary for approved demand
+                // categorySummaryService.updateOnDemandApproved(demandId);
+
+                // 6. Create audit record
                 DemandAuditRecord auditRecord = new DemandAuditRecord();
                 auditRecord.setBatchId(demand.getBatchId());
 
