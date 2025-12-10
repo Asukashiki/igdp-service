@@ -73,11 +73,13 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                     continue;
                 }
 
-                if (!DemandStatusEnum.DRAFT.getCode().equals(demand.getStatus())) {
-                    log.warn("Demand is not in draft status: {}", demandId);
+                if (!DemandStatusEnum.DRAFT.getCode().equals(demand.getStatus())
+                        && !DemandStatusEnum.REJECTED.getCode().equals(demand.getStatus())) {
+                    log.warn("Demand is not in draft or rejected status: {}", demandId);
                     failCount++;
                     continue;
                 }
+
 
                 // 2. Validate current user is the DA who created the demand
                 if (!currentUserId.equals(demand.getDaUserId())) {

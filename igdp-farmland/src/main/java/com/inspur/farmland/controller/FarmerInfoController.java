@@ -150,4 +150,12 @@ public class FarmerInfoController extends BaseController {
             return AjaxResult.error("导入失败：" + e.getMessage());
         }
     }
+
+    @GetMapping("/getAllFarmerList")
+    public AjaxResult getAllFarmerList() {
+        FarmerInfo farmerInfo = new FarmerInfo();
+        farmerInfo.setStatus("1");
+        List<FarmerInfo> list = farmerInfoService.selectFarmerInfoList(farmerInfo);
+        return AjaxResult.success(list);
+    }
 }

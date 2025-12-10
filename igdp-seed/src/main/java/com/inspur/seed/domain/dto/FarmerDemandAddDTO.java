@@ -65,7 +65,6 @@ public class FarmerDemandAddDTO {
     /**
      * Village
      */
-    @NotBlank(message = "Village cannot be empty")
     private String village;
 
     /**
