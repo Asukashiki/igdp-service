@@ -108,4 +108,9 @@ public class C1BreedingBatchDTO implements Serializable {
      * 备注
      */
     private String remark;
+
+    /**
+     * 审核意见(审核时使用)
+     */
+    private String auditComment;
 }

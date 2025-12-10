@@ -38,4 +38,19 @@ public interface IC1BreedingBatchService extends IService<C1BreedingBatch> {
      * 删除C1繁殖批次（逻辑删除）
      */
     boolean deleteByIds(java.util.List<String> ids);
+
+    /**
+     * 审核通过
+     */
+    boolean approveBatch(String id, String auditor, String auditComment);
+
+    /**
+     * 审核驳回
+     */
+    boolean rejectBatch(String id, String auditor, String auditComment);
+
+    /**
+     * 记录打印次数
+     */
+    boolean recordPrint(String id);
 }

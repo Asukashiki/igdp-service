@@ -62,4 +62,9 @@ public class C1BreedingBatchQueryDTO implements Serializable {
      * 开始日期-结束
      */
     private String startDateEnd;
+
+    /**
+     * 审核状态: pending-待审核, approved-已通过, rejected-已驳回
+     */
+    private String auditStatus;
 }
