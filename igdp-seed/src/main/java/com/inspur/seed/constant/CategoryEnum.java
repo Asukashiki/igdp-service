@@ -5,7 +5,7 @@ package com.inspur.seed.constant;
  *
  * @author system
  */
-public enum InputCategoryEnum {
+public enum CategoryEnum {
 
     /**
      * 种子
@@ -25,7 +25,7 @@ public enum InputCategoryEnum {
     private final String code;
     private final String desc;
 
-    InputCategoryEnum(String code, String desc) {
+    CategoryEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -38,8 +38,8 @@ public enum InputCategoryEnum {
         return desc;
     }
 
-    public static InputCategoryEnum getByCode(String code) {
-        for (InputCategoryEnum category : values()) {
+    public static CategoryEnum getByCode(String code) {
+        for (CategoryEnum category : values()) {
             if (category.getCode().equals(code)) {
                 return category;
             }

@@ -1,29 +1,25 @@
-package com.inspur.seed.service.impl;
+package com.inspur.agriculture.input.service.institution.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.agriculture.input.constant.*;
+import com.inspur.agriculture.input.domain.institution.dto.*;
+import com.inspur.agriculture.input.domain.institution.entity.InputEnterpriseInfo;
+import com.inspur.agriculture.input.domain.institution.entity.InputEnterpriseLicense;
+import com.inspur.agriculture.input.domain.institution.entity.InputEnterpriseLocation;
+import com.inspur.agriculture.input.domain.institution.entity.InputRegistrationAudit;
+import com.inspur.agriculture.input.domain.institution.vo.*;
+import com.inspur.agriculture.input.mapper.institution.InputEnterpriseInfoMapper;
+import com.inspur.agriculture.input.mapper.institution.InputEnterpriseLicenseMapper;
+import com.inspur.agriculture.input.mapper.institution.InputEnterpriseLocationMapper;
+import com.inspur.agriculture.input.mapper.institution.InputRegistrationAuditMapper;
+import com.inspur.agriculture.input.service.institution.IInputRegistrationService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.LoginHelper;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.common.utils.bean.BeanUtils;
-import com.inspur.seed.constant.ApplicationStatusEnum;
-import com.inspur.seed.constant.AuditResultEnum;
-import com.inspur.seed.constant.CategoryEnum;
-import com.inspur.seed.constant.LicenseTypeEnum;
-import com.inspur.seed.constant.OrgTypeEnum;
-import com.inspur.seed.domain.dto.registration.*;
-import com.inspur.seed.domain.entity.OrgEnterpriseInfo;
-import com.inspur.seed.domain.entity.OrgEnterpriseLocation;
-import com.inspur.seed.domain.entity.OrgEnterpriseLicense;
-import com.inspur.seed.domain.entity.OrgRegistrationAudit;
-import com.inspur.seed.domain.vo.registration.*;
-import com.inspur.seed.mapper.OrgEnterpriseInfoMapper;
-import com.inspur.seed.mapper.OrgEnterpriseLocationMapper;
-import com.inspur.seed.mapper.OrgEnterpriseLicenseMapper;
-import com.inspur.seed.mapper.OrgRegistrationAuditMapper;
-import com.inspur.seed.service.IRegistrationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,23 +36,23 @@ import java.util.stream.Collectors;
  * @author system
  */
 @Service
-public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper, OrgEnterpriseInfo> implements IRegistrationService {
+public class InputRegistrationServiceImpl extends ServiceImpl<InputEnterpriseInfoMapper, InputEnterpriseInfo> implements IInputRegistrationService {
 
-    @Resource(name = "orgEnterpriseInfoMapper")
-    private OrgEnterpriseInfoMapper enterpriseInfoMapper;
+    @Resource(name = "inputEnterpriseInfoMapper")
+    private InputEnterpriseInfoMapper enterpriseInfoMapper;
 
-    @Resource(name = "orgEnterpriseLocationMapper")
-    private OrgEnterpriseLocationMapper locationMapper;
+    @Resource(name = "inputEnterpriseLocationMapper")
+    private InputEnterpriseLocationMapper locationMapper;
 
-    @Resource(name = "orgEnterpriseLicenseMapper")
-    private OrgEnterpriseLicenseMapper licenseMapper;
+    @Resource(name = "inputEnterpriseLicenseMapper")
+    private InputEnterpriseLicenseMapper licenseMapper;
 
-    @Resource(name = "orgRegistrationAuditMapper")
-    private OrgRegistrationAuditMapper auditMapper;
+    @Resource(name = "inputRegistrationAuditMapper")
+    private InputRegistrationAuditMapper auditMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String addRegistration(EnterpriseAddDTO dto) {
+    public String addRegistration(InputEnterpriseAddDTO dto) {
         // 1. 校验必填字段
         validateRequiredFields(dto);
 
@@ -71,13 +67,13 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         // 3. 转换并校验投入品类型
         List<String> inputTypeList = convertToList(dto.getInputTypes());
         for (String inputType : inputTypeList) {
-            if (CategoryEnum.getByCode(inputType) == null) {
+            if (InputCategoryEnum.getByCode(inputType) == null) {
                 throw new ServiceException("Invalid input type: " + inputType);
             }
         }
 
         // 4. 校验机构类型
-        if (OrgTypeEnum.getByCode(dto.getOrgType()) == null) {
+        if (InputOrgTypeEnum.getByCode(dto.getOrgType()) == null) {
             throw new ServiceException("Invalid organization type: " + dto.getOrgType());
         }
 
@@ -85,11 +81,11 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         List<String> salesRegionList = convertToList(dto.getSalesRegions());
 
         // 6. 保存机构基础信息
-        OrgEnterpriseInfo enterprise = new OrgEnterpriseInfo();
+        InputEnterpriseInfo enterprise = new InputEnterpriseInfo();
         BeanUtils.copyBeanProp(enterprise, dto);
         enterprise.setInputTypes(String.join(",", inputTypeList));
         enterprise.setSalesRegions(String.join(",", salesRegionList));
-        enterprise.setApplicationStatus(ApplicationStatusEnum.DRAFT.getCode());
+        enterprise.setApplicationStatus(InputApplicationStatusEnum.DRAFT.getCode());
         enterprise.setCreatedBy(LoginHelper.getUserId().toString());
         enterprise.setCreatedTime(LocalDateTime.now());
         enterprise.setIsDeleted(0);
@@ -99,7 +95,7 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         String enterpriseId = enterprise.getId();
 
         // 6. 保存位置信息
-        OrgEnterpriseLocation location = new OrgEnterpriseLocation();
+        InputEnterpriseLocation location = new InputEnterpriseLocation();
         BeanUtils.copyBeanProp(location, dto.getLocation());
         location.setEnterpriseId(enterpriseId);
         location.setCreatedBy(LoginHelper.getUserId().toString());
@@ -108,13 +104,13 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         locationMapper.insert(location);
 
         // 7. 保存许可证件信息
-        for (LicenseDTO licenseDTO : dto.getLicenses()) {
+        for (InputLicenseDTO licenseDTO : dto.getLicenses()) {
             // 校验证件类型
-            if (LicenseTypeEnum.getByCode(licenseDTO.getLicenseType()) == null) {
+            if (InputLicenseTypeEnum.getByCode(licenseDTO.getLicenseType()) == null) {
                 throw new ServiceException("Invalid license type: " + licenseDTO.getLicenseType());
             }
 
-            OrgEnterpriseLicense license = new OrgEnterpriseLicense();
+            InputEnterpriseLicense license = new InputEnterpriseLicense();
             BeanUtils.copyBeanProp(license, licenseDTO);
             license.setEnterpriseId(enterpriseId);
             license.setCreatedBy(LoginHelper.getUserId().toString());
@@ -128,16 +124,16 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateRegistration(EnterpriseUpdateDTO dto) {
+    public void updateRegistration(InputEnterpriseUpdateDTO dto) {
         // 1. 校验机构ID存在且未删除
-        OrgEnterpriseInfo existingEnterprise = enterpriseInfoMapper.selectById(dto.getId());
+        InputEnterpriseInfo existingEnterprise = enterpriseInfoMapper.selectById(dto.getId());
         if (existingEnterprise == null) {
             throw new ServiceException("Enterprise not found");
         }
 
         // 2. 校验申请状态为draft或rejected
-        if (!ApplicationStatusEnum.DRAFT.getCode().equals(existingEnterprise.getApplicationStatus()) &&
-            !ApplicationStatusEnum.REJECTED.getCode().equals(existingEnterprise.getApplicationStatus())) {
+        if (!InputApplicationStatusEnum.DRAFT.getCode().equals(existingEnterprise.getApplicationStatus()) &&
+            !InputApplicationStatusEnum.REJECTED.getCode().equals(existingEnterprise.getApplicationStatus())) {
             throw new ServiceException("Only draft or rejected applications can be updated");
         }
 
@@ -152,7 +148,7 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         // 4. 转换并校验投入品类型
         List<String> inputTypeList = convertToList(dto.getInputTypes());
         for (String inputType : inputTypeList) {
-            if (CategoryEnum.getByCode(inputType) == null) {
+            if (InputCategoryEnum.getByCode(inputType) == null) {
                 throw new ServiceException("Invalid input type: " + inputType);
             }
         }
@@ -161,11 +157,11 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         List<String> salesRegionList = convertToList(dto.getSalesRegions());
 
         // 6. 更新机构基础信息
-        OrgEnterpriseInfo enterprise = new OrgEnterpriseInfo();
+        InputEnterpriseInfo enterprise = new InputEnterpriseInfo();
         BeanUtils.copyBeanProp(enterprise, dto);
         enterprise.setInputTypes(String.join(",", inputTypeList));
         enterprise.setSalesRegions(String.join(",", salesRegionList));
-        enterprise.setApplicationStatus(ApplicationStatusEnum.DRAFT.getCode());
+        enterprise.setApplicationStatus(InputApplicationStatusEnum.DRAFT.getCode());
         enterprise.setUpdatedBy(LoginHelper.getUserId().toString());
         enterprise.setUpdatedTime(LocalDateTime.now());
 
@@ -176,7 +172,7 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
 
         // 6. 更新位置信息
         if (dto.getLocation() != null) {
-            OrgEnterpriseLocation location = new OrgEnterpriseLocation();
+            InputEnterpriseLocation location = new InputEnterpriseLocation();
             BeanUtils.copyBeanProp(location, dto.getLocation());
             if (StringUtils.isEmpty(location.getId())) {
                 // 新增
@@ -194,13 +190,13 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         }
 
         // 7. 删除原有许可证件
-        LambdaQueryWrapper<OrgEnterpriseLicense> licenseWrapper = new LambdaQueryWrapper<>();
-        licenseWrapper.eq(OrgEnterpriseLicense::getEnterpriseId, dto.getId());
+        LambdaQueryWrapper<InputEnterpriseLicense> licenseWrapper = new LambdaQueryWrapper<>();
+        licenseWrapper.eq(InputEnterpriseLicense::getEnterpriseId, dto.getId());
         licenseMapper.delete(licenseWrapper);
 
         // 8. 新增许可证件
-        for (LicenseDTO licenseDTO : dto.getLicenses()) {
-            OrgEnterpriseLicense license = new OrgEnterpriseLicense();
+        for (InputLicenseDTO licenseDTO : dto.getLicenses()) {
+            InputEnterpriseLicense license = new InputEnterpriseLicense();
             BeanUtils.copyBeanProp(license, licenseDTO);
             // 清除ID，让MyBatis-Plus自动生成新ID，避免主键冲突
             license.setId(null);
@@ -214,15 +210,15 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void submitRegistration(EnterpriseSubmitDTO dto) {
+    public void submitRegistration(InputEnterpriseSubmitDTO dto) {
         // 1. 校验机构ID存在且未删除
-        OrgEnterpriseInfo enterprise = enterpriseInfoMapper.selectById(dto.getId());
+        InputEnterpriseInfo enterprise = enterpriseInfoMapper.selectById(dto.getId());
         if (enterprise == null) {
             throw new ServiceException("Enterprise not found");
         }
 
         // 2. 校验当前状态为draft
-        if (!ApplicationStatusEnum.DRAFT.getCode().equals(enterprise.getApplicationStatus())) {
+        if (!InputApplicationStatusEnum.DRAFT.getCode().equals(enterprise.getApplicationStatus())) {
             throw new ServiceException("Only draft applications can be submitted");
         }
 
@@ -233,7 +229,7 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
 
         // 4. 更新申请状态为pending
         // MyBatis-Plus will automatically handle version optimistic locking
-        enterprise.setApplicationStatus(ApplicationStatusEnum.PENDING.getCode());
+        enterprise.setApplicationStatus(InputApplicationStatusEnum.PENDING.getCode());
         enterprise.setUpdatedBy(LoginHelper.getUserId().toString());
         enterprise.setUpdatedTime(LocalDateTime.now());
 
@@ -244,14 +240,14 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
     }
 
     @Override
-    public EnterpriseDetailVO getDetail(String id) {
+    public InputEnterpriseDetailVO getDetail(String id) {
         // 1. 查询机构基础信息
-        OrgEnterpriseInfo enterprise = enterpriseInfoMapper.selectById(id);
+        InputEnterpriseInfo enterprise = enterpriseInfoMapper.selectById(id);
         if (enterprise == null) {
             throw new ServiceException("Enterprise not found");
         }
 
-        EnterpriseDetailVO vo = new EnterpriseDetailVO();
+        InputEnterpriseDetailVO vo = new InputEnterpriseDetailVO();
         BeanUtils.copyBeanProp(vo, enterprise);
 
         // 转换inputTypes和salesRegions
@@ -264,24 +260,24 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         }
 
         // 2. 查询位置信息
-        LambdaQueryWrapper<OrgEnterpriseLocation> locationWrapper = new LambdaQueryWrapper<>();
-        locationWrapper.eq(OrgEnterpriseLocation::getEnterpriseId, id);
-        OrgEnterpriseLocation location = locationMapper.selectOne(locationWrapper);
+        LambdaQueryWrapper<InputEnterpriseLocation> locationWrapper = new LambdaQueryWrapper<>();
+        locationWrapper.eq(InputEnterpriseLocation::getEnterpriseId, id);
+        InputEnterpriseLocation location = locationMapper.selectOne(locationWrapper);
         if (location != null) {
-            LocationVO locationVO = new LocationVO();
+            InputLocationVO locationVO = new InputLocationVO();
             BeanUtils.copyBeanProp(locationVO, location);
             vo.setLocation(locationVO);
         }
 
         // 3. 查询许可证件列表
-        LambdaQueryWrapper<OrgEnterpriseLicense> licenseWrapper = new LambdaQueryWrapper<>();
-        licenseWrapper.eq(OrgEnterpriseLicense::getEnterpriseId, id);
-        List<OrgEnterpriseLicense> licenses = licenseMapper.selectList(licenseWrapper);
+        LambdaQueryWrapper<InputEnterpriseLicense> licenseWrapper = new LambdaQueryWrapper<>();
+        licenseWrapper.eq(InputEnterpriseLicense::getEnterpriseId, id);
+        List<InputEnterpriseLicense> licenses = licenseMapper.selectList(licenseWrapper);
 
-        List<LicenseVO> licenseVOList = licenses.stream().map(license -> {
-            LicenseVO licenseVO = new LicenseVO();
+        List<InputLicenseVO> licenseVOList = licenses.stream().map(license -> {
+            InputLicenseVO licenseVO = new InputLicenseVO();
             BeanUtils.copyBeanProp(licenseVO, license);
-            LicenseTypeEnum licenseType = LicenseTypeEnum.getByCode(license.getLicenseType());
+            InputLicenseTypeEnum licenseType = InputLicenseTypeEnum.getByCode(license.getLicenseType());
             if (licenseType != null) {
                 licenseVO.setLicenseTypeName(licenseType.getDesc());
             }
@@ -290,15 +286,15 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         vo.setLicenses(licenseVOList);
 
         // 4. 查询审核记录列表
-        LambdaQueryWrapper<OrgRegistrationAudit> auditWrapper = new LambdaQueryWrapper<>();
-        auditWrapper.eq(OrgRegistrationAudit::getEnterpriseId, id);
-        auditWrapper.orderByDesc(OrgRegistrationAudit::getAuditTime);
-        List<OrgRegistrationAudit> audits = auditMapper.selectList(auditWrapper);
+        LambdaQueryWrapper<InputRegistrationAudit> auditWrapper = new LambdaQueryWrapper<>();
+        auditWrapper.eq(InputRegistrationAudit::getEnterpriseId, id);
+        auditWrapper.orderByDesc(InputRegistrationAudit::getAuditTime);
+        List<InputRegistrationAudit> audits = auditMapper.selectList(auditWrapper);
 
-        List<AuditRecordVO> auditRecordVOList = audits.stream().map(audit -> {
-            AuditRecordVO auditVO = new AuditRecordVO();
+        List<InputAuditRecordVO> auditRecordVOList = audits.stream().map(audit -> {
+            InputAuditRecordVO auditVO = new InputAuditRecordVO();
             BeanUtils.copyBeanProp(auditVO, audit);
-            AuditResultEnum auditResult = AuditResultEnum.getByCode(audit.getAuditResult());
+            InputAuditResultEnum auditResult = InputAuditResultEnum.getByCode(audit.getAuditResult());
             if (auditResult != null) {
                 auditVO.setAuditResultName(auditResult.getDesc());
             }
@@ -310,66 +306,66 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
     }
 
     @Override
-    public IPage<EnterprisePageVO> page(EnterprisePageDTO dto) {
-        Page<OrgEnterpriseInfo> page = new Page<>(dto.getPageNum(), dto.getPageSize());
+    public IPage<InputEnterprisePageVO> page(InputEnterprisePageDTO dto) {
+        Page<InputEnterpriseInfo> page = new Page<>(dto.getPageNum(), dto.getPageSize());
 
-        LambdaQueryWrapper<OrgEnterpriseInfo> wrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<InputEnterpriseInfo> wrapper = new LambdaQueryWrapper<>();
 
         // 企业名称模糊查询
         if (StringUtils.isNotEmpty(dto.getEnterpriseName())) {
-            wrapper.like(OrgEnterpriseInfo::getEnterpriseName, dto.getEnterpriseName());
+            wrapper.like(InputEnterpriseInfo::getEnterpriseName, dto.getEnterpriseName());
         }
 
         // 机构类型
         if (StringUtils.isNotEmpty(dto.getOrgType())) {
-            wrapper.eq(OrgEnterpriseInfo::getOrgType, dto.getOrgType());
+            wrapper.eq(InputEnterpriseInfo::getOrgType, dto.getOrgType());
         }
 
         // 申请状态
         if (StringUtils.isNotEmpty(dto.getApplicationStatus())) {
-            wrapper.eq(OrgEnterpriseInfo::getApplicationStatus, dto.getApplicationStatus());
+            wrapper.eq(InputEnterpriseInfo::getApplicationStatus, dto.getApplicationStatus());
         }
 
         // 投入品类型
         if (StringUtils.isNotEmpty(dto.getInputTypes())) {
-            wrapper.like(OrgEnterpriseInfo::getInputTypes, dto.getInputTypes());
+            wrapper.like(InputEnterpriseInfo::getInputTypes, dto.getInputTypes());
         }
 
         // 创建时间范围
         if (dto.getCreatedTimeStart() != null) {
-            wrapper.ge(OrgEnterpriseInfo::getCreatedTime, dto.getCreatedTimeStart());
+            wrapper.ge(InputEnterpriseInfo::getCreatedTime, dto.getCreatedTimeStart());
         }
         if (dto.getCreatedTimeEnd() != null) {
-            wrapper.le(OrgEnterpriseInfo::getCreatedTime, dto.getCreatedTimeEnd());
+            wrapper.le(InputEnterpriseInfo::getCreatedTime, dto.getCreatedTimeEnd());
         }
 
         // 按创建时间倒序
-        wrapper.orderByDesc(OrgEnterpriseInfo::getCreatedTime);
+        wrapper.orderByDesc(InputEnterpriseInfo::getCreatedTime);
 
-        IPage<OrgEnterpriseInfo> entityPage = enterpriseInfoMapper.selectPage(page, wrapper);
+        IPage<InputEnterpriseInfo> entityPage = enterpriseInfoMapper.selectPage(page, wrapper);
 
         // 转换为VO
-        IPage<EnterprisePageVO> voPage = new Page<>(entityPage.getCurrent(), entityPage.getSize(), entityPage.getTotal());
-        List<EnterprisePageVO> voList = entityPage.getRecords().stream().map(entity -> {
-            EnterprisePageVO vo = new EnterprisePageVO();
+        IPage<InputEnterprisePageVO> voPage = new Page<>(entityPage.getCurrent(), entityPage.getSize(), entityPage.getTotal());
+        List<InputEnterprisePageVO> voList = entityPage.getRecords().stream().map(entity -> {
+            InputEnterprisePageVO vo = new InputEnterprisePageVO();
             BeanUtils.copyBeanProp(vo, entity);
 
             // 设置机构类型名称
-            OrgTypeEnum orgType = OrgTypeEnum.getByCode(entity.getOrgType());
+            InputOrgTypeEnum orgType = InputOrgTypeEnum.getByCode(entity.getOrgType());
             if (orgType != null) {
                 vo.setOrgTypeName(orgType.getDesc());
             }
 
             // 设置申请状态名称
-            ApplicationStatusEnum status = ApplicationStatusEnum.getByCode(entity.getApplicationStatus());
+            InputApplicationStatusEnum status = InputApplicationStatusEnum.getByCode(entity.getApplicationStatus());
             if (status != null) {
                 vo.setApplicationStatusName(status.getDesc());
             }
 
             // 查询位置信息获取woreda和zone
-            LambdaQueryWrapper<OrgEnterpriseLocation> locationWrapper = new LambdaQueryWrapper<>();
-            locationWrapper.eq(OrgEnterpriseLocation::getEnterpriseId, entity.getId());
-            OrgEnterpriseLocation location = locationMapper.selectOne(locationWrapper);
+            LambdaQueryWrapper<InputEnterpriseLocation> locationWrapper = new LambdaQueryWrapper<>();
+            locationWrapper.eq(InputEnterpriseLocation::getEnterpriseId, entity.getId());
+            InputEnterpriseLocation location = locationMapper.selectOne(locationWrapper);
             if (location != null) {
                 vo.setWoreda(location.getWoreda());
                 vo.setZone(location.getZone());
@@ -386,13 +382,13 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
     @Transactional(rollbackFor = Exception.class)
     public void deleteRegistration(String id) {
         // 1. 校验机构ID存在
-        OrgEnterpriseInfo enterprise = enterpriseInfoMapper.selectById(id);
+        InputEnterpriseInfo enterprise = enterpriseInfoMapper.selectById(id);
         if (enterprise == null) {
             throw new ServiceException("Enterprise not found");
         }
 
         // 2. 校验当前状态为draft
-        if (!ApplicationStatusEnum.DRAFT.getCode().equals(enterprise.getApplicationStatus())) {
+        if (!InputApplicationStatusEnum.DRAFT.getCode().equals(enterprise.getApplicationStatus())) {
             throw new ServiceException("Only draft applications can be deleted");
         }
 
@@ -400,20 +396,20 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         enterpriseInfoMapper.deleteById(id);
 
         // 4. 逻辑删除位置信息
-        LambdaQueryWrapper<OrgEnterpriseLocation> locationWrapper = new LambdaQueryWrapper<>();
-        locationWrapper.eq(OrgEnterpriseLocation::getEnterpriseId, id);
+        LambdaQueryWrapper<InputEnterpriseLocation> locationWrapper = new LambdaQueryWrapper<>();
+        locationWrapper.eq(InputEnterpriseLocation::getEnterpriseId, id);
         locationMapper.delete(locationWrapper);
 
         // 5. 逻辑删除许可证件
-        LambdaQueryWrapper<OrgEnterpriseLicense> licenseWrapper = new LambdaQueryWrapper<>();
-        licenseWrapper.eq(OrgEnterpriseLicense::getEnterpriseId, id);
+        LambdaQueryWrapper<InputEnterpriseLicense> licenseWrapper = new LambdaQueryWrapper<>();
+        licenseWrapper.eq(InputEnterpriseLicense::getEnterpriseId, id);
         licenseMapper.delete(licenseWrapper);
     }
 
     /**
      * 校验必填字段
      */
-    private void validateRequiredFields(EnterpriseAddDTO dto) {
+    private void validateRequiredFields(InputEnterpriseAddDTO dto) {
         if (StringUtils.isEmpty(dto.getEnterpriseName())) {
             throw new ServiceException("Enterprise name is required");
         }
