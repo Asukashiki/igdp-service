@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.demand.DemandInputSummaryItemMapper">
+
+    <resultMap id="DemandInputSummaryItemVOResult" type="com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO">
+        <id property="id" column="id"/>
+        <result property="inputCategory" column="input_category"/>
+        <result property="inputType" column="input_type"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="totalCount" column="total_count"/>
+        <result property="demandCount" column="demand_count"/>
+        <result property="varieties" column="varieties"/>
+        <result property="specifications" column="specifications"/>
+        <result property="units" column="units"/>
+        <result property="sourceName" column="source_name"/>
+        <result property="sourceCode" column="source_code"/>
+        <result property="targetName" column="target_name"/>
+        <result property="targetCode" column="target_code"/>
+        <result property="status" column="status"/>
+        <result property="statusDesc" column="status_desc"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+    </resultMap>
+
+    <sql id="selectDemandInputSummaryItemVo">
+        select
+            d.id, d.input_category, d.input_type, d.total_quantity, d.total_count,
+            d.demand_count, d.varieties, d.specifications, d.units,
+            d.source_name, d.source_code, d.target_name, d.target_code, d.status,
+            CASE d.status
+                WHEN '0' THEN '待审核'
+                WHEN '1' THEN '成功'
+                WHEN '2' THEN '拒绝'
+                ELSE ''
+            END as status_desc,
+            d.created_time, d.updated_time
+        from demand_input_summary_item d
+    </sql>
+
+    <select id="selectDemandInputSummaryItemList" resultMap="DemandInputSummaryItemVOResult">
+        <include refid="selectDemandInputSummaryItemVo"/>
+        where 1=1
+        <if test="query.inputCategory != null and query.inputCategory != ''">
+            and d.input_category = #{query.inputCategory}
+        </if>
+        <if test="query.inputType != null and query.inputType != ''">
+            and d.input_type = #{query.inputType}
+        </if>
+        <if test="query.status != null and query.status != ''">
+            and d.status = #{query.status}
+        </if>
+        <if test="query.sourceName != null and query.sourceName != ''">
+            and d.source_name like concat('%', #{query.sourceName}, '%')
+        </if>
+        <if test="query.sourceCode != null and query.sourceCode != ''">
+            and d.source_code = #{query.sourceCode}
+        </if>
+        <if test="query.targetName != null and query.targetName != ''">
+            and d.target_name like concat('%', #{query.targetName}, '%')
+        </if>
+        <if test="query.targetCode != null and query.targetCode != ''">
+            and d.target_code = #{query.targetCode}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (d.input_category like concat('%', #{query.keyword}, '%')
+                 or d.input_type like concat('%', #{query.keyword}, '%')
+                 or d.source_name like concat('%', #{query.keyword}, '%')
+                 or d.target_name like concat('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.startTime != null">
+            and d.created_time &gt;= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            and d.created_time &lt;= #{query.endTime}
+        </if>
+        order by d.created_time desc
+    </select>
+
+    <select id="selectDemandInputSummaryItemById" resultMap="DemandInputSummaryItemVOResult">
+        <include refid="selectDemandInputSummaryItemVo"/>
+        where d.id = #{id}
+    </select>
+
+    <select id="checkCategoryTypeExists" resultType="int">
+        select count(1)
+        from demand_input_summary_item
+        where input_category = #{inputCategory}
+          and input_type = #{inputType}
+        <if test="excludeId != null and excludeId != ''">
+            and id != #{excludeId}
+        </if>
+    </select>
+
+</mapper>
