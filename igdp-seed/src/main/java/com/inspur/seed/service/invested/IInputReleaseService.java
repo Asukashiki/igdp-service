@@ -25,7 +25,7 @@ public interface IInputReleaseService extends IService<InputReleaseMain> {
      * @param endTime 结束时间
      * @return 分发单列表
      */
-    List<InputReleaseMain> queryReleaseList(String unionName, String inputType,
+    List<InputReleaseMain> queryReleaseList(String releaseType, String unionName, String inputType,
                                              LocalDate startTime, LocalDate endTime);
 
     /**

@@ -8,6 +8,7 @@ import com.inspur.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -76,13 +77,13 @@ public class InputReceiveUnion extends BaseEntity {
     /**
      * 分发年度
      */
-    private Integer releaseYear;
+    private String releaseYear;
 
     /**
      * 分发日期
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime releaseDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate releaseDate;
 
     /**
      * 分发人

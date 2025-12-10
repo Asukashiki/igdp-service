@@ -7,6 +7,7 @@ import com.inspur.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -75,12 +76,12 @@ public class InputReceiveWoreda extends BaseEntity {
     /**
      * 分发年度
      */
-    private Integer releaseYear;
+    private String releaseYear;
 
     /**
      * 分发日期
      */
-    private LocalDateTime releaseDate;
+    private LocalDate releaseDate;
 
     /**
      * 分发人
