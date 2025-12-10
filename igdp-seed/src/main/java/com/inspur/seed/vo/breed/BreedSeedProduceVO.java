@@ -83,6 +83,11 @@ public class BreedSeedProduceVO implements Serializable {
     private String produceStatus;
 
     /**
+     * 剩余可分发量（产出种子数量 - 已分发数量）
+     */
+    private BigDecimal remainingQuantity;
+
+    /**
      * 创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

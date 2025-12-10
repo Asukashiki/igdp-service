@@ -11,9 +11,8 @@ import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.constant.AuditLevelEnum;
-import com.inspur.seed.constant.BatchStatusEnum;
 import com.inspur.seed.constant.DemandStatusEnum;
-import com.inspur.seed.constant.InputCategoryEnum;
+import com.inspur.seed.constant.CategoryEnum;
 import com.inspur.seed.domain.dto.DemandOrganDTO;
 import com.inspur.seed.domain.dto.FarmerDemandAddDTO;
 import com.inspur.seed.domain.dto.FarmerDemandPageDTO;
@@ -84,7 +83,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 2. Validate input categories
         for (FarmerDemandAddDTO.InputItemDTO item : dto.getInputItems()) {
-            if (InputCategoryEnum.getByCode(item.getInputCategory()) == null) {
+            if (CategoryEnum.getByCode(item.getInputCategory()) == null) {
                 throw new ServiceException("Invalid input category: " + item.getInputCategory());
             }
         }
@@ -148,7 +147,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 4. Validate input categories
         for (FarmerDemandUpdateDTO.InputItemDTO item : dto.getInputItems()) {
-            if (InputCategoryEnum.getByCode(item.getInputCategory()) == null) {
+            if (CategoryEnum.getByCode(item.getInputCategory()) == null) {
                 throw new ServiceException("Invalid input category: " + item.getInputCategory());
             }
         }
@@ -230,7 +229,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         List<FarmerDemandDetailVO.InputItemVO> inputItemVOs = inputItems.stream().map(item -> {
             FarmerDemandDetailVO.InputItemVO itemVO = BeanUtil.copyProperties(item, FarmerDemandDetailVO.InputItemVO.class);
-            InputCategoryEnum categoryEnum = InputCategoryEnum.getByCode(item.getInputCategory());
+            CategoryEnum categoryEnum = CategoryEnum.getByCode(item.getInputCategory());
             if (categoryEnum != null) {
                 itemVO.setInputCategoryName(categoryEnum.getDesc());
             }

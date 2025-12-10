@@ -38,6 +38,11 @@ public class InputReleaseDetailDTO {
     private String inputId;
 
     /**
+     * 需求数量
+     */
+    private BigDecimal required;
+
+    /**
      * 分发数量
      */
     private BigDecimal quantity;

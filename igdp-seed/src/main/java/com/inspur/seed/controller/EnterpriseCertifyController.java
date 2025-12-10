@@ -101,9 +101,8 @@ public class EnterpriseCertifyController extends BaseController {
     public AjaxResult getInfoUserId() {
         String userId = LoginHelper.getUsername();
         EnterpriseInfo enterpriseInfo = enterpriseCertifyService.queryByUserId(userId);
-        if (enterpriseInfo == null) {
-            return AjaxResult.error("企业信息不存在");
-        }
+        // 即使没有企业信息，也返回成功（data 为 null）
+        // 这是正常的业务状态，不应该返回错误码
         return AjaxResult.success(enterpriseInfo);
     }
 

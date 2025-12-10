@@ -1,10 +1,14 @@
 package com.inspur.seed.dto.invested;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -56,8 +60,8 @@ public class InputReleaseFarmerDTO {
     /**
      * 分发日期
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime releaseDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate releaseDate;
 
     /**
      * 分发人
