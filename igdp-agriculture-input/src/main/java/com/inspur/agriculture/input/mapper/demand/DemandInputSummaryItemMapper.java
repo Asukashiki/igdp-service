@@ -3,7 +3,9 @@ package com.inspur.agriculture.input.mapper.demand;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.inspur.agriculture.input.domain.demand.DemandInputSummaryItem;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
+import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
+import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -43,4 +45,8 @@ public interface DemandInputSummaryItemMapper extends BaseMapper<DemandInputSumm
     int checkCategoryTypeExists(@Param("inputCategory") String inputCategory,
                                  @Param("inputType") String inputType,
                                  @Param("excludeId") String excludeId);
+
+
+    List<InputAggregationSummaryVO> getInputAggregation(@Param("query") DemandOrganDTO demandOrganDTO);
+
 }

@@ -4,15 +4,18 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.inspur.agriculture.input.domain.demand.DemandInputSummaryItem;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
+import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryItemMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
+import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.DateUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -117,5 +120,35 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
         QueryWrapper<DemandInputSummaryItem> wrapper = new QueryWrapper<>();
         wrapper.in("id", ids);
         return demandInputSummaryItemMapper.delete(wrapper);
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int getInputAggregation(DemandOrganDTO demandOrganDTO) {
+        // 验证必填参数
+        if (demandOrganDTO == null || !StringUtils.hasText(demandOrganDTO.getSourceCode())) {
+            throw new ServiceException("来源编码不能为空");
+        }
+
+        // 从汇聚统计表中查询并再次汇总（二次汇聚）
+        List<InputAggregationSummaryVO> aggregationList = demandInputSummaryItemMapper.getInputAggregation(demandOrganDTO);
+        int count = 0;
+        for (InputAggregationSummaryVO aggregation : aggregationList){
+            DemandInputSummaryItem item = new DemandInputSummaryItem();
+            item.setInputCategory(aggregation.getInputCategory());
+            item.setInputType(aggregation.getInputType());
+            item.setTotalCount(aggregation.getTotalCount());
+            item.setTotalQuantity(aggregation.getTotalQuantity());
+            item.setSourceCode(demandOrganDTO.getTargetCode());
+            item.setSourceName(demandOrganDTO.getTargetName());
+            item.setTargetCode(demandOrganDTO.getNextRegionCode());
+            item.setTargetName(demandOrganDTO.getNextRegionName());
+            int tempCount = demandInputSummaryItemMapper.insert(item);
+            count+=tempCount;
+        }
+
+
+        return count;
     }
 }

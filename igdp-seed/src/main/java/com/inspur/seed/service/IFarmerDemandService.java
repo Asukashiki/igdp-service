@@ -66,5 +66,7 @@ public interface IFarmerDemandService extends IService<DemandFarmerDetail> {
      *
      * @return List of aggregated input items grouped by category and type
      */
-    int getInputAggregation(DemandOrganDTO demanOrganDTO);
+    List<FarmerInputAggregationVO>  getInputAggregation(DemandOrganDTO demanOrganDTO);
+
+    int submitInputAggregation(DemandOrganDTO demandOrganDTO);
 }

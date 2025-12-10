@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.common.exception.ServiceException;
@@ -396,12 +397,18 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     }
 
     @Override
-    public int getInputAggregation(DemandOrganDTO demandOrganDTO) {
+    public List<FarmerInputAggregationVO> getInputAggregation(DemandOrganDTO demandOrganDTO) {
+        return inputItemMapper.getInputAggregation(demandOrganDTO.getSourceCode(),demandOrganDTO.getYear());
+
+    }
+
+    @Override
+    public int submitInputAggregation(DemandOrganDTO demandOrganDTO) {
         String sourceCode = demandOrganDTO.getSourceCode();
         String sourceName = demandOrganDTO.getSourceName();
         String targetCode = demandOrganDTO.getTargetCode();
         String targetName = demandOrganDTO.getTargetName();
-        List<FarmerInputAggregationVO> demands = inputItemMapper.getInputAggregation(sourceCode);
+        List<FarmerInputAggregationVO> demands = inputItemMapper.getInputAggregation(sourceCode, demandOrganDTO.getYear());
         int count = 0;
         for(FarmerInputAggregationVO d:demands){
             DemandInputSummaryItemDTO dto = new DemandInputSummaryItemDTO();
@@ -413,17 +420,17 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             dto.setInputType(d.getInputType());
             dto.setTotalQuantity(d.getTotalQuantity());
             dto.setTotalCount(d.getTotalCount());
+            dto.setSummaryId(demandOrganDTO.getDemandSummaryId());
             int tempCount = demandInputSummaryItemService.addDemandInputSummaryItem(dto);
             count = count + tempCount;
         }
-
         return count;
     }
 
-    /**
-     * Calculate max seed quantity based on land area
-     * Simplified calculation: land area * 100 kg/hectare
-     */
+        /**
+         * Calculate max seed quantity based on land area
+         * Simplified calculation: land area * 100 kg/hectare
+         */
     private BigDecimal calculateMaxSeedQuantity(BigDecimal landArea, List<?> inputItems) {
         if (landArea == null) {
             return null;

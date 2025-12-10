@@ -80,8 +80,14 @@ public class FarmerDemandController {
      * Get aggregated statistics of farmer input items
      * Returns aggregated data grouped by input category and type
      */
-    @PostMapping("/input/aggregation")
+    @PostMapping("/input/getAggregation")
     public AjaxResult getInputAggregation(@RequestBody DemandOrganDTO demanOrganDTO) {
-        return AjaxResult.success("aggregation successful", farmerDemandService.getInputAggregation(demanOrganDTO));
+        return AjaxResult.success(farmerDemandService.getInputAggregation(demanOrganDTO));
+    }
+
+
+    @PostMapping("/input/aggregation")
+    public AjaxResult submitInputAggregation(@RequestBody DemandOrganDTO demanOrganDTO) {
+        return AjaxResult.success(farmerDemandService.submitInputAggregation(demanOrganDTO));
     }
 }

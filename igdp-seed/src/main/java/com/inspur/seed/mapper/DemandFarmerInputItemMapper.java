@@ -31,9 +31,10 @@ public interface DemandFarmerInputItemMapper extends BaseMapper<DemandFarmerInpu
             "FROM demand_farmer_input_item i, demand_farmer_detail d " +
             "WHERE " +
             "    i.demand_id = d.id " +
-            "    AND d.kebele = #{kebele} " +  // 用#{}占位符接收参数，防止SQL注入
+            "    AND d.kebele = #{kebele} " +
+            "    AND d.year = #{year}" +
             "    AND d.status = '2' " +       // 字符串常量用单引号
             "    AND i.is_deleted = 0 " +
             "GROUP BY i.input_category, i.input_type")
-    List<FarmerInputAggregationVO> getInputAggregation(@Param("kebele") String kebele);
+    List<FarmerInputAggregationVO> getInputAggregation(@Param("kebele") String kebele,@Param("year") String year);
 }

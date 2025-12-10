@@ -228,5 +228,7 @@ public class FarmerDemandDetailVO {
          * Audit Opinion
          */
         private String auditOpinion;
+
+        private String year;
     }
 }

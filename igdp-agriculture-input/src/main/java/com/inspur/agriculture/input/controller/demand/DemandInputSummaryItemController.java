@@ -71,8 +71,18 @@ public class DemandInputSummaryItemController {
         }
     }
 
+    @PostMapping("/detail")
+    public AjaxResult detail(@Validated @RequestBody DemandInputSummaryItemQueryDTO dto) {
+        try {
+            List<DemandInputSummaryItemVO> result = demandInputSummaryItemService.getDemandInputSummaryItemList(dto);
+            return AjaxResult.error("fail");
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
     /**
-     * 添加农资汇聚统计
+     * 添加农资汇聚统计(镇、市)
      */
     @PostMapping()
     public AjaxResult add(@Validated @RequestBody DemandInputSummaryItemDTO dto) {
@@ -104,10 +114,18 @@ public class DemandInputSummaryItemController {
     }
 
 
+    /**
+     * 二次汇聚统计
+     * 从汇聚统计表中按来源编码查询并再次汇总(镇、市)
+     */
     @PostMapping("/aggregate")
-    public AjaxResult aggregate(@RequestBody DemandOrganDTO demanOrganDTO) {
-        return AjaxResult.success();
-
+    public AjaxResult aggregate(@RequestBody DemandOrganDTO demandOrganDTO) {
+        try {
+            int count = demandInputSummaryItemService.getInputAggregation(demandOrganDTO);
+            return AjaxResult.success("汇聚成功，共汇聚" + count + "条记录", count);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
     }
 
     /**

@@ -13,4 +13,8 @@ public class DemandOrganDTO {
 
     private String targetName;
 
+    private String nextRegionCode;
+
+    private String nextRegionName;
+
 }

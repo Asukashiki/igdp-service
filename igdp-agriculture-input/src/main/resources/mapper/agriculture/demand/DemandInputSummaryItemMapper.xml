@@ -93,4 +93,29 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </if>
     </select>
 
+
+    <select id="getInputAggregation" resultType="com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO">
+        SELECT
+            input_category AS inputCategory,
+            input_type AS inputType,
+            COUNT(*) AS totalCount,
+            SUM(total_quantity) AS totalQuantity
+        FROM demand_input_summary_item
+        WHERE
+        <if test = "query.source_code !=null and query.source_code !=''">
+            source_code = #{query.source_code}
+        </if>
+        <if test = "query.source_name != null and query.source_name !=''">
+            and source_name = #{query.source_name}
+        </if>
+        <if test="query.target_name!=null and query.target_name!= ''">
+            and target_name = #{query.target_name}
+        </if>
+        <if test="query.target_code!=null and query.target_code!= ''">
+            and target_code = #{query.target_code}
+        </if>
+          AND status = '0'
+        GROUP BY input_category, input_type
+    </select>
+
 </mapper>

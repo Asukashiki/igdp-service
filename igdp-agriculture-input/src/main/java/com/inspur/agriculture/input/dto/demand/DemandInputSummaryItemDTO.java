@@ -65,4 +65,6 @@ public class DemandInputSummaryItemDTO {
 
     /** 状态: 0-待审核/1-成功/2-拒绝 */
     private String status;
+
+    private String summaryId;
 }

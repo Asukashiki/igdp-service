@@ -2,6 +2,7 @@ package com.inspur.agriculture.input.service.demand;
 
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
+import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
 
 import java.util.List;
@@ -61,4 +62,6 @@ public interface IDemandInputSummaryItemService {
      * @return 结果
      */
     int batchDeleteDemandInputSummaryItem(List<String> ids);
+
+    int getInputAggregation(DemandOrganDTO demanOrganDTO);
 }
