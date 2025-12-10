@@ -1,7 +1,6 @@
 package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -14,16 +13,24 @@ import com.inspur.seed.domain.dto.BreedingLicenseQueryDTO;
 import com.inspur.seed.domain.entity.BreedingDataset;
 import com.inspur.seed.domain.entity.BreedingLicense;
 import com.inspur.seed.domain.entity.BreedingVarietyTraits;
+import com.inspur.seed.domain.EnterpriseInfo;
+import com.inspur.seed.domain.VarietyRegistration;
+import com.inspur.seed.domain.VarietyPublish;
 import com.inspur.seed.domain.vo.BreedingLicenseVO;
 import com.inspur.seed.mapper.BreedingDatasetMapper;
 import com.inspur.seed.mapper.BreedingLicenseMapper;
 import com.inspur.seed.mapper.BreedingVarietyTraitsMapper;
 import com.inspur.seed.service.IBreedingLicenseService;
+import com.inspur.seed.service.IEnterpriseCertifyService;
+import com.inspur.seed.service.IVarietyRegistrationService;
+import com.inspur.seed.service.IVarietyPublishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -45,6 +52,15 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
     @Autowired
     private BreedingDatasetMapper datasetMapper;
+
+    @Autowired
+    private IEnterpriseCertifyService enterpriseCertifyService;
+
+    @Autowired
+    private IVarietyRegistrationService varietyRegistrationService;
+
+    @Autowired
+    private IVarietyPublishService varietyPublishService;
 
     /**
      * 获取许可列表(分页)
@@ -326,10 +342,136 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             traitsMapper.insert(traits);
 
             log.info("新增许可成功,ID: {}", license.getId());
+
+            // 7. 推送数据到种子信息公示系统
+            try {
+                pushToPublicSystem(license, dto);
+            } catch (Exception e) {
+                log.warn("推送到种子信息公示系统失败,但许可证已创建成功: {}", e.getMessage());
+                // 不影响许可证创建，只记录警告日志
+            }
+
             return AjaxResult.success("License added successfully", license.getId());
         } catch (Exception e) {
             log.error("新增许可失败", e);
             return AjaxResult.error("Failed to add license: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 推送数据到种子信息公示系统
+     *
+     * @param license 许可证信息
+     * @param dto 许可证DTO
+     */
+    private void pushToPublicSystem(BreedingLicense license, BreedingLicenseDTO dto) {
+        try {
+            log.info("开始推送数据到种子信息公示系统,许可证ID: {}", license.getId());
+
+            // 获取当前用户的企业信息
+            String currentUser;
+            try {
+                currentUser = SecurityUtils.getUsername();
+            } catch (Exception ex) {
+                log.warn("获取当前用户信息失败: {}", ex.getMessage());
+                currentUser = null;
+            }
+
+            if (StrUtil.isBlank(currentUser)) {
+                log.warn("当前用户为空,跳过推送到公示系统");
+                return;
+            }
+
+            // 去除企业信息查询和验证逻辑
+            // 原因：育种许可数据录入时企业还没有认证，不应依赖企业信息
+            log.info("育种许可数据录入不依赖企业认证，企业字段将设置为空字符串");
+
+            // Step 1: 创建品种登记记录
+            VarietyRegistration registration = new VarietyRegistration();
+            // enterprise_id设置为null（已修改数据库允许NULL），其他企业字段设置为空字符串
+            registration.setEnterpriseId(null);
+            registration.setEnterpriseName("");
+            registration.setUnifiedSocialCreditCode("");
+            registration.setEnterpriseType("");
+            registration.setSeedLicenseNo("");
+            registration.setVarietyName(license.getVarietyName());
+            registration.setVarietyCode(license.getLicenseNo());
+            registration.setCropType(license.getCropType());
+            registration.setRecordType("Breeding License Registration");
+            registration.setRecordDate(LocalDate.now());
+            registration.setApprovalOrg(license.getApprovalOrg() != null ? license.getApprovalOrg() : "");
+            registration.setApprovalDate(license.getApprovalDate());
+            registration.setOperator(currentUser);
+            registration.setOperationOrg("");  // 不依赖企业信息，设置为空字符串
+
+            // 设置培育年份（从审批日期获取，如果没有则使用当前年份）
+            Integer breedingYear;
+            if (license.getApprovalDate() != null) {
+                breedingYear = license.getApprovalDate().getYear();
+            } else {
+                breedingYear = LocalDate.now().getYear();
+            }
+            registration.setBreedingYear(breedingYear);
+
+            // 设置生物分类学字段（必填字段，使用默认值）
+            registration.setSpecies(license.getCropType() != null ? license.getCropType() : "");
+            registration.setGenus("");
+            registration.setFamily("");
+            registration.setBreedingMethod("");
+
+            // 设置物种特性相关字段（从DTO中获取，必填字段需要提供默认值）
+            registration.setMinYieldPotential(dto.getMinYieldPotential() != null ? dto.getMinYieldPotential() : BigDecimal.ZERO);
+            registration.setMaxYieldPotential(dto.getMaxYieldPotential() != null ? dto.getMaxYieldPotential() : BigDecimal.ZERO);
+            registration.setDiseaseResistance(dto.getDiseaseResistance() != null ? dto.getDiseaseResistance() : "");
+            registration.setStressResistance(dto.getStressTolerance() != null ? dto.getStressTolerance() : "");
+            registration.setGrowthPeriod(dto.getMaturityDays() != null ? dto.getMaturityDays() : 0);
+            registration.setPlantHeight(dto.getPlantHeight() != null ? dto.getPlantHeight() : BigDecimal.ZERO);
+            registration.setGrainQualityTraits(dto.getGrainQualityTraits() != null ? dto.getGrainQualityTraits() : "");
+
+            // 设置试验相关字段（必填字段，使用默认值）
+            registration.setTestLocation("");
+            registration.setTestYear(breedingYear);
+            registration.setAverageYield(BigDecimal.ZERO);
+            registration.setStabilityScore(BigDecimal.ZERO);
+            registration.setTestReportUrl("");
+            registration.setPhotoUrl("");
+            registration.setApprovalDocNo("");
+            registration.setCertificationDocUrl("");
+            registration.setMethodPedigree("");
+
+            String registrationId = varietyRegistrationService.submitRegistration(registration);
+            log.info("品种登记成功,登记ID: {}", registrationId);
+
+            if (StrUtil.isBlank(registrationId)) {
+                log.warn("品种登记返回的ID为空,跳过发布步骤");
+                return;
+            }
+
+            // 更新登记状态为待发布（1），因为育种许可证已经批准
+            varietyRegistrationService.updateRecordStatus(registrationId, 1);
+            log.info("品种登记状态已更新为待发布");
+
+            // Step 2: 使用返回的 registrationId 推送到公示系统
+            VarietyPublish varietyPublish = new VarietyPublish();
+            varietyPublish.setRegistrationId(registrationId);
+            varietyPublish.setVarietyName(license.getVarietyName());
+            varietyPublish.setCropType(license.getCropType());
+            varietyPublish.setPublishDate(LocalDate.now());
+            varietyPublish.setPublishDept(license.getApprovalOrg() != null ? license.getApprovalOrg() : "");
+            varietyPublish.setDecisionExplanation(license.getRemark() != null && !license.getRemark().isEmpty()
+                ? license.getRemark() : "Breeding license approved");
+            varietyPublish.setPublicDescription(license.getVarietyName() + " - " + license.getCropType());
+            varietyPublish.setRecommendedRegion("");
+            varietyPublish.setSowingGuide("");
+            varietyPublish.setPublishStatus(1);
+            varietyPublish.setPublisher("");
+
+            String publishId = varietyPublishService.publishVariety(varietyPublish);
+            log.info("品种发布成功,发布ID: {}", publishId);
+
+        } catch (Exception e) {
+            log.error("推送到种子信息公示系统失败: {}", e.getMessage(), e);
+            throw e;
         }
     }
 
