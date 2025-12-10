@@ -177,4 +177,19 @@ public class UnionRegistrationController extends BaseController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    /**
+     * 获取union详情
+     *
+     * @param id unionId
+     * @return union详情
+     */
+    @GetMapping("/{id}")
+    public AjaxResult getInfo(@PathVariable("id") Long id) {
+        UnionInfo union = unionRegistrationService.getById(id);
+        if (union == null) {
+            return AjaxResult.error("union不存在");
+        }
+        return AjaxResult.success(union);
+    }
 }

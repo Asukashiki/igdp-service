@@ -16,6 +16,7 @@
         <result property="operatorId" column="operator_id"/>
         <result property="operatorName" column="operator_name"/>
         <result property="produceStatus" column="produce_status"/>
+        <result property="remainingQuantity" column="remaining_quantity"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
@@ -35,6 +36,12 @@
             p.operator_id,
             p.operator_name,
             p.produce_status,
+            (p.produce_seed_quantrity - IFNULL(
+                (SELECT SUM(d.distribute_quantity)
+                 FROM breed_seed_distribute_detail d
+                 WHERE d.breed_seed_produce_batch_id = p.breed_seed_produce_batch_id),
+                0)
+            ) AS remaining_quantity,
             p.create_time,
             p.update_time
         FROM breed_seed_produce p
