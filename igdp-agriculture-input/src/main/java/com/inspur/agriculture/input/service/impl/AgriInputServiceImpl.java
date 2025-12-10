@@ -75,6 +75,13 @@ public class AgriInputServiceImpl implements IAgriInputService {
         }
         agriInput.setDelFlag("0");
 
+        // 自动生成批次号（格式: BATCH-YYYYMMDD-随机6位数字）
+        if (agriInput.getBatchId() == null || agriInput.getBatchId().trim().isEmpty()) {
+            String dateStr = DateUtils.dateTimeNow("yyyyMMdd");
+            String randomNum = String.format("%06d", (int)(Math.random() * 1000000));
+            agriInput.setBatchId("BATCH-" + dateStr + "-" + randomNum);
+        }
+
         // 插入投入品基本信息
         int rows = agriInputMapper.insert(agriInput);
 
