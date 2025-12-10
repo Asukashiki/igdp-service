@@ -184,8 +184,8 @@ public class UnionRegistrationController extends BaseController {
      * @param id unionId
      * @return union详情
      */
-    @GetMapping("/{id}")
-    public AjaxResult getInfo(@PathVariable("id") Long id) {
+    @GetMapping("getUnionInfoById/{id}")
+    public AjaxResult getUnionInfo(@PathVariable("id") String id) {
         UnionInfo union = unionRegistrationService.getById(id);
         if (union == null) {
             return AjaxResult.error("union不存在");

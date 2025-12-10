@@ -49,9 +49,10 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     private InputReceiveWoredaMapper receiveWoredaMapper;
 
     @Override
-    public List<InputReleaseMain> queryReleaseList(String unionName, String inputType,
+    public List<InputReleaseMain> queryReleaseList(String releaseType, String unionName, String inputType,
                                                     LocalDate startTime, LocalDate endTime) {
         LambdaQueryWrapper<InputReleaseMain> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InputReleaseMain::getReleaseType, releaseType);
 
         if (StringUtils.isNotEmpty(unionName)) {
             wrapper.like(InputReleaseMain::getTargetId, unionName);
@@ -83,6 +84,8 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         main.setOperateBy("admin"); // TODO: 从登录用户获取
         main.setOperateTime(LocalDateTime.now());
         main.setCreateTime(LocalDateTime.now());
+        main.setReleaseDate(dto.getReleaseDate());
+        main.setAuditDate(LocalDateTime.now());
 
         save(main);
 
@@ -240,6 +243,8 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             detail.setReleaseDetailId(detailId);
             detail.setReleaseId(releaseId);
             detail.setCreateTime(LocalDateTime.now());
+            detail.setReleaseTime(LocalDateTime.now());
+            detail.setInputId(Long.parseLong(detailDTO.getInputId()));
 
             detailMapper.insert(detail);
         }
