@@ -465,4 +465,57 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
             log.info("Batch status updated to reviewing: {}", batchId);
         }
     }
+
+    @Override
+    public Page<DemandPendingPageVO> getApprovedAuditPage(DemandAuditPendingPageDTO dto) {
+        // 1. Build query wrapper for approved demands
+        LambdaQueryWrapper<DemandFarmerDetail> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DemandFarmerDetail::getIsDeleted, 0);
+        wrapper.eq(DemandFarmerDetail::getStatus, DemandStatusEnum.APPROVED.getCode());
+
+        // Filter by batch ID
+        if (StrUtil.isNotBlank(dto.getBatchId())) {
+            wrapper.eq(DemandFarmerDetail::getBatchId, dto.getBatchId());
+        }
+
+        // Filter by farmer name (fuzzy)
+        if (StrUtil.isNotBlank(dto.getFarmerName())) {
+            wrapper.like(DemandFarmerDetail::getFarmerName, dto.getFarmerName());
+        }
+
+        // Filter by administrative divisions
+        if (StrUtil.isNotBlank(dto.getKebele())) {
+            wrapper.eq(DemandFarmerDetail::getKebele, dto.getKebele());
+        }
+        if (StrUtil.isNotBlank(dto.getWoreda())) {
+            wrapper.eq(DemandFarmerDetail::getWoreda, dto.getWoreda());
+        }
+        if (StrUtil.isNotBlank(dto.getVillage())) {
+            wrapper.eq(DemandFarmerDetail::getVillage, dto.getVillage());
+        }
+
+        // Order by updated time desc (when approved)
+        wrapper.orderByDesc(DemandFarmerDetail::getUpdatedTime);
+
+        // 2. Query page
+        Page<DemandFarmerDetail> page = new Page<>(dto.getPageNum(), dto.getPageSize());
+        Page<DemandFarmerDetail> resultPage = demandDetailMapper.selectPage(page, wrapper);
+
+        // 3. Convert to VO
+        Page<DemandPendingPageVO> voPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
+        List<DemandPendingPageVO> voList = resultPage.getRecords().stream().map(demand -> {
+            DemandPendingPageVO vo = BeanUtil.copyProperties(demand, DemandPendingPageVO.class);
+
+            // Get batch number
+            DemandCollectionBatch batch = batchMapper.selectById(demand.getBatchId());
+            if (batch != null) {
+                vo.setBatchNo(batch.getBatchNo());
+            }
+
+            return vo;
+        }).collect(Collectors.toList());
+        voPage.setRecords(voList);
+
+        return voPage;
+    }
 }

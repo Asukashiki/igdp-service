@@ -68,4 +68,13 @@ public class DemandAuditController {
         demandAuditService.lockBatchDemands(dto);
         return AjaxResult.success("Batch locked successfully");
     }
+
+    /**
+     * Query approved audit demands page (status = approved)
+     */
+    @PostMapping("/approved/page")
+    public AjaxResult getApprovedAuditPage(@RequestBody DemandAuditPendingPageDTO dto) {
+        Page<DemandPendingPageVO> page = demandAuditService.getApprovedAuditPage(dto);
+        return AjaxResult.success("Operation successful", page);
+    }
 }
