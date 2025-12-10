@@ -12,6 +12,7 @@ import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.constant.AuditLevelEnum;
 import com.inspur.seed.constant.DemandStatusEnum;
 import com.inspur.seed.constant.CategoryEnum;
+import com.inspur.seed.domain.dto.DemandOrganDTO;
 import com.inspur.seed.domain.dto.FarmerDemandAddDTO;
 import com.inspur.seed.domain.dto.FarmerDemandPageDTO;
 import com.inspur.seed.domain.dto.FarmerDemandUpdateDTO;
