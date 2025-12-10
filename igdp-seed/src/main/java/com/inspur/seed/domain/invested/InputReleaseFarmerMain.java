@@ -66,7 +66,7 @@ public class InputReleaseFarmerMain extends BaseEntity {
     /**
      * 分发日期
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime releaseDate;
 
     /**
