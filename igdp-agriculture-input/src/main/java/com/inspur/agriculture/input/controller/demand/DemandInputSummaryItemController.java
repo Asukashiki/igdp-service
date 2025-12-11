@@ -76,7 +76,7 @@ public class DemandInputSummaryItemController {
     public AjaxResult detail(@Validated @RequestBody DemandInputSummaryItemQueryDTO dto) {
         try {
             List<DemandInputSummaryItemVO> result = demandInputSummaryItemService.getDemandInputSummaryItemList(dto);
-            return AjaxResult.error("fail");
+            return AjaxResult.success(result);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }
