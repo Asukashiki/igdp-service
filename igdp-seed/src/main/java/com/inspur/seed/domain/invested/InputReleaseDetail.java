@@ -51,7 +51,7 @@ public class InputReleaseDetail extends BaseEntity {
     /**
      * 投入品ID
      */
-    private String inputId;
+    private Long inputId;
 
     /**
      * 需求数量

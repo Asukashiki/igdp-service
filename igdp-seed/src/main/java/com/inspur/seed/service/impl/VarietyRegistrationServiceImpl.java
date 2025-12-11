@@ -38,13 +38,13 @@ public class VarietyRegistrationServiceImpl extends ServiceImpl<VarietyRegistrat
 
     @Override
     public String submitRegistration(VarietyRegistration varietyRegistration) {
-        // 前置条件：检查企业是否已完成认证备案
-        EnterpriseInfo enterpriseInfo = enterpriseCertifyService.queryByEnterpriseId(varietyRegistration.getEnterpriseId());
-        if (enterpriseInfo == null) {
-            throw new ServiceException("企业信息不存在");
-        }
-        if (enterpriseInfo.getCertificationStatus() != 1) {
-            throw new ServiceException("企业尚未完成认证备案，无法提交品种登记申请");
+        // 查询企业信息（仅用于填充操作机构等信息，不进行认证检查）
+        // 注释原因：育种许可数据录入时企业可能还未完成认证，允许使用默认企业ID
+        EnterpriseInfo enterpriseInfo = null;
+        if (StringUtils.isNotEmpty(varietyRegistration.getEnterpriseId())) {
+            enterpriseInfo = enterpriseCertifyService.queryByEnterpriseId(varietyRegistration.getEnterpriseId());
+            // 已去除：企业信息存在性检查和企业认证状态检查
+            // 原因：育种许可录入不依赖企业认证，可使用"UNKNOWN"等默认企业ID
         }
 
         String registrationId = varietyRegistration.getRegistrationId();
@@ -59,7 +59,10 @@ public class VarietyRegistrationServiceImpl extends ServiceImpl<VarietyRegistrat
             String registrationNo = generateRegistrationNo();
             varietyRegistration.setRegistrationNo(registrationNo);
 
-            varietyRegistration.setOperationOrg(enterpriseInfo.getEnterpriseName());
+            // 设置操作机构（如果有企业信息）
+            if (enterpriseInfo != null) {
+                varietyRegistration.setOperationOrg(enterpriseInfo.getEnterpriseName());
+            }
 
             // 设置备案状态为审核中
             varietyRegistration.setRecordStatus(0);

@@ -10,7 +10,7 @@ import com.inspur.common.utils.StringUtils;
 import com.inspur.common.utils.bean.BeanUtils;
 import com.inspur.seed.constant.ApplicationStatusEnum;
 import com.inspur.seed.constant.AuditResultEnum;
-import com.inspur.seed.constant.InputCategoryEnum;
+import com.inspur.seed.constant.CategoryEnum;
 import com.inspur.seed.constant.LicenseTypeEnum;
 import com.inspur.seed.constant.OrgTypeEnum;
 import com.inspur.seed.domain.dto.registration.*;
@@ -71,7 +71,7 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         // 3. 转换并校验投入品类型
         List<String> inputTypeList = convertToList(dto.getInputTypes());
         for (String inputType : inputTypeList) {
-            if (InputCategoryEnum.getByCode(inputType) == null) {
+            if (CategoryEnum.getByCode(inputType) == null) {
                 throw new ServiceException("Invalid input type: " + inputType);
             }
         }
@@ -152,7 +152,7 @@ public class RegistrationServiceImpl extends ServiceImpl<OrgEnterpriseInfoMapper
         // 4. 转换并校验投入品类型
         List<String> inputTypeList = convertToList(dto.getInputTypes());
         for (String inputType : inputTypeList) {
-            if (InputCategoryEnum.getByCode(inputType) == null) {
+            if (CategoryEnum.getByCode(inputType) == null) {
                 throw new ServiceException("Invalid input type: " + inputType);
             }
         }

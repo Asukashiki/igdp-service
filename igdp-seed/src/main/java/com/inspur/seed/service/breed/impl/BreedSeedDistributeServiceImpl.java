@@ -66,7 +66,7 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
             // 验证分发数量不能超过生产批次剩余量
             BigDecimal remaining = produceMapper.selectRemainingQuantity(item.getBreedSeedProduceBatchId());
             if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
-                throw new ServiceException("分发数量超过生产批次剩余可分发量");
+                throw new ServiceException("Distribution quantity exceeds the remaining quantity of the production batch");
             }
             totalQuantity = totalQuantity.add(item.getDistributeQuantity());
         }

@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
+import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
+import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.constant.AuditLevelEnum;
-import com.inspur.seed.constant.BatchStatusEnum;
 import com.inspur.seed.constant.DemandStatusEnum;
-import com.inspur.seed.constant.InputCategoryEnum;
+import com.inspur.seed.constant.CategoryEnum;
+import com.inspur.seed.domain.dto.DemandOrganDTO;
 import com.inspur.seed.domain.dto.FarmerDemandAddDTO;
 import com.inspur.seed.domain.dto.FarmerDemandPageDTO;
 import com.inspur.seed.domain.dto.FarmerDemandUpdateDTO;
@@ -20,6 +23,7 @@ import com.inspur.seed.domain.entity.DemandFarmerDetail;
 import com.inspur.seed.domain.entity.DemandFarmerInputItem;
 import com.inspur.seed.domain.vo.FarmerDemandDetailVO;
 import com.inspur.seed.domain.vo.FarmerDemandPageVO;
+import com.inspur.seed.domain.vo.FarmerInputAggregationVO;
 import com.inspur.seed.mapper.DemandAuditRecordMapper;
 import com.inspur.seed.mapper.DemandCollectionBatchMapper;
 import com.inspur.seed.mapper.DemandFarmerDetailMapper;
@@ -33,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,6 +67,10 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Autowired
     private IDemandCollectionBatchService batchService;
 
+
+    @Autowired
+    private IDemandInputSummaryItemService demandInputSummaryItemService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String addFarmerDemand(FarmerDemandAddDTO dto) {
@@ -74,7 +83,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 2. Validate input categories
         for (FarmerDemandAddDTO.InputItemDTO item : dto.getInputItems()) {
-            if (InputCategoryEnum.getByCode(item.getInputCategory()) == null) {
+            if (CategoryEnum.getByCode(item.getInputCategory()) == null) {
                 throw new ServiceException("Invalid input category: " + item.getInputCategory());
             }
         }
@@ -138,7 +147,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 4. Validate input categories
         for (FarmerDemandUpdateDTO.InputItemDTO item : dto.getInputItems()) {
-            if (InputCategoryEnum.getByCode(item.getInputCategory()) == null) {
+            if (CategoryEnum.getByCode(item.getInputCategory()) == null) {
                 throw new ServiceException("Invalid input category: " + item.getInputCategory());
             }
         }
@@ -220,7 +229,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         List<FarmerDemandDetailVO.InputItemVO> inputItemVOs = inputItems.stream().map(item -> {
             FarmerDemandDetailVO.InputItemVO itemVO = BeanUtil.copyProperties(item, FarmerDemandDetailVO.InputItemVO.class);
-            InputCategoryEnum categoryEnum = InputCategoryEnum.getByCode(item.getInputCategory());
+            CategoryEnum categoryEnum = CategoryEnum.getByCode(item.getInputCategory());
             if (categoryEnum != null) {
                 itemVO.setInputCategoryName(categoryEnum.getDesc());
             }
@@ -386,10 +395,41 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         return true;
     }
 
-    /**
-     * Calculate max seed quantity based on land area
-     * Simplified calculation: land area * 100 kg/hectare
-     */
+    @Override
+    public List<FarmerInputAggregationVO> getInputAggregation(DemandOrganDTO demandOrganDTO) {
+        return inputItemMapper.getInputAggregation(demandOrganDTO.getSourceCode(),demandOrganDTO.getYear());
+
+    }
+
+    @Override
+    public int submitInputAggregation(DemandOrganDTO demandOrganDTO) {
+        String sourceCode = demandOrganDTO.getSourceCode();
+        String sourceName = demandOrganDTO.getSourceName();
+        String targetCode = demandOrganDTO.getTargetCode();
+        String targetName = demandOrganDTO.getTargetName();
+        List<FarmerInputAggregationVO> demands = inputItemMapper.getInputAggregation(sourceCode, demandOrganDTO.getYear());
+        int count = 0;
+        for(FarmerInputAggregationVO d:demands){
+            DemandInputSummaryItemDTO dto = new DemandInputSummaryItemDTO();
+            dto.setSourceCode(sourceCode);
+            dto.setSourceName(sourceName);
+            dto.setTargetCode(targetCode);
+            dto.setTargetName(targetName);
+            dto.setInputCategory(d.getInputCategory());
+            dto.setInputType(d.getInputType());
+            dto.setTotalQuantity(d.getTotalQuantity());
+            dto.setTotalCount(d.getTotalCount());
+            dto.setSummaryId(demandOrganDTO.getDemandSummaryId());
+            int tempCount = demandInputSummaryItemService.addDemandInputSummaryItem(dto);
+            count = count + tempCount;
+        }
+        return count;
+    }
+
+        /**
+         * Calculate max seed quantity based on land area
+         * Simplified calculation: land area * 100 kg/hectare
+         */
     private BigDecimal calculateMaxSeedQuantity(BigDecimal landArea, List<?> inputItems) {
         if (landArea == null) {
             return null;

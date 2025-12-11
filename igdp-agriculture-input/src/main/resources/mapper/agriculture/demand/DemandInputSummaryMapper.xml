@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.demand.DemandInputSummaryMapper">
+
+    <resultMap id="DemandInputSummaryVOResult" type="com.inspur.agriculture.input.vo.demand.DemandInputSummaryVO">
+        <id property="id" column="id"/>
+        <result property="sourceCode" column="source_code"/>
+        <result property="sourceName" column="source_name"/>
+        <result property="targetCode" column="target_code"/>
+        <result property="targetName" column="target_name"/>
+        <result property="status" column="status"/>
+        <result property="statusDesc" column="status_desc"/>
+        <result property="createTime" column="create_time"/>
+        <result property="creator" column="creator"/>
+        <result property="year" column="year"/>
+    </resultMap>
+
+    <sql id="selectDemandInputSummaryVo">
+        select
+            d.id, d.source_code, d.source_name, d.target_code, d.target_name,
+            d.status,
+            CASE d.status
+                WHEN '0' THEN '待审核'
+                WHEN '1' THEN '已通过'
+                WHEN '2' THEN '已拒绝'
+                ELSE ''
+            END as status_desc,
+            d.create_time, d.creator, d.year
+        from demand_input_summary d
+    </sql>
+
+    <select id="selectDemandInputSummaryList" resultMap="DemandInputSummaryVOResult">
+        <include refid="selectDemandInputSummaryVo"/>
+        where 1=1
+        <if test="query.sourceCode != null and query.sourceCode != ''">
+            and d.source_code = #{query.sourceCode}
+        </if>
+        <if test="query.sourceName != null and query.sourceName != ''">
+            and d.source_name like concat('%', #{query.sourceName}, '%')
+        </if>
+        <if test="query.targetCode != null and query.targetCode != ''">
+            and d.target_code = #{query.targetCode}
+        </if>
+        <if test="query.targetName != null and query.targetName != ''">
+            and d.target_name like concat('%', #{query.targetName}, '%')
+        </if>
+        <if test="query.status != null and query.status != ''">
+            and d.status = #{query.status}
+        </if>
+        <if test="query.year != null and query.year != ''">
+            and d.year = #{query.year}
+        </if>
+        <if test="query.creator != null and query.creator != ''">
+            and d.creator = #{query.creator}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (d.source_name like concat('%', #{query.keyword}, '%')
+                 or d.target_name like concat('%', #{query.keyword}, '%')
+                 or d.source_code like concat('%', #{query.keyword}, '%')
+                 or d.target_code like concat('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.startTime != null">
+            and d.create_time &gt;= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            and d.create_time &lt;= #{query.endTime}
+        </if>
+        order by d.create_time desc
+    </select>
+
+    <select id="selectDemandInputSummaryById" resultMap="DemandInputSummaryVOResult">
+        <include refid="selectDemandInputSummaryVo"/>
+        where d.id = #{id}
+    </select>
+
+</mapper>

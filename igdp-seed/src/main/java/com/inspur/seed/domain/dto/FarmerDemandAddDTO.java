@@ -119,5 +119,8 @@ public class FarmerDemandAddDTO {
          */
         @NotNull(message = "Quantity cannot be empty")
         private BigDecimal quantity;
+
+        private String year;
+
     }
 }

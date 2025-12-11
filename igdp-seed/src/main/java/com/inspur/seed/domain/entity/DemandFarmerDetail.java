@@ -150,4 +150,6 @@ public class DemandFarmerDetail implements Serializable {
      * Remark
      */
     private String remark;
+
+    private String year;
 }

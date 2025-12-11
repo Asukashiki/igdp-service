@@ -85,4 +85,6 @@ public class FarmerDemandPageVO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createdTime;
+
+    private String year;
 }
