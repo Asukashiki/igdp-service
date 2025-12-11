@@ -103,7 +103,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         FROM demand_input_summary_item
         WHERE target_code = #{query.target_code}
           AND status = '0'
-        AND created_time >= '2025-01-01' AND created_time < '2026-01-01'
+          AND created_time >= '2025-01-01'
+          AND created_time &lt; '2026-01-01'
         GROUP BY input_category, input_type
     </select>
 
