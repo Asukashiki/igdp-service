@@ -2,10 +2,12 @@ package com.inspur.agriculture.input.service.demand.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.inspur.agriculture.input.domain.demand.DemandInputSummaryItem;
+import com.inspur.agriculture.input.domain.oauth.PubRegion;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryItemMapper;
+import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
 import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
@@ -30,6 +32,9 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
 
     @Autowired
     private DemandInputSummaryItemMapper demandInputSummaryItemMapper;
+
+    @Autowired
+    private PubRegionMapper regionMapper;
 
     @Override
     public List<DemandInputSummaryItemVO> getDemandInputSummaryItemList(DemandInputSummaryItemQueryDTO queryDTO) {
@@ -125,11 +130,15 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public int getInputAggregation(DemandOrganDTO demandOrganDTO) {
-        // 验证必填参数
-        if (demandOrganDTO == null || !StringUtils.hasText(demandOrganDTO.getSourceCode())) {
-            throw new ServiceException("来源编码不能为空");
-        }
+    public int submitInputAggregation(DemandOrganDTO demandOrganDTO) {
+
+        //根据sourceCode获取上级区划code、name
+        PubRegion region = regionMapper.selectByRegionCode(demandOrganDTO.getSourceCode());
+        String sourceCode = demandOrganDTO.getSourceCode();
+        String sourceName = region.getName();
+        String targetCode = region.getParentCode();
+        PubRegion fatherRegion = regionMapper.selectByRegionCode(targetCode);
+        String targetName = fatherRegion.getName();
 
         // 从汇聚统计表中查询并再次汇总（二次汇聚）
         List<InputAggregationSummaryVO> aggregationList = demandInputSummaryItemMapper.getInputAggregation(demandOrganDTO);
@@ -140,15 +149,21 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
             item.setInputType(aggregation.getInputType());
             item.setTotalCount(aggregation.getTotalCount());
             item.setTotalQuantity(aggregation.getTotalQuantity());
-            item.setSourceCode(demandOrganDTO.getTargetCode());
-            item.setSourceName(demandOrganDTO.getTargetName());
-            item.setTargetCode(demandOrganDTO.getNextRegionCode());
-            item.setTargetName(demandOrganDTO.getNextRegionName());
+
+            item.setSourceCode(sourceCode);
+            item.setSourceName(sourceName);
+            item.setTargetCode(targetCode);
+            item.setTargetName(targetName);
+            item.setSummaryId(demandOrganDTO.getSummaryId());
             int tempCount = demandInputSummaryItemMapper.insert(item);
             count+=tempCount;
         }
-
-
         return count;
+    }
+
+
+    @Override
+    public List<InputAggregationSummaryVO> getInputAggregation(DemandOrganDTO demandOrganDTO) {
+        return demandInputSummaryItemMapper.getInputAggregation(demandOrganDTO);
     }
 }
