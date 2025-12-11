@@ -13,7 +13,7 @@ import java.io.Serializable;
  * @author igdp
  */
 @Data
-@TableName("oauth2_bsp.pub_user_role")
+@TableName("bsp.pub_user_role")
 public class PubUserRole implements Serializable {
     private static final long serialVersionUID = 1L;
 
