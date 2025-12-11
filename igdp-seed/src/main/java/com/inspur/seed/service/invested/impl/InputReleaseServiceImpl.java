@@ -1,7 +1,11 @@
 package com.inspur.seed.service.invested.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.agriculture.input.domain.inventory.Stock;
+import com.inspur.agriculture.input.mapper.AgriInputMapper;
+import com.inspur.agriculture.input.mapper.inventory.StockMapper;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.common.utils.uuid.IdUtils;
@@ -21,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -47,6 +52,15 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
 
     @Resource
     private InputReceiveWoredaMapper receiveWoredaMapper;
+
+    @Resource
+    private AgriInputMapper agriInputMapper;
+
+    @Resource
+    private StockMapper  stockMapper;
+
+    @Resource
+    private InputReleaseMainMapper inputReleaseMainMapper;
 
     @Override
     public List<InputReleaseMain> queryReleaseList(String releaseType, String unionName, String inputType,
@@ -75,7 +89,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         // 生成分发单编号
         String releaseId = "REL" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                 + IdUtils.fastSimpleUUID().substring(0, 6).toUpperCase();
-
+        String releaseType = dto.getReleaseType();
         // 保存主表
         InputReleaseMain main = new InputReleaseMain();
         BeanUtils.copyProperties(dto, main);
@@ -86,12 +100,14 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         main.setCreateTime(LocalDateTime.now());
         main.setReleaseDate(dto.getReleaseDate());
         main.setAuditDate(LocalDateTime.now());
-
+        main.setStatus("distributed");
+        main.setReleaseType(releaseType);
+        main.setReleaseYear(String.valueOf(dto.getReleaseYear()));
         save(main);
 
         // 保存明细
         if (dto.getDetails() != null && !dto.getDetails().isEmpty()) {
-            saveDetails(releaseId, dto.getDetails());
+            saveDetails(releaseId, releaseType, dto.getDetails());
         }
 
         // 自动创建接收确认记录（待确认状态）
@@ -152,7 +168,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
 
         // 保存新明细
         if (dto.getDetails() != null && !dto.getDetails().isEmpty()) {
-            saveDetails(main.getReleaseId(), dto.getDetails());
+            saveDetails(main.getReleaseId(), main.getReleaseType(), dto.getDetails());
         }
 
         return true;
@@ -232,8 +248,29 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     /**
      * 保存分发明细
      */
-    private void saveDetails(String releaseId, List<InputReleaseDetailDTO> detailDTOs) {
+    private void saveDetails(String releaseId, String releaseType, List<InputReleaseDetailDTO> detailDTOs) {
         for (InputReleaseDetailDTO detailDTO : detailDTOs) {
+            // 1、校验需求数量是否超过库存
+            // 1.1 根据投入品id获取库存总量
+            QueryWrapper<Stock> stockWrapper = new QueryWrapper<>();
+            stockWrapper.select("SUM(quantity) as quantity").lambda()
+                    .eq(Stock::getMaterialId, detailDTO.getInputId());
+            List<Stock> stocks = stockMapper.selectList(stockWrapper);
+            BigDecimal totalQuantity = BigDecimal.ZERO;
+            if (stocks.size() > 0) {
+                totalQuantity = stocks.get(0).getQuantity();
+            }
+            String inputId = detailDTO.getInputId();
+            // 1.2 获取相同投入品、未出库的分发单对应的需求量
+            BigDecimal requiredQuantity = inputReleaseMainMapper.getRequiredFromNotDeliveryInputRelease(inputId, releaseType);
+
+            // 1.3 以上二者相减，小于当前库存，则抛出异常，提示库存不足，重新输入需求数量
+            if (totalQuantity.subtract(requiredQuantity).compareTo(detailDTO.getRequired()) < 0) {
+                String inputName = agriInputMapper.selectById(inputId).getInputName();
+                throw new ServiceException("Insufficient inventory for input[" + inputName + "], required: " + detailDTO.getRequired() + ", available: " + totalQuantity + ", please reduce the required quantity");
+            }
+
+            // 2、保存表
             String detailId = "DET" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                     + IdUtils.fastSimpleUUID().substring(0, 6).toUpperCase();
 
