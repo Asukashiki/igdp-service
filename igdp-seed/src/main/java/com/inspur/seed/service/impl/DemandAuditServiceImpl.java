@@ -191,6 +191,11 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
             wrapper.eq(DemandFarmerDetail::getVillage, dto.getVillage());
         }
 
+        // Filter by year
+        if (StrUtil.isNotBlank(dto.getYear())) {
+            wrapper.eq(DemandFarmerDetail::getYear, dto.getYear());
+        }
+
         // Order by submit time desc
         wrapper.orderByDesc(DemandFarmerDetail::getSubmitTime);
 
@@ -492,6 +497,11 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
         }
         if (StrUtil.isNotBlank(dto.getVillage())) {
             wrapper.eq(DemandFarmerDetail::getVillage, dto.getVillage());
+        }
+
+        // Filter by year
+        if (StrUtil.isNotBlank(dto.getYear())) {
+            wrapper.eq(DemandFarmerDetail::getYear, dto.getYear());
         }
 
         // Order by updated time desc (when approved)

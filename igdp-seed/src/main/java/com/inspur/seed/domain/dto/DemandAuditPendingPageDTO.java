@@ -45,4 +45,9 @@ public class DemandAuditPendingPageDTO {
      * Village
      */
     private String village;
+
+    /**
+     * Year
+     */
+    private String year;
 }
