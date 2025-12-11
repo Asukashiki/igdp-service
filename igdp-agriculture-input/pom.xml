@@ -26,6 +26,10 @@
             <version>1.6.2</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-farmland</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

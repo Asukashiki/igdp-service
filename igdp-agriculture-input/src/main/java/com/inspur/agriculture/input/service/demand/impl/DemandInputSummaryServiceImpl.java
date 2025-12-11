@@ -2,13 +2,17 @@ package com.inspur.agriculture.input.service.demand.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.inspur.agriculture.input.domain.demand.DemandInputSummary;
+import com.inspur.agriculture.input.domain.oauth.PubRegion;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryQueryDTO;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryMapper;
+import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryVO;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.DateUtils;
+import com.inspur.farmland.domain.FarmerInfo;
+import com.inspur.farmland.service.IFarmerInfoService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +32,12 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
     @Autowired
     private DemandInputSummaryMapper demandInputSummaryMapper;
 
+    @Autowired
+    private PubRegionMapper regionMapper;
+
+    @Autowired
+    private IFarmerInfoService farmerInfoService;
+
     @Override
     public List<DemandInputSummaryVO> getDemandInputSummaryList(DemandInputSummaryQueryDTO queryDTO) {
         return demandInputSummaryMapper.selectDemandInputSummaryList(queryDTO);
@@ -41,6 +51,31 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int addDemandInputSummary(DemandInputSummaryDTO dto) {
+
+        //先搞区划
+        PubRegion region = regionMapper.selectByRegionCode(dto.getSourceCode());
+        String sourceName = region.getName();
+        String targetCode = region.getParentCode();
+        PubRegion fatherRegion = regionMapper.selectByRegionCode(targetCode);
+        String targetName = fatherRegion.getName();
+        dto.setSourceName(sourceName);
+        dto.setTargetName(targetName);
+        dto.setTargetCode(targetCode);
+
+        //处理分发需求单时的下级数量，
+
+        //level0 kebele 拿所属农民数量
+        if("0".equals(dto.getLevel())){
+            FarmerInfo farmerInfo = new FarmerInfo();
+            farmerInfo.setKebeleCode(dto.getSourceCode());
+            List<FarmerInfo> list = farmerInfoService.selectFarmerInfoList(farmerInfo);
+            dto.setSubQuantity(list.size());
+        }else{
+            //level1 woreda 拿所属kebele数量
+            //level2 zone 拿所属woreda数量
+            //level3 region 拿所属zone数量
+            dto.setSubQuantity(regionMapper.getCountByParentCode(dto.getSourceCode()));
+        }
         // DTO转Entity
         DemandInputSummary summary = new DemandInputSummary();
         BeanUtils.copyProperties(dto, summary);

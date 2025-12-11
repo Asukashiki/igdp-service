@@ -55,4 +55,6 @@ public class DemandInputSummaryDTO {
     private String year;
 
     private Integer subQuantity;
+
+    private String level;
 }
