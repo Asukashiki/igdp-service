@@ -11,6 +11,8 @@ import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryVO;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.DateUtils;
+import com.inspur.farmland.domain.FarmerInfo;
+import com.inspur.farmland.service.IFarmerInfoService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,9 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
 
     @Autowired
     private PubRegionMapper regionMapper;
+
+    @Autowired
+    private IFarmerInfoService farmerInfoService;
 
     @Override
     public List<DemandInputSummaryVO> getDemandInputSummaryList(DemandInputSummaryQueryDTO queryDTO) {
@@ -57,8 +62,20 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
         dto.setTargetName(targetName);
         dto.setTargetCode(targetCode);
 
+        //处理分发需求单时的下级数量，
 
-
+        //level0 kebele 拿所属农民数量
+        if("0".equals(dto.getLevel())){
+            FarmerInfo farmerInfo = new FarmerInfo();
+            farmerInfo.setKebeleCode(dto.getSourceCode());
+            List<FarmerInfo> list = farmerInfoService.selectFarmerInfoList(farmerInfo);
+            dto.setSubQuantity(list.size());
+        }else{
+            //level1 woreda 拿所属kebele数量
+            //level2 zone 拿所属woreda数量
+            //level3 region 拿所属zone数量
+            dto.setSubQuantity(regionMapper.getCountByParentCode(dto.getSourceCode()));
+        }
         // DTO转Entity
         DemandInputSummary summary = new DemandInputSummary();
         BeanUtils.copyProperties(dto, summary);

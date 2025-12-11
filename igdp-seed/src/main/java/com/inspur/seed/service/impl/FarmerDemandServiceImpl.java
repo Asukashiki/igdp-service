@@ -403,7 +403,6 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Override
     public List<FarmerInputAggregationVO> getInputAggregation(DemandOrganDTO demandOrganDTO) {
         return inputItemMapper.getInputAggregation(demandOrganDTO.getSourceCode(),demandOrganDTO.getYear());
-
     }
 
     @Override

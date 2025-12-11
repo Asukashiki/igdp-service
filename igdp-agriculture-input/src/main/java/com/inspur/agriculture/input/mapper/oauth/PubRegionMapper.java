@@ -10,4 +10,9 @@ public interface PubRegionMapper extends BaseMapper<PubRegion> {
     @Select("select * from oauth2_bsp.pub_region where region_code=#{regionCode}")
     PubRegion selectByRegionCode(String regionCode);
 
+
+    @Select("SELECT COUNT(*) FROM pub_region\n" +
+            "WHERE parent_code = #{parentCode} AND TYPE = '1' AND STATUS = '1' ")
+    int getCountByParentCode(String parentCode);
+
 }
