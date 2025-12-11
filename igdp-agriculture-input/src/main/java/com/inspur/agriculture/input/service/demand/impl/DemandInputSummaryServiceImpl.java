@@ -2,9 +2,11 @@ package com.inspur.agriculture.input.service.demand.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.inspur.agriculture.input.domain.demand.DemandInputSummary;
+import com.inspur.agriculture.input.domain.oauth.PubRegion;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryQueryDTO;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryMapper;
+import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryVO;
 import com.inspur.common.exception.ServiceException;
@@ -28,6 +30,9 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
     @Autowired
     private DemandInputSummaryMapper demandInputSummaryMapper;
 
+    @Autowired
+    private PubRegionMapper regionMapper;
+
     @Override
     public List<DemandInputSummaryVO> getDemandInputSummaryList(DemandInputSummaryQueryDTO queryDTO) {
         return demandInputSummaryMapper.selectDemandInputSummaryList(queryDTO);
@@ -41,6 +46,19 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int addDemandInputSummary(DemandInputSummaryDTO dto) {
+
+        //先搞区划
+        PubRegion region = regionMapper.selectByRegionCode(dto.getSourceCode());
+        String sourceName = region.getName();
+        String targetCode = region.getParentCode();
+        PubRegion fatherRegion = regionMapper.selectByRegionCode(targetCode);
+        String targetName = fatherRegion.getName();
+        dto.setSourceName(sourceName);
+        dto.setTargetName(targetName);
+        dto.setTargetCode(targetCode);
+
+
+
         // DTO转Entity
         DemandInputSummary summary = new DemandInputSummary();
         BeanUtils.copyProperties(dto, summary);
