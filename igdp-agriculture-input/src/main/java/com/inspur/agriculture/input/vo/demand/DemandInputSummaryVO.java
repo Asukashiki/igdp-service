@@ -66,4 +66,6 @@ public class DemandInputSummaryVO {
     private String year;
 
     private Integer subQuantity;
+
+    private String level;
 }

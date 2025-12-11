@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.agriculture.input.domain.oauth.PubRegion;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
+import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.constant.AuditLevelEnum;
@@ -70,6 +72,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
     @Autowired
     private IDemandInputSummaryItemService demandInputSummaryItemService;
+
+    @Autowired
+    private PubRegionMapper regionMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -404,9 +409,18 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Override
     public int submitInputAggregation(DemandOrganDTO demandOrganDTO) {
         String sourceCode = demandOrganDTO.getSourceCode();
-        String sourceName = demandOrganDTO.getSourceName();
-        String targetCode = demandOrganDTO.getTargetCode();
-        String targetName = demandOrganDTO.getTargetName();
+
+        //根据sourceCode获取上级区划code、name
+        PubRegion region = regionMapper.selectByRegionCode(sourceCode);
+        String sourceName = region.getName();
+        String targetCode = region.getParentCode();
+        PubRegion fatherRegion = regionMapper.selectByRegionCode(targetCode);
+        String targetName = fatherRegion.getName();
+        demandOrganDTO.setSourceName(sourceName);
+        demandOrganDTO.setTargetName(targetName);
+        demandOrganDTO.setTargetCode(targetCode);
+
+
         List<FarmerInputAggregationVO> demands = inputItemMapper.getInputAggregation(sourceCode, demandOrganDTO.getYear());
         int count = 0;
         for(FarmerInputAggregationVO d:demands){
