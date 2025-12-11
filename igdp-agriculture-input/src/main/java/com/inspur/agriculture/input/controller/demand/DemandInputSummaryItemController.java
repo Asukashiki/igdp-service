@@ -7,6 +7,7 @@ import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
+import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
 import com.inspur.common.core.domain.AjaxResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -115,14 +116,26 @@ public class DemandInputSummaryItemController {
 
 
     /**
-     * 二次汇聚统计
+     * 二次汇聚查看
      * 从汇聚统计表中按来源编码查询并再次汇总(镇、市)
      */
+
+
     @PostMapping("/aggregate")
     public AjaxResult aggregate(@RequestBody DemandOrganDTO demandOrganDTO) {
         try {
-            int count = demandInputSummaryItemService.getInputAggregation(demandOrganDTO);
+            int count = demandInputSummaryItemService.submitInputAggregation(demandOrganDTO);
             return AjaxResult.success("汇聚成功，共汇聚" + count + "条记录", count);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/getAggregate")
+    public AjaxResult getAggregate(@RequestBody DemandOrganDTO demandOrganDTO) {
+        try {
+            List<InputAggregationSummaryVO> result = demandInputSummaryItemService.getInputAggregation(demandOrganDTO);
+            return AjaxResult.success("获取成功", result);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }

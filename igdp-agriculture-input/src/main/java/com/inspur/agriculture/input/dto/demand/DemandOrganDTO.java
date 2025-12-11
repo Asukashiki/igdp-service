@@ -17,4 +17,8 @@ public class DemandOrganDTO {
 
     private String nextRegionName;
 
+    private String year;
+
+    private String summaryId;
+
 }
