@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -44,6 +45,13 @@ public class AgriInput implements Serializable {
 
     /** 登记批号 */
     private String registerCode;
+
+    /** 批次号 */
+    private String batchId;
+
+    /** 过期日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate expiryDate;
 
     /** 生产许可证号 */
     private String productionLicense;
