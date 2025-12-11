@@ -67,6 +67,21 @@ public class FarmerDemandDetailVO {
     private String kebele;
 
     /**
+     * Zone Name
+     */
+    private String zoneName;
+
+    /**
+     * Woreda Name
+     */
+    private String woredaName;
+
+    /**
+     * Kebele Name
+     */
+    private String kebeleName;
+
+    /**
      * Village
      */
     private String village;
