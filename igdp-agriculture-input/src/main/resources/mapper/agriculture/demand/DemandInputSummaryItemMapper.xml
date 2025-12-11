@@ -63,6 +63,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="query.targetCode != null and query.targetCode != ''">
             and d.target_code = #{query.targetCode}
         </if>
+        <if test = "query.summaryId !=null and query.summaryId != ''">
+            and d.summary_id = #{query.summaryId}
+        </if>
         <if test="query.keyword != null and query.keyword != ''">
             and (d.input_category like concat('%', #{query.keyword}, '%')
                  or d.input_type like concat('%', #{query.keyword}, '%')
