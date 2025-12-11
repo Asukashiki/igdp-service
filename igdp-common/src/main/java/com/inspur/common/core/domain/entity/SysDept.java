@@ -41,8 +41,11 @@ public class SysDept extends BaseEntity
 
     /** 部门名称 */
     @NotBlank(message = "部门名称不能为空")
-    @Size(min = 0, max = 30, message = "部门名称长度不能超过30个字符")
+    @Size(min = 0, max = 1000, message = "部门名称长度不能超过30个字符")
     private String deptName;
+
+    /** 类型: D=部门, A=区划 */
+    private String deptType;
 
     /** 显示顺序 */
     @NotNull(message = "显示顺序不能为空")
@@ -74,6 +77,9 @@ public class SysDept extends BaseEntity
 
     public static final String STATUS_VALID = "0";
     public static final String STATUS_INVALID = "1";
+    
+    public static final String TYPE_DEPT = "D";
+    public static final String TYPE_AREA = "A";
 
     @Override
     public String toString() {
@@ -82,6 +88,7 @@ public class SysDept extends BaseEntity
             .append("parentId", getParentId())
             .append("ancestors", getAncestors())
             .append("deptName", getDeptName())
+            .append("deptType", getDeptType())
             .append("orderNum", getOrderNum())
             .append("leader", getLeader())
             .append("phone", getPhone())

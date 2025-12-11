@@ -66,11 +66,18 @@ public class SysLoginService {
         // 登录前置校验
         loginPreCheck(username, password);
         SysUser sysUser = userService.selectUserByUserName(username);
-        String userId = null;
-        if(null != sysUser){
-            userId = sysUser.getUserId();
+        // 用户不存在
+        if (sysUser == null) {
+            AsyncManager.me().execute(AsyncFactory.recordLoginInfo(null, username, Constants.LOGIN_FAIL, MessageUtils.message("user.not.exists")));
+            throw new UserNotExistsException();
         }
-        AsyncManager.me().execute(AsyncFactory.recordLoginInfo(userId,username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
+        // 用户已停用
+        if (UserConstants.USER_DISABLE.equals(sysUser.getStatus())) {
+            AsyncManager.me().execute(AsyncFactory.recordLoginInfo(sysUser.getUserId(), username, Constants.LOGIN_FAIL, MessageUtils.message("user.blocked")));
+            throw new UserNotExistsException();
+        }
+        String userId = sysUser.getUserId();
+        AsyncManager.me().execute(AsyncFactory.recordLoginInfo(userId, username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
         recordLoginInfo(userId);
         // 生成token
         LoginHelper.login(buildLoginUser(sysUser), new SaLoginModel());

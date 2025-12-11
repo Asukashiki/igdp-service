@@ -132,10 +132,15 @@ public class SysMenuServiceImpl extends MPJBaseServiceImpl<SysMenuMapper, SysMen
     @Override
     public List<SysMenu> selectMenuTreeByUserId(String userId) {
         String queryUserId = null;
-        if (!LoginHelper.isSuperAdmin(userId)) {
+        boolean isSuper = LoginHelper.isSuperAdmin(userId);
+        System.out.println("DEBUG: selectMenuTreeByUserId - userId: " + userId + ", isSuperAdmin: " + isSuper);
+        
+        if (!isSuper) {
             queryUserId = userId;
         }
         List<SysMenu> menus = this.baseMapper.selectMenuTreeByUserId(queryUserId);
+        System.out.println("DEBUG: selectMenuTreeByUserId - queryUserId: " + queryUserId + ", menus found: " + (menus != null ? menus.size() : 0));
+        
         //根据menu所属的app信息，封装菜单的外链link参数
         if (null != menus && !menus.isEmpty()) {
             List<SysApp> appList = appService.list();
