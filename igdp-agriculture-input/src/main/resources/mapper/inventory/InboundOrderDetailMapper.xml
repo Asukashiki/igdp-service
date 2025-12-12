@@ -9,9 +9,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="detailId" column="detail_id"/>
         <result property="inboundOrderId" column="inbound_order_id"/>
         <result property="materialId" column="material_id"/>
-        <result property="materialBatchId" column="material_batch_id"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="productionBatchNo" column="production_batch_no"/>
         <result property="materialType" column="material_type"/>
         <result property="materialName" column="material_name"/>
+        <result property="agriculturalInputType" column="agricultural_input_type"/>
+        <result property="variety" column="variety"/>
         <result property="specModel" column="spec_model"/>
         <result property="unitOfMeasure" column="unit_of_measure"/>
         <result property="quantity" column="quantity"/>
@@ -26,7 +29,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectInboundDetailVo">
         select iod.id, iod.detail_id, iod.inbound_order_id,
-               iod.material_id, iod.material_batch_id, iod.material_type,iod.material_name,
+               iod.material_id, iod.batch_no, iod.production_batch_no, iod.material_type,iod.material_name,
+               iod.agricultural_input_type, iod.variety,
                iod.spec_model, iod.unit_of_measure, iod.quantity,
                iod.inbound_time, iod.expiry_date, iod.qr_code,
                iod.operator, iod.created_at, iod.updated_at, iod.remark
@@ -46,14 +50,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <insert id="batchInsert">
         insert into inbound_order_detail (
-            id, detail_id, inbound_order_id, material_id, material_batch_id,
-            material_type,material_name,spec_model, unit_of_measure, quantity,
+            id, detail_id, inbound_order_id, material_id, batch_no, production_batch_no,
+            material_type,material_name, agricultural_input_type, variety,
+            spec_model, unit_of_measure, quantity,
             inbound_time, expiry_date, qr_code, operator, remark
         ) values
         <foreach collection="details" item="item" separator=",">
             (
                 #{item.id}, #{item.detailId}, #{item.inboundOrderId},
-                #{item.materialId}, #{item.materialBatchId}, #{item.materialType},#{item.materialName},
+                #{item.materialId}, #{item.batchNo}, #{item.productionBatchNo}, #{item.materialType},#{item.materialName},
+                #{item.agriculturalInputType}, #{item.variety},
                 #{item.specModel}, #{item.unitOfMeasure}, #{item.quantity},
                 #{item.inboundTime}, #{item.expiryDate}, #{item.qrCode},
                 #{item.operator}, #{item.remark}
@@ -78,7 +84,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectByBatchId" resultMap="InboundOrderDetailResult">
         select * from inbound_order_detail
-        where material_batch_id = #{materialBatchId}
+        where batch_no = #{batchNo}
     </select>
 
     <select id="sumInboundQuantity" resultType="map">
@@ -103,7 +109,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectExpiringSoon" resultType="map">
-        select iod.detail_id, iod.material_id, iod.material_batch_id,
+        select iod.detail_id, iod.material_id, iod.batch_no,
                iod.quantity, iod.expiry_date, iod.qr_code,
                io.warehouse_id, w.warehouse_name,
                datediff(iod.expiry_date, curdate()) as days_until_expiry

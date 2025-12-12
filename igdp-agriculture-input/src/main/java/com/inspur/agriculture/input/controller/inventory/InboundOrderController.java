@@ -122,7 +122,8 @@ public class InboundOrderController {
                 detailMap.put("materialId", detail.getMaterialId());
                 detailMap.put("materialType", detail.getMaterialType());
                 detailMap.put("materialName",detail.getMaterialName());
-                detailMap.put("materialBatchId",detail.getMaterialBatchId());
+                detailMap.put("materialBatchId",detail.getBatchNo());
+                detailMap.put("batchNo",detail.getBatchNo());
                 detailMap.put("quantity", detail.getQuantity());
                 detailMap.put("specModel", detail.getSpecModel());
                 detailMap.put("unitOfMeasure", detail.getUnitOfMeasure());
@@ -302,6 +303,22 @@ public class InboundOrderController {
             return AjaxResult.success(stats);
         } catch (Exception e) {
             return AjaxResult.error("统计失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取分发单列表（用于关联单号下拉框）
+     * 显示格式：分发单名称 (分发单编号)
+     *
+     * @return 分发单列表
+     */
+    @GetMapping("/release-orders")
+    public AjaxResult getReleaseOrders() {
+        try {
+            List<Map<String, Object>> releaseOrders = inboundOrderService.selectReleaseOrderList();
+            return AjaxResult.success(releaseOrders);
+        } catch (Exception e) {
+            return AjaxResult.error("查询分发单列表失败: " + e.getMessage());
         }
     }
 }

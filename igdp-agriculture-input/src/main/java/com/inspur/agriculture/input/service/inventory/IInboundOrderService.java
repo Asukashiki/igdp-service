@@ -109,4 +109,12 @@ public interface IInboundOrderService {
      * @return 统计结果
      */
     List<Map<String, Object>> countByType(String startDate, String endDate);
+
+    /**
+     * 查询分发单列表（用于关联单号下拉框）
+     * 返回格式：release_id, release_name, display_text (格式: "分发单名称 (分发单编号)")
+     *
+     * @return 分发单列表
+     */
+    List<Map<String, Object>> selectReleaseOrderList();
 }

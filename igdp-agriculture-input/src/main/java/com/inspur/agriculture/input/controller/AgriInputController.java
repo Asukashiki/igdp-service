@@ -226,4 +226,5 @@ public class AgriInputController {
         List<AgriInput> list = agriInputService.selectInputList(agriInput);
         return AjaxResult.success("导出成功", list);
     }
+
 }

@@ -136,4 +136,17 @@ public interface StockMapper extends BaseMapper<Stock> {
     List<Stock> selectAvailableStockFIFO(@Param("warehouseId") String warehouseId,
                                           @Param("materialId") String materialId,
                                           @Param("quantity") BigDecimal quantity);
+
+    /**
+     * 根据批次ID查询库存（加行锁 FOR UPDATE）
+     * 用于并发控制，防止并发修改异常
+     *
+     * @param warehouseId     仓库ID
+     * @param materialId      物料ID
+     * @param materialBatchId 批次ID
+     * @return 库存
+     */
+    Stock selectByBatchForUpdate(@Param("warehouseId") String warehouseId,
+                                   @Param("materialId") String materialId,
+                                   @Param("materialBatchId") String materialBatchId);
 }
