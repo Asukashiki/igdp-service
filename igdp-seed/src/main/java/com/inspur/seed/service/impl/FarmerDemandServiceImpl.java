@@ -79,8 +79,20 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String addFarmerDemand(FarmerDemandAddDTO dto) {
-        // 1. 根据当前年份自动获取或创建批次
-        int currentYear = java.time.Year.now().getValue();
+        // 1. 根据前端传入的年份获取或创建批次，未传则使用当前年份
+        int currentYear;
+        if (StrUtil.isNotBlank(dto.getYear())) {
+            try {
+                currentYear = Integer.parseInt(dto.getYear());
+            } catch (NumberFormatException e) {
+                currentYear = java.time.Year.now().getValue();
+                dto.setYear(String.valueOf(currentYear));
+            }
+        } else {
+            currentYear = java.time.Year.now().getValue();
+            dto.setYear(String.valueOf(currentYear));
+        }
+
         DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(currentYear);
 
         // 设置批次ID

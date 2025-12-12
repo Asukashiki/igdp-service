@@ -88,6 +88,11 @@ public class FarmerDemandAddDTO {
     private BigDecimal landArea;
 
     /**
+     * Year of demand collection
+     */
+    private String year;
+
+    /**
      * Remark
      */
     private String remark;
