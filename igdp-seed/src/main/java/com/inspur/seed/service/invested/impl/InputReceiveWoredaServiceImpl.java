@@ -6,8 +6,10 @@ import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.seed.domain.invested.InputReceiveWoreda;
 import com.inspur.seed.domain.invested.InputReleaseDetail;
+import com.inspur.seed.domain.invested.InputReleaseMain;
 import com.inspur.seed.mapper.invested.InputReceiveWoredaMapper;
 import com.inspur.seed.mapper.invested.InputReleaseDetailMapper;
+import com.inspur.seed.mapper.invested.InputReleaseMainMapper;
 import com.inspur.seed.service.invested.IInputReceiveWoredaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,8 @@ public class InputReceiveWoredaServiceImpl extends ServiceImpl<InputReceiveWored
 
     @Resource
     private InputReleaseDetailMapper detailMapper;
+    @Resource
+    private InputReleaseMainMapper inputReleaseMainMapper;
 
     @Override
     public List<InputReceiveWoreda> queryReceiveList(String woredaName, String receiveStatus,
@@ -92,6 +96,15 @@ public class InputReceiveWoredaServiceImpl extends ServiceImpl<InputReceiveWored
         receive.setConfirmOrg(confirmOrg);
         receive.setConfirmTime(LocalDateTime.now());
         receive.setUpdateTime(LocalDateTime.now());
+
+        // woreda
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("release_id", receive.getReleaseId());
+        InputReleaseMain releaseMain = inputReleaseMainMapper.selectByMap(paramMap).get(0);
+        if (releaseMain != null) {
+            releaseMain.setStatus("completed");
+            inputReleaseMainMapper.updateById(releaseMain);
+        }
 
         return updateById(receive);
     }
