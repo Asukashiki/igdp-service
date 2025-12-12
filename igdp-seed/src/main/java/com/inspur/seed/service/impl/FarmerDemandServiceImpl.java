@@ -188,7 +188,10 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         // 6. Delete old input items and insert new ones
         LambdaUpdateWrapper<DemandFarmerInputItem> deleteWrapper = new LambdaUpdateWrapper<>();
         deleteWrapper.eq(DemandFarmerInputItem::getDemandId, dto.getId());
+        // deleteWrapper.eq(DemandFarmerInputItem::getIsDeleted, 0); // Only delete non-deleted records
         deleteWrapper.set(DemandFarmerInputItem::getIsDeleted, 1);
+        // deleteWrapper.set(DemandFarmerInputItem::getUpdatedBy, currentUserId);
+        // deleteWrapper.set(DemandFarmerInputItem::getUpdatedTime, new Date());
         inputItemMapper.update(null, deleteWrapper);
 
         // Insert new input items
