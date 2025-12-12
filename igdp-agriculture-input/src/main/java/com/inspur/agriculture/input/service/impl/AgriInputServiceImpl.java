@@ -228,4 +228,5 @@ public class AgriInputServiceImpl implements IAgriInputService {
 
         return statistics;
     }
+
 }

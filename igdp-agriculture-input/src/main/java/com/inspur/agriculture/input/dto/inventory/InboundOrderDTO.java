@@ -69,12 +69,18 @@ public class InboundOrderDTO {
         @NotBlank(message = "投入品ID不能为空")
         private String materialId;
 
-        /** 投入品批次ID */
-        private String materialBatchId;
+        /** 投入品批次号 */
+        private String batchNo;
 
         /** 投入品类型 */
         @NotBlank(message = "投入品类型不能为空")
         private String materialType;
+
+        /** 农资类型 */
+        private String agriculturalInputType;
+
+        /** 品种 */
+        private String variety;
 
         /** 数量 */
         @NotNull(message = "数量不能为空")

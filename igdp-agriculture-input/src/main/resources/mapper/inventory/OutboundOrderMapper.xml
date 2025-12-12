@@ -160,4 +160,63 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by created_at desc
     </select>
 
+    <select id="selectReleaseOrderList" resultType="map">
+        select
+            release_id,
+            release_name,
+            CONCAT(release_name, ' (', release_id, ')') as display_text
+        from t_input_release_main
+        where is_deleted = 0
+        order by operate_time desc
+    </select>
+
+    <select id="selectReleaseDetailsByReleaseId" resultType="map">
+        select
+            d.id,
+            d.release_detail_id,
+            d.release_id,
+            d.crop_type,
+            d.variety as detail_variety,
+            d.input_id,
+            d.required,
+            d.quantity,
+            d.unit,
+            d.unit_price,
+            d.release_time,
+            i.input_name,
+            i.type as input_type,
+            i.agricultural_input_type,
+            i.variety as input_variety
+        from t_input_release_detail d
+        left join agri_input i on d.input_id = i.input_id and i.del_flag = '0'
+        where d.release_id = #{releaseId}
+          and d.is_deleted = 0
+        order by d.release_time desc
+    </select>
+
+    <select id="selectReleaseMainById" resultType="map">
+        select
+            id,
+            release_id,
+            release_name,
+            zone_id,
+            target_id,
+            target_address,
+            target_contact,
+            target_phone,
+            release_year,
+            release_date,
+            release_by,
+            audit_date,
+            audit_by,
+            release_org,
+            release_type,
+            operate_by,
+            operate_time,
+            is_deleted
+        from t_input_release_main
+        where release_id = #{releaseId}
+          and is_deleted = 0
+    </select>
+
 </mapper>

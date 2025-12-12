@@ -156,4 +156,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         group by inbound_type
     </select>
 
+    <select id="selectReleaseOrderList" resultType="map">
+        select
+            release_id,
+            release_name,
+            CONCAT(release_name, ' (', release_id, ')') as display_text
+        from t_input_release_main
+        where is_deleted = 0
+        order by operate_time desc
+    </select>
+
 </mapper>
