@@ -35,12 +35,12 @@ public class InputReleaseUnionController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(
             @RequestParam(required = true) String releaseType,
-            @RequestParam(required = false) String woredaName,
+            @RequestParam(required = false) String releaseName,
                                @RequestParam(required = false) String inputType,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
         startPage();
-        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, woredaName, inputType, startTime, endTime);
+        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime);
         return getDataTable(list);
     }
 
