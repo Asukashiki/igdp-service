@@ -47,6 +47,12 @@ public class BreedingBatchAddDTO {
     private String parentSeedSource;
 
     /**
+     * 育种目标
+     */
+    @NotBlank(message = "育种目标不能为空")
+    private String objective;
+
+    /**
      * 开始日期
      */
     @NotNull(message = "开始日期不能为空")

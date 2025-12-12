@@ -101,6 +101,11 @@ public class InputReleaseMain extends BaseEntity {
     private String releaseType;
 
     /**
+     * 分发单状态：已分发distributed、已完成completed、未出库notDelivery
+     */
+    private String status;
+
+    /**
      * 操作人
      */
     private String operateBy;

@@ -69,4 +69,6 @@ public class DemandInputSummary implements Serializable {
     private String year;
 
     private Integer subQuantity;
+
+    private String level;
 }

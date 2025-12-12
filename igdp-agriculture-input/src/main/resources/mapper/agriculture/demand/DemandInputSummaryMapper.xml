@@ -15,12 +15,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime" column="create_time"/>
         <result property="creator" column="creator"/>
         <result property="year" column="year"/>
+        <result property="subQuantity" column="sub_quantity"/>
+        <result property="level" column="level"/>
     </resultMap>
 
     <sql id="selectDemandInputSummaryVo">
         select
             d.id, d.source_code, d.source_name, d.target_code, d.target_name,
-            d.status,
+            d.status,d.level, d.sub_quantity,
             CASE d.status
                 WHEN '0' THEN '待审核'
                 WHEN '1' THEN '已通过'
