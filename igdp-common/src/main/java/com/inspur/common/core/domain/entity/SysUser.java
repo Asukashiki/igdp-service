@@ -23,7 +23,7 @@ import com.inspur.common.annotation.Excels;
 import org.apache.ibatis.annotations.Select;
 
 /**
- * 用户对象 sys_user
+ * User object sys_user
  *
  * @author liyunlong
  */
@@ -35,128 +35,135 @@ public class SysUser extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 用户ID
+     * User ID
      */
-    @Excel(name = "用户序号", prompt = "用户编号")
+    @Excel(name = "User ID", prompt = "User number")
     @TableId(type = IdType.ASSIGN_ID)
     private String userId;
 
     /**
-     * 部门ID
+     * Department ID
      */
-    @Excel(name = "部门编号", type = Type.IMPORT)
+    @Excel(name = "Department No.", type = Type.IMPORT)
     private String deptId;
 
     /**
-     * 用户账号
+     * User account
      */
-    @Excel(name = "登录名称")
-    @Xss(message = "用户账号不能包含脚本字符")
-    @NotBlank(message = "用户账号不能为空")
-    @Size(min = 0, max = 30, message = "用户账号长度不能超过30个字符")
+    @Excel(name = "Login Name")
+    @Xss(message = "User account cannot contain script characters")
+    @NotBlank(message = "User account cannot be empty")
+    @Size(min = 0, max = 30, message = "User account length cannot exceed 30 characters")
     private String userName;
 
     /**
-     * 用户昵称
+     * User nickname
      */
-    @Excel(name = "用户名称")
-    @Xss(message = "用户昵称不能包含脚本字符")
-    @Size(min = 0, max = 30, message = "用户昵称长度不能超过30个字符")
+    @Excel(name = "User Name")
+    @Xss(message = "User nickname cannot contain script characters")
+    @Size(min = 0, max = 30, message = "User nickname length cannot exceed 30 characters")
     private String nickName;
 
     /**
-     * 用户邮箱
+     * User email
      */
-    @Excel(name = "用户邮箱")
-    @Email(message = "邮箱格式不正确")
-    @Size(min = 0, max = 50, message = "邮箱长度不能超过50个字符")
+    @Excel(name = "User Email")
+    @Email(message = "Email format is incorrect")
+    @Size(min = 0, max = 50, message = "Email length cannot exceed 50 characters")
     private String email;
 
     /**
-     * 手机号码
+     * Phone number
      */
-    @Excel(name = "手机号码")
-    @Size(min = 0, max = 20, message = "手机号码长度不能超过20个字符")
+    @Excel(name = "Phone Number")
+    @Size(min = 0, max = 20, message = "Phone number length cannot exceed 20 characters")
     private String phoneNumber;
 
     /**
-     * 用户性别
+     * ID Card Number
      */
-    @Excel(name = "用户性别", readConverterExp = "0=男,1=女,2=未知")
+    @Excel(name = "ID Card Number")
+    @Size(min = 0, max = 20, message = "ID Card Number length cannot exceed 20 characters")
+    private String idCard;
+
+    /**
+     * User gender
+     */
+    @Excel(name = "User Gender", readConverterExp = "0=Male,1=Female,2=Unknown")
     private String sex;
 
     /**
-     * 用户头像
+     * User avatar
      */
     private String avatar;
 
     /**
-     * 密码
+     * Password
      */
     @TableField(select = false)
     private String password;
 
     /**
-     * 帐号状态（0正常 1停用）
+     * Account status (0 normal 1 disabled)
      */
-    @Excel(name = "帐号状态", readConverterExp = "0=正常,1=停用")
+    @Excel(name = "Account Status", readConverterExp = "0=Normal,1=Disabled")
     private String status;
 
     /**
-     * 删除标志（0代表存在 2代表删除）
+     * Delete flag (0 represents existence, 2 represents deletion)
      */
     private String delFlag;
 
     /**
-     * 排序号
-     * */
+     * Sort number
+     */
     private Integer sortNumber;
 
     /**
-     * 最后登录IP
+     * Last login IP
      */
-    @Excel(name = "最后登录IP", type = Type.EXPORT)
+    @Excel(name = "Last Login IP", type = Type.EXPORT)
     private String loginIp;
 
     /**
-     * 最后登录时间
+     * Last login time
      */
-    @Excel(name = "最后登录时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss", type = Type.EXPORT)
+    @Excel(name = "Last Login Time", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss", type = Type.EXPORT)
     private Date loginDate;
 
     /**
-     * 是否可以展示
-     * 默认是0，可以展示
-     * 1，不展示
-     * */
+     * Whether it can be displayed
+     * Default is 0, can be displayed
+     * 1, not displayed
+     */
     private String allowedShow;
 
     /**
-     * 部门对象
+     * Department object
      */
     @Excels({
-            @Excel(name = "部门名称", targetAttr = "deptName", type = Type.EXPORT),
-            @Excel(name = "部门负责人", targetAttr = "leader", type = Type.EXPORT)
+            @Excel(name = "Department Name", targetAttr = "deptName", type = Type.EXPORT),
+            @Excel(name = "Department Head", targetAttr = "leader", type = Type.EXPORT)
     })
     private transient SysDept dept;
 
     /**
-     * 角色对象
+     * Role object
      */
     private transient List<SysRole> roles;
 
     /**
-     * 角色组
+     * Role group
      */
     private  transient String[] roleIds;
 
     /**
-     * 岗位组
+     * Post group
      */
     private transient String[] postIds;
 
     /**
-     * 角色ID
+     * Role ID
      */
     private transient String roleId;
 
