@@ -89,4 +89,28 @@ public interface OutboundOrderMapper extends BaseMapper<OutboundOrder> {
      * @return 出库单列表
      */
     List<OutboundOrder> selectByOutboundObjectId(@Param("outboundObjectId") String outboundObjectId);
+
+    /**
+     * 查询分发单列表（用于关联单号下拉框）
+     * 返回格式：release_id, release_name, display_text
+     *
+     * @return 分发单列表
+     */
+    List<Map<String, Object>> selectReleaseOrderList();
+
+    /**
+     * 根据分发单ID查询分发投入品明细
+     *
+     * @param releaseId 分发单ID
+     * @return 分发投入品明细列表
+     */
+    List<Map<String, Object>> selectReleaseDetailsByReleaseId(@Param("releaseId") String releaseId);
+
+    /**
+     * 根据分发单ID查询分发单主表信息
+     *
+     * @param releaseId 分发单ID
+     * @return 分发单主表信息
+     */
+    Map<String, Object> selectReleaseMainById(@Param("releaseId") String releaseId);
 }

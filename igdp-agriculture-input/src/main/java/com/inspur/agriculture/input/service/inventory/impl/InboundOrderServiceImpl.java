@@ -114,27 +114,41 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         // 插入入库单
         inboundOrderMapper.insert(inboundOrder);
 
-        // 插入入库明细
+        // 插入入库明细并自动生成批次号
         List<InboundOrderDetail> detailList = new ArrayList<>();
+        int sequenceNum = 1;
         for (Map<String, Object> detail : details) {
             InboundOrderDetail detailEntity = new InboundOrderDetail();
             detailEntity.setId(UUID.randomUUID().toString().replace("-", ""));
             detailEntity.setDetailId("DET-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
             detailEntity.setInboundOrderId(inboundOrderId);
             detailEntity.setMaterialId(detail.get("materialId").toString());
-            detailEntity.setMaterialBatchId(detail.get("materialBatchId").toString());
+
+            // 自动生成入库批次号：BATCH-入库单ID-序号
+            String autoBatchNo = "BATCH-" + inboundOrderId + "-" + String.format("%03d", sequenceNum++);
+            detailEntity.setBatchNo(autoBatchNo);
+
+            // 设置生产批次号（手动填写）
+            if (detail.get("productionBatchNo") != null) {
+                detailEntity.setProductionBatchNo(detail.get("productionBatchNo").toString());
+            }
+
             detailEntity.setMaterialName(detail.get("materialName").toString());
             detailEntity.setMaterialType(detail.get("materialType").toString());
             detailEntity.setQuantity(new BigDecimal(detail.get("quantity").toString()));
             detailEntity.setSpecModel(detail.get("specModel") != null ? detail.get("specModel").toString() : null);
             detailEntity.setUnitOfMeasure(detail.get("unitOfMeasure") != null ? detail.get("unitOfMeasure").toString() : null);
             detailEntity.setExpiryDate((Date) detail.get("expiryDate"));
+            detailEntity.setAgriculturalInputType(detail.get("agriculturalInputType") != null ? detail.get("agriculturalInputType").toString() : null);
+            detailEntity.setVariety(detail.get("variety") != null ? detail.get("variety").toString() : null);
             detailEntity.setOperator(inboundOrder.getOperator());
             detailEntity.setCreatedAt(new Date());
             detailEntity.setUpdatedAt(new Date());
             detailList.add(detailEntity);
         }
         inboundOrderDetailMapper.batchInsert(detailList);
+
+        // 注：库存同步逻辑已移至审批通过时执行，此处不再更新库存
 
         return inboundOrderId;
     }
@@ -227,97 +241,123 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
 
         List<Map<String, Object>> updatedStock = new ArrayList<>();
 
-        // 处理每个明细
+        // 确认入库时同步更新库存（并发安全）
         for (InboundOrderDetail detail : details) {
-            // 生成批次号和二维码
-            String materialBatchId = batchService.generateBatchId(
-                    detail.getMaterialId(),
-                    inboundOrder.getWarehouseId(),
-                    inboundOrder.getInboundType(),
-                    detail.getQuantity(),
-                    inboundTime != null ? inboundTime : new Date()
-            );
+            try {
+                // 使用悲观锁查询库存，防止并发修改异常
+                Stock existStock = stockMapper.selectByBatchForUpdate(
+                        inboundOrder.getWarehouseId(),
+                        detail.getMaterialId(),
+                        detail.getBatchNo()
+                );
 
+                BigDecimal beforeQuantity = BigDecimal.ZERO;
+                BigDecimal afterQuantity = detail.getQuantity();
+
+                if (existStock != null) {
+                    // 更新现有库存
+                    beforeQuantity = existStock.getQuantity();
+                    afterQuantity = beforeQuantity.add(detail.getQuantity());
+
+                    existStock.setQuantity(afterQuantity);
+                    existStock.setInboundQuantity(
+                            (existStock.getInboundQuantity() != null ? existStock.getInboundQuantity() : BigDecimal.ZERO)
+                                    .add(detail.getQuantity())
+                    );
+                    existStock.setExpiryDate(detail.getExpiryDate());
+                    existStock.setUpdatedAt(new Date());
+                    stockMapper.updateById(existStock);
+                } else {
+                    // 创建新库存记录
+                    Stock newStock = new Stock();
+                    newStock.setId(UUID.randomUUID().toString().replace("-", ""));
+                    newStock.setWarehouseId(inboundOrder.getWarehouseId());
+                    newStock.setWarehouseName(warehouse.getWarehouseName());
+                    newStock.setMaterialId(detail.getMaterialId());
+                    newStock.setMaterialBatchId(detail.getBatchNo());
+                    newStock.setMaterialName(detail.getMaterialName());
+                    newStock.setQuantity(detail.getQuantity());
+                    newStock.setInboundQuantity(detail.getQuantity());
+                    newStock.setOutboundQuantity(BigDecimal.ZERO);
+                    newStock.setExpiryDate(detail.getExpiryDate());
+                    newStock.setStatus("0");
+                    newStock.setCreatedAt(new Date());
+                    newStock.setUpdatedAt(new Date());
+                    stockMapper.insert(newStock);
+                }
+
+                // 记录库存变动日志
+                StockLog stockLog = new StockLog();
+                stockLog.setId(UUID.randomUUID().toString().replace("-", ""));
+                stockLog.setWarehouseId(inboundOrder.getWarehouseId());
+                stockLog.setMaterialId(detail.getMaterialId());
+                stockLog.setMaterialBatchId(detail.getBatchNo());
+                stockLog.setOperationType("inbound");
+                stockLog.setChangeQuantity(detail.getQuantity());
+                stockLog.setBeforeQuantity(beforeQuantity);
+                stockLog.setAfterQuantity(afterQuantity);
+                stockLog.setReferenceOrderId(inboundOrderId);
+                stockLog.setOperator(operator);
+                stockLog.setCreatedAt(new Date());
+                stockLogMapper.insert(stockLog);
+
+            } catch (Exception e) {
+                throw new ServiceException("库存同步失败 - 投入品ID: " + detail.getMaterialId()
+                        + ", 批次: " + detail.getBatchNo() + ", 错误: " + e.getMessage());
+            }
+        }
+
+        // 处理每个明细（生成二维码并更新库存中的二维码）
+        for (InboundOrderDetail detail : details) {
+            // 使用用户选择的批次号（从投入品目录中选择）
+            String batchNo = detail.getBatchNo();
+            if (StringUtils.isEmpty(batchNo)) {
+                throw new ServiceException("投入品批次号不能为空");
+            }
+
+            // 生成二维码
             String qrCode = batchService.generateQrCode(
                     detail.getMaterialId(),
-                    materialBatchId,
+                    batchNo,
                     inboundOrder.getWarehouseId(),
                     detail.getExpiryDate(),
                     detail.getQuantity()
             );
 
             // 更新明细
-            detail.setMaterialBatchId(materialBatchId);
             detail.setQrCode(qrCode);
             detail.setInboundTime(inboundTime != null ? inboundTime : new Date());
             detail.setUpdatedAt(new Date());
             inboundOrderDetailMapper.updateById(detail);
 
-            // 查询是否已存在该批次的库存
+            // 更新库存中的二维码（库存记录在确认入库时已创建）
             Stock existStock = stockMapper.selectByBatch(
                     inboundOrder.getWarehouseId(),
                     detail.getMaterialId(),
-                    materialBatchId
+                    batchNo
             );
 
-            BigDecimal beforeQuantity = BigDecimal.ZERO;
-            BigDecimal afterQuantity = detail.getQuantity();
-
             if (existStock != null) {
-                // 更新现有库存
-                beforeQuantity = existStock.getQuantity();
-                afterQuantity = beforeQuantity.add(detail.getQuantity());
-
-                existStock.setQuantity(afterQuantity);
-                existStock.setInboundQuantity(existStock.getInboundQuantity().add(detail.getQuantity()));
+                existStock.setQrCode(qrCode);
                 existStock.setUpdatedAt(new Date());
                 stockMapper.updateById(existStock);
-            } else {
-                // 创建新库存
-                Stock newStock = new Stock();
-                newStock.setId(UUID.randomUUID().toString().replace("-", ""));
-                newStock.setWarehouseId(inboundOrder.getWarehouseId());
-                newStock.setWarehouseName(warehouse.getWarehouseName());
-                newStock.setMaterialId(detail.getMaterialId());
-                newStock.setMaterialBatchId(materialBatchId);
-                newStock.setMaterialName(detail.getMaterialName());
-                newStock.setQuantity(detail.getQuantity());
-                newStock.setInboundQuantity(detail.getQuantity());
-                newStock.setOutboundQuantity(BigDecimal.ZERO);
-                newStock.setExpiryDate(detail.getExpiryDate());
-                newStock.setQrCode(qrCode);
-                newStock.setStatus("0");
-                newStock.setCreatedAt(new Date());
-                newStock.setUpdatedAt(new Date());
-                stockMapper.insert(newStock);
+
+                // 添加到返回结果
+                Map<String, Object> stockInfo = new HashMap<>();
+                stockInfo.put("material_id", detail.getMaterialId());
+                stockInfo.put("warehouse_id", inboundOrder.getWarehouseId());
+                stockInfo.put("batch_id", batchNo);
+                stockInfo.put("new_quantity", existStock.getQuantity());
+                updatedStock.add(stockInfo);
             }
-
-            // 记录库存变动日志
-            StockLog stockLog = new StockLog();
-            stockLog.setId(UUID.randomUUID().toString().replace("-", ""));
-            stockLog.setWarehouseId(inboundOrder.getWarehouseId());
-            stockLog.setMaterialId(detail.getMaterialId());
-            stockLog.setMaterialBatchId(materialBatchId);
-            stockLog.setOperationType("inbound");
-            stockLog.setChangeQuantity(detail.getQuantity());
-            stockLog.setBeforeQuantity(beforeQuantity);
-            stockLog.setAfterQuantity(afterQuantity);
-            stockLog.setReferenceOrderId(inboundOrderId);
-            stockLog.setOperator(operator != null ? operator : inboundOrder.getOperator());
-            stockLog.setCreatedAt(new Date());
-            stockLogMapper.insert(stockLog);
-
-            // 添加到返回结果
-            Map<String, Object> stockInfo = new HashMap<>();
-            stockInfo.put("material_id", detail.getMaterialId());
-            stockInfo.put("warehouse_id", inboundOrder.getWarehouseId());
-            stockInfo.put("batch_id", materialBatchId);
-            stockInfo.put("new_quantity", afterQuantity);
-            updatedStock.add(stockInfo);
         }
 
         // 更新仓库已用容量
-        warehouseMapper.updateUsedCapacity(Long.valueOf(inboundOrder.getWarehouseId()), totalQuantity);
+        try {
+            warehouseMapper.updateUsedCapacity(Long.valueOf(inboundOrder.getWarehouseId()), totalQuantity);
+        } catch (Exception e) {
+            throw new ServiceException("更新仓库容量失败: " + e.getMessage());
+        }
 
         // 更新入库单状态
         inboundOrder.setInboundStatus("completed");
@@ -375,5 +415,10 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
     @Override
     public List<Map<String, Object>> countByType(String startDate, String endDate) {
         return inboundOrderMapper.countByType(startDate, endDate);
+    }
+
+    @Override
+    public List<Map<String, Object>> selectReleaseOrderList() {
+        return inboundOrderMapper.selectReleaseOrderList();
     }
 }
