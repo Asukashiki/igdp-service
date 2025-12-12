@@ -7,6 +7,7 @@ import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryQueryDTO;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryMapper;
 import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
+import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryVO;
 import com.inspur.common.exception.ServiceException;
@@ -37,6 +38,9 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
 
     @Autowired
     private IFarmerInfoService farmerInfoService;
+
+    @Autowired
+    private IDemandInputSummaryItemService demandInputSummaryItemService;
 
     @Override
     public List<DemandInputSummaryVO> getDemandInputSummaryList(DemandInputSummaryQueryDTO queryDTO) {
@@ -106,6 +110,12 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
         DemandInputSummary summary = demandInputSummaryMapper.selectById(dto.getId());
         if (summary == null) {
             throw new ServiceException("农资需求汇总记录不存在");
+        }
+
+        String status = dto.getStatus();
+        if (status.equals("3")){
+            //状态为拒绝，删除关联的子表数据
+            demandInputSummaryItemService.deleteDeandInputItemBySummaryId(dto.getId());
         }
 
         // DTO转Entity

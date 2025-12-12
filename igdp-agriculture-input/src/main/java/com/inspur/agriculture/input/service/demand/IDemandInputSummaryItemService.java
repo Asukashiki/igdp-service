@@ -56,6 +56,8 @@ public interface IDemandInputSummaryItemService {
      */
     int deleteDemandInputSummaryItem(String id);
 
+    int deleteDeandInputItemBySummaryId(String summaryId);
+
     /**
      * 批量删除农资汇聚统计
      *

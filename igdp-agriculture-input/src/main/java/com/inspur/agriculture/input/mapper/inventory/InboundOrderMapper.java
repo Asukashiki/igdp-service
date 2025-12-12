@@ -81,4 +81,12 @@ public interface InboundOrderMapper extends BaseMapper<InboundOrder> {
      */
     List<Map<String, Object>> countByType(@Param("startDate") String startDate,
                                            @Param("endDate") String endDate);
+
+    /**
+     * 查询分发单列表（用于关联单号下拉框）
+     * 返回格式：release_id, release_name, display_text
+     *
+     * @return 分发单列表
+     */
+    List<Map<String, Object>> selectReleaseOrderList();
 }

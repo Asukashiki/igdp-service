@@ -23,8 +23,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updatePeople"         column="update_people"         />
         <result property="updateTime"           column="update_time"           />
         <result property="delFlag"              column="del_flag"              />
-        <result property="expiryDate"           column="expiry_date"           />
-        <result property="batchId"              column="batch_id"              />
     </resultMap>
 
     <resultMap type="com.inspur.agriculture.input.domain.AgriInput" id="AgriInputWithPropertiesResult" extends="AgriInputResult">
@@ -80,7 +78,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectAgriInputVo">
-        select input_id, input_name, type, input_sku, trademark, register_code,expiry_date, batch_id,
+        select input_id, input_name, type, input_sku, trademark, register_code,
                production_license, production_standard, producer_name, producer_address,
                agricultural_input_type, variety, status, create_people, create_time, update_people, update_time, del_flag
         from agri_input
@@ -89,7 +87,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectInputListWithProperties" parameterType="com.inspur.agriculture.input.domain.AgriInput" resultMap="AgriInputWithPropertiesResult">
         select
             ai.input_id, ai.input_name, ai.type, ai.input_sku, ai.trademark, ai.register_code,
-            ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,ai.expiry_date, ai.batch_id,
+            ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,
             ai.agricultural_input_type, ai.variety, ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
             pp.pesticide_id, pp.total_ingredient_content, pp.toxicity_level, pp.target_crops,
             pp.control_targets, pp.application_method, pp.dosage, pp.dilution_ratio,
@@ -126,7 +124,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectInputByIdWithProperties" parameterType="Long" resultMap="AgriInputWithPropertiesResult">
         select
             ai.input_id, ai.input_name, ai.type, ai.input_sku, ai.trademark, ai.register_code,
-            ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,ai.expiry_date, ai.batch_id,
+            ai.production_license, ai.production_standard, ai.producer_name, ai.producer_address,
             ai.agricultural_input_type, ai.variety, ai.status, ai.create_people, ai.create_time, ai.update_people, ai.update_time, ai.del_flag,
             pp.pesticide_id, pp.total_ingredient_content, pp.toxicity_level, pp.target_crops,
             pp.control_targets, pp.application_method, pp.dosage, pp.dilution_ratio,

@@ -2,6 +2,7 @@ package com.inspur.agriculture.input.service.inventory;
 
 import com.inspur.agriculture.input.domain.inventory.OutboundOrder;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -111,4 +112,41 @@ public interface IOutboundOrderService {
      * @return 统计结果
      */
     List<Map<String, Object>> countByType(String startDate, String endDate);
+
+    /**
+     * 校验库存是否充足
+     *
+     * @param warehouseId 仓库ID
+     * @param materialId  物料ID
+     * @param quantity    出库数量
+     * @return 校验结果（包含可用库存数量）
+     */
+    Map<String, Object> validateStock(String warehouseId, String materialId, BigDecimal quantity);
+
+    /**
+     * 批量校验库存是否充足
+     *
+     * @param warehouseId 仓库ID
+     * @param details     出库明细列表
+     * @return 校验结果（包含不足的物料列表）
+     */
+    Map<String, Object> validateStockBatch(String warehouseId, List<Map<String, Object>> details);
+
+    /**
+     * 查询分发单列表（用于关联单号下拉框）
+     * 返回格式：release_id, release_name, display_text (格式: "分发单名称 (分发单编号)")
+     *
+     * @return 分发单列表
+     */
+    List<Map<String, Object>> selectReleaseOrderList();
+
+    /**
+     * 根据分发单ID获取分发投入品明细并校验库存
+     * 校验规则：检查当前选中的仓库中投入品数量是否能够满足分发投入品需求数量
+     *
+     * @param releaseId   分发单ID
+     * @param warehouseId 仓库ID
+     * @return 分发投入品明细及库存校验结果
+     */
+    Map<String, Object> validateReleaseStock(String releaseId, String warehouseId);
 }

@@ -42,9 +42,14 @@ public class InboundOrderDetail implements Serializable {
     private String materialId;
 
     /**
-     * 投入品批次ID
+     * 投入品批次号（入库批次，自动生成）
      */
-    private String materialBatchId;
+    private String batchNo;
+
+    /**
+     * 生产批次号（手动填写）
+     */
+    private String productionBatchNo;
 
     /**
      * 投入品名称
@@ -54,6 +59,16 @@ public class InboundOrderDetail implements Serializable {
      * 投入品类型
      */
     private String materialType;
+
+    /**
+     * 农资类型
+     */
+    private String agriculturalInputType;
+
+    /**
+     * 品种
+     */
+    private String variety;
 
     /**
      * 规格型号
