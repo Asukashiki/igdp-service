@@ -327,11 +327,11 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
                     continue;
                 }
 
-                if (!DemandStatusEnum.SUBMITTED.getCode().equals(demand.getStatus())) {
-                    log.warn("Demand is not in submitted status: {}", demandId);
-                    failCount++;
-                    continue;
-                }
+//                if (!DemandStatusEnum.SUBMITTED.getCode().equals(demand.getStatus())) {
+//                    log.warn("Demand is not in submitted status: {}", demandId);
+//                    failCount++;
+//                    continue;
+//                }
 
                 // 2. Get demand's current audit level for audit record
                 String demandAuditLevel = demand.getCurrentAuditLevel();

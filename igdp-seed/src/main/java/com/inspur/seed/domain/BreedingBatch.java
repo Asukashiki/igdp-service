@@ -28,6 +28,10 @@ public class BreedingBatch extends BaseEntity {
     @TableId(value = "data_id", type = IdType.ASSIGN_UUID)
     private String dataId;
 
+    /** 计划名称 */
+    @TableField("batch_name")
+    private String batchName;
+
     /** 育种批次ID */
     @TableField("batch_id")
     private String batchId;
@@ -56,9 +60,15 @@ public class BreedingBatch extends BaseEntity {
     @TableField(exist = false)
     private String breedingMethodName;
 
-    /** 育种目标（原计划名称） */
-    @TableField("batch_name")
-    private String batchName;
+
+
+    /** 亲本种子来源 */
+    @TableField("parental_seed_source")
+    private String parentalSeedSource;
+
+    /** 育种目标 */
+    @TableField("objective")
+    private String objective;
 
     /** 开展年份 */
     @TableField("year")

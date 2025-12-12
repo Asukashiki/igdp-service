@@ -4,6 +4,7 @@ import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
+import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
 
 import java.util.List;
 
@@ -63,5 +64,7 @@ public interface IDemandInputSummaryItemService {
      */
     int batchDeleteDemandInputSummaryItem(List<String> ids);
 
-    int getInputAggregation(DemandOrganDTO demanOrganDTO);
+    int submitInputAggregation(DemandOrganDTO demanOrganDTO);
+
+    List<InputAggregationSummaryVO> getInputAggregation(DemandOrganDTO demandOrganDTO);
 }

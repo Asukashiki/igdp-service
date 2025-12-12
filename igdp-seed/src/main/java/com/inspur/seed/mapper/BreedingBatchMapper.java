@@ -40,14 +40,14 @@ public interface BreedingBatchMapper extends BaseMapper<BreedingBatch> {
     String generateBatchId(@Param("year") int year);
 
     /**
-     * 根据品种编码和年份生成新的批次ID
-     * 格式: BRD-{variety_code}-{year}-序号
+     * 根据作物类型和年份生成新的批次ID
+     * 格式: B_{cropType}_{year}_serial(6位)
      *
-     * @param varietyCode 品种编码
+     * @param cropType 作物类型
      * @param year 年份
      * @return 批次ID
      */
-    String generateBatchIdByVarietyAndYear(@Param("varietyCode") String varietyCode, @Param("year") Integer year);
+    String generateBatchIdByCropTypeAndYear(@Param("cropType") String cropType, @Param("year") Integer year);
 
     /**
      * 获取育种批次下拉列表

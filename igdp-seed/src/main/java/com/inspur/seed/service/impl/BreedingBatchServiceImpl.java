@@ -49,8 +49,8 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
         String dataId = IdUtil.simpleUUID();
         breedingBatch.setDataId(dataId);
 
-        // 生成育种批次ID: BRD-{variety_code}-{year}-序号
-        String batchId = generateBatchId(breedingBatch.getVarietyCode(), breedingBatch.getYear());
+        // 生成育种批次ID: B_{cropType}_{year}_serial(6位)
+        String batchId = generateBatchId(breedingBatch.getCropType(), breedingBatch.getYear());
         breedingBatch.setBatchId(batchId);
 
         // 设置创建信息
@@ -99,19 +99,19 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
 
     /**
      * 生成育种批次ID
-     * 格式: BRD-{variety_code}-{year}-序号
+     * 格式: B_{cropType}_{year}_serial(6位)
      */
-    private String generateBatchId(String varietyCode, Integer year) {
-        if (varietyCode == null || varietyCode.isEmpty()) {
-            throw new ServiceException("品种编码不能为空");
+    private String generateBatchId(String cropType, Integer year) {
+        if (cropType == null || cropType.isEmpty()) {
+            throw new ServiceException("作物类型不能为空");
         }
         if (year == null) {
             throw new ServiceException("年份不能为空");
         }
 
-        String batchId = breedingBatchMapper.generateBatchIdByVarietyAndYear(varietyCode, year);
+        String batchId = breedingBatchMapper.generateBatchIdByCropTypeAndYear(cropType, year);
         if (batchId == null) {
-            batchId = "BRD-" + varietyCode + "-" + year + "-001";
+            batchId = "B_" + cropType + "_" + year + "_000001";
         }
         return batchId;
     }

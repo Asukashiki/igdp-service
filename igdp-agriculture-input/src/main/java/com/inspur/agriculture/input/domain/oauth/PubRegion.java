@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data
-@TableName("oauth2_bsp.pub_region")
+@TableName("bsp.pub_region")
 public class PubRegion implements Serializable {
 
     private static final long serialVersionUID = 1L;

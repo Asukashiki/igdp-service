@@ -43,6 +43,11 @@ public class BreedingBatchUpdateDTO {
     private String parentSeedSource;
 
     /**
+     * 育种目标
+     */
+    private String objective;
+
+    /**
      * 开始日期
      */
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
