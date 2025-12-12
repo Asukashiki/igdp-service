@@ -113,6 +113,10 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
         }
 
         String status = dto.getStatus();
+
+        if(status.equals("2")){
+             demandInputSummaryItemService.updateDemandItemStatus(dto.getId());
+        }
         if (status.equals("3")){
             //状态为拒绝，删除关联的子表数据
             demandInputSummaryItemService.deleteDeandInputItemBySummaryId(dto.getId());

@@ -125,6 +125,20 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
         return demandInputSummaryItemMapper.delete(queryWrapper);
     }
 
+
+
+    @Override
+    public int updateDemandItemStatus(String summaryId){
+        // 将指定汇总ID下的所有明细状态更新为“成功”（状态码：1）
+        DemandInputSummaryItem entity = new DemandInputSummaryItem();
+        entity.setStatus("1");
+
+        QueryWrapper<DemandInputSummaryItem> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("summary_id", summaryId);
+
+        return demandInputSummaryItemMapper.update(entity, queryWrapper);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int batchDeleteDemandInputSummaryItem(List<String> ids) {

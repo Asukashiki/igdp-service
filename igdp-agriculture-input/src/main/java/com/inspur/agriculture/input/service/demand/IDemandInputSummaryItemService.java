@@ -68,5 +68,7 @@ public interface IDemandInputSummaryItemService {
 
     int submitInputAggregation(DemandOrganDTO demanOrganDTO);
 
+    int updateDemandItemStatus(String summaryId);
+
     List<InputAggregationSummaryVO> getInputAggregation(DemandOrganDTO demandOrganDTO);
 }
