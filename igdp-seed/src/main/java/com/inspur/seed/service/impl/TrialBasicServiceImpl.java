@@ -59,8 +59,8 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
             throw new ServiceException("试验名称已存在");
         }
 
-        // 生成试验ID: TR-{variety_code}-{location_id}-{year}-序号
-        String trialId = generateTrialId(trialBasic.getBatchId(), trialBasic.getLocationId(), trialBasic.getYear());
+        // 生成试验ID（新规则）：T_{cropType}_{year}_{6位序列号}
+        String trialId = generateTrialId(trialBasic.getCropType(), trialBasic.getYear());
         trialBasic.setTrialId(trialId);
 
         // 设置创建信息
@@ -121,25 +121,21 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
     }
 
     /**
-     * 生成试验ID
-     * 格式: TR-{variety_code}-{location_id}-{year}-序号
+     * 生成试验ID（新规则）
+     * 格式: T_{cropType}_{year}_{6位序列号}
      */
-    private String generateTrialId(String batchId, String locationId, Integer year) {
-        if (batchId == null || batchId.isEmpty()) {
-            throw new ServiceException("育种批次ID不能为空");
-        }
-        if (locationId == null || locationId.isEmpty()) {
-            throw new ServiceException("研究中心ID不能为空");
+    private String generateTrialId(String cropType, Integer year) {
+        if (cropType == null || cropType.isEmpty()) {
+            throw new ServiceException("作物种类代码不能为空");
         }
         if (year == null) {
             throw new ServiceException("年份不能为空");
         }
 
-        String trialId = trialBasicMapper.generateTrialIdByBatchAndLocationAndYear(batchId, locationId, year);
-        if (trialId == null) {
-            // 如果没有找到记录，需要从batch中获取variety_code来生成默认ID
-            // 这里假设返回null时使用一个默认格式，实际应该从batch表查询variety_code
-            throw new ServiceException("无法生成试验ID，请检查育种批次信息");
+        String trialId = trialBasicMapper.generateTrialIdByCropTypeAndYear(cropType, year);
+        if (trialId == null || trialId.isEmpty()) {
+            // 若没有历史记录，按初始序列号 000001 生成
+            trialId = String.format("T_%s_%d_%06d", cropType, year, 1);
         }
         return trialId;
     }

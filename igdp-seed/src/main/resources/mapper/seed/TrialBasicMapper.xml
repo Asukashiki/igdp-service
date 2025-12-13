@@ -98,6 +98,15 @@
         GROUP BY b.variety_code
     </select>
 
+    <!-- 新规则：根据作物类型和年份生成试验ID，格式：T_{cropType}_{year}_{6位序列号} -->
+    <select id="generateTrialIdByCropTypeAndYear" resultType="String">
+        SELECT CONCAT('T_', #{cropType}, '_', #{year}, '_',
+                      LPAD(IFNULL(MAX(CAST(RIGHT(t.trial_id, 6) AS UNSIGNED)), 0) + 1, 6, '0'))
+        FROM trial_basic t
+        WHERE t.is_deleted = 0
+          AND t.trial_id LIKE CONCAT('T_', #{cropType}, '_', #{year}, '_%')
+    </select>
+
     <select id="selectTrialOptions" resultMap="TrialBasicResult">
         select trial_id, batch_id, trial_name, location_id, season, year, design_type, replications, crop_type, variety_code, variety_name
         from trial_basic
