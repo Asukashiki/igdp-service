@@ -20,6 +20,12 @@ public class StockQueryDTO {
     /** 投入品批次ID */
     private String materialBatchId;
 
+    /** 投入品类型 */
+    private String materialType;
+
+    /** 农资类型(投入品品类) */
+    private String agriculturalInputType;
+
     /** 部门编码(用于权限过滤) */
     private String organCode;
 

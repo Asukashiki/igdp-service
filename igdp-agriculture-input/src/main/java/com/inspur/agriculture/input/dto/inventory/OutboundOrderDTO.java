@@ -80,5 +80,7 @@ public class OutboundOrderDTO {
         private String materialName;
 
         private String materialBatchId;
+
+        private String agriculturalInputType;
     }
 }

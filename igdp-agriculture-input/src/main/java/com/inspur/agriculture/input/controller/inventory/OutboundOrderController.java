@@ -132,6 +132,7 @@ public class OutboundOrderController {
                 detailMap.put("quantity", detail.getQuantity());
                 detailMap.put("specModel", detail.getSpecModel());
                 detailMap.put("unitOfMeasure", detail.getUnitOfMeasure());
+                detailMap.put("agriculturalInputType", detail.getAgriculturalInputType());
                 details.add(detailMap);
             }
 

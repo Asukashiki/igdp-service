@@ -58,6 +58,12 @@ public class StockController {
             if (queryDTO.getMaterialBatchId() != null && !queryDTO.getMaterialBatchId().isEmpty()) {
                 params.put("materialBatchId", queryDTO.getMaterialBatchId());
             }
+            if (queryDTO.getMaterialType() != null && !queryDTO.getMaterialType().isEmpty()) {
+                params.put("materialType", queryDTO.getMaterialType());
+            }
+            if (queryDTO.getAgriculturalInputType() != null && !queryDTO.getAgriculturalInputType().isEmpty()) {
+                params.put("agriculturalInputType", queryDTO.getAgriculturalInputType());
+            }
             if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
                 params.put("organCode", queryDTO.getOrganCode());
             }
@@ -316,6 +322,37 @@ public class StockController {
             return AjaxResult.success(result);
         } catch (Exception e) {
             return AjaxResult.error("检查库存失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 按投入品类型和投入品品类统计库存合计
+     *
+     * @param queryDTO 查询条件
+     * @return 合计统计列表
+     */
+    @GetMapping("/summary")
+    public AjaxResult summary(StockQueryDTO queryDTO) {
+        try {
+            // 构建查询参数
+            Map<String, Object> params = new HashMap<>();
+            if (queryDTO.getWarehouseId() != null && !queryDTO.getWarehouseId().isEmpty()) {
+                params.put("warehouseId", queryDTO.getWarehouseId());
+            }
+            if (queryDTO.getMaterialType() != null && !queryDTO.getMaterialType().isEmpty()) {
+                params.put("materialType", queryDTO.getMaterialType());
+            }
+            if (queryDTO.getAgriculturalInputType() != null && !queryDTO.getAgriculturalInputType().isEmpty()) {
+                params.put("agriculturalInputType", queryDTO.getAgriculturalInputType());
+            }
+            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+                params.put("organCode", queryDTO.getOrganCode());
+            }
+
+            List<Map<String, Object>> list = stockService.selectStockSummary(params);
+            return AjaxResult.success(list);
+        } catch (Exception e) {
+            return AjaxResult.error("统计库存合计失败: " + e.getMessage());
         }
     }
 }
