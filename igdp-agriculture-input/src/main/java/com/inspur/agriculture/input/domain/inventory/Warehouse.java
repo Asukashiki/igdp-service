@@ -88,7 +88,6 @@ public class Warehouse implements Serializable {
     @TableField(exist = false)
     private String statusDesc;
 
-    @TableField(exist = false)
     private String organName;
 
     private String organCode;

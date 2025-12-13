@@ -23,6 +23,9 @@ public class OutboundOrderQueryDTO {
     /** 关联单号 */
     private String relatedOrderNo;
 
+    /** 部门编码(用于权限过滤) */
+    private String organCode;
+
     /** 页码 */
     private Integer page;
 

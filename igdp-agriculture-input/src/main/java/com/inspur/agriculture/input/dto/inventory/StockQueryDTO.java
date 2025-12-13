@@ -20,6 +20,9 @@ public class StockQueryDTO {
     /** 投入品批次ID */
     private String materialBatchId;
 
+    /** 部门编码(用于权限过滤) */
+    private String organCode;
+
     /** 页码 */
     private Integer page;
 

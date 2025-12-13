@@ -15,13 +15,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="quantity" column="quantity"/>
         <result property="expiryDate" column="expiry_date"/>
         <result property="remarks" column="remarks"/>
+        <result property="productionBatchNo" column="production_batch_no"/>
+        <result property="agriculturalInputType" column="agricultural_input_type"/>
     </resultMap>
 
     <sql id="selectStockInItemVo">
         select sii.stock_in_item_id, sii.stock_in_id, sii.input_id,
                ai.input_name, ai.input_sku,
                sii.warehouse_id, w.warehouse_name,
-               sii.quantity, sii.expiry_date, sii.remarks
+               sii.quantity, sii.expiry_date, sii.remarks,
+               sii.production_batch_no, ai.agricultural_input_type
         from inv_stock_in_item sii
         left join agri_input ai on sii.input_id = ai.input_id and ai.del_flag = '0'
         left join inv_warehouse w on sii.warehouse_id = w.warehouse_id and w.del_flag = '0'
@@ -40,12 +43,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <insert id="batchInsert">
         insert into inv_stock_in_item
-        (stock_in_item_id, stock_in_id, input_id, warehouse_id, quantity, expiry_date, remarks,
+        (stock_in_item_id, stock_in_id, input_id, warehouse_id, quantity, expiry_date, remarks, production_batch_no,
          create_people, create_time, del_flag)
         values
         <foreach collection="items" item="item" separator=",">
             (#{item.stockInItemId}, #{item.stockInId}, #{item.inputId}, #{item.warehouseId},
-             #{item.quantity}, #{item.expiryDate}, #{item.remarks}, #{item.createPeople}, #{item.createTime}, '0')
+             #{item.quantity}, #{item.expiryDate}, #{item.remarks}, #{item.productionBatchNo}, #{item.createPeople}, #{item.createTime}, '0')
         </foreach>
     </insert>
 

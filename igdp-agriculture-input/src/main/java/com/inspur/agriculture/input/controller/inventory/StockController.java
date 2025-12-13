@@ -58,6 +58,9 @@ public class StockController {
             if (queryDTO.getMaterialBatchId() != null && !queryDTO.getMaterialBatchId().isEmpty()) {
                 params.put("materialBatchId", queryDTO.getMaterialBatchId());
             }
+            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+                params.put("organCode", queryDTO.getOrganCode());
+            }
 
             // 开启分页
             PageHelper.startPage(page, pageSize);

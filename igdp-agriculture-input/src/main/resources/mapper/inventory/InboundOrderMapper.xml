@@ -24,6 +24,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="remark" column="remark"/>
+        <result property="formRemark" column="form_remark"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="supplierContact" column="supplier_contact"/>
+        <result property="supplierPhone" column="supplier_phone"/>
     </resultMap>
 
     <sql id="selectInboundOrderVo">
@@ -37,9 +41,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                END as inbound_type_name,
                io.warehouse_id, w.warehouse_name,
                io.related_order_no, io.supplier_type, io.supplier_id,
+               io.supplier_name, io.supplier_contact, io.supplier_phone,
                io.inbound_user, io.inbound_time, io.total_quantity,
                io.apply_time, io.audit_time, io.audit_user, io.operator,
-               io.created_at, io.updated_at, io.remark
+               io.created_at, io.updated_at, io.remark, io.form_remark
         from inbound_order io
         left join inv_warehouse w on io.warehouse_id = w.warehouse_id and w.del_flag = '0'
     </sql>
@@ -75,6 +80,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 and (io.inbound_order_id like concat('%', #{params.keyword}, '%')
                      or io.related_order_no like concat('%', #{params.keyword}, '%')
                      or w.warehouse_name like concat('%', #{params.keyword}, '%'))
+            </if>
+            <if test="params.organCode != null and params.organCode != ''">
+                and w.organ_code = #{params.organCode}
             </if>
         </where>
         order by io.created_at desc
