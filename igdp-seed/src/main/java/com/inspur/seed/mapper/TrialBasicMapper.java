@@ -54,6 +54,17 @@ public interface TrialBasicMapper extends BaseMapper<TrialBasic> {
                                                       @Param("year") Integer year);
 
     /**
+     * 根据作物类型与年份生成新的试验ID
+     * 新格式: T_{cropType}_{year}_{6位序列号}
+     *
+     * @param cropType 作物种类代码
+     * @param year 年度
+     * @return 最新的试验ID（按规则自增生成）
+     */
+    String generateTrialIdByCropTypeAndYear(@Param("cropType") String cropType,
+                                            @Param("year") Integer year);
+
+    /**
      * 获取试验下拉列表
      *
      * @param batchId 批次ID（可选）
