@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Select;
 public interface PubRegionMapper extends BaseMapper<PubRegion> {
 
 
-    @Select("select * from bsp.pub_region where region_code=#{regionCode}")
+    @Select("select * from bsp.pub_region where code=#{regionCode}")
     PubRegion selectByRegionCode(String regionCode);
 
 

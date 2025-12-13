@@ -76,26 +76,25 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Autowired
     private PubRegionMapper regionMapper;
 
+
+    private static final String STATUS_DRAFT = "DRAFT";
+    private static final String STATUS_REJECTED = "REJECTED";
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String addFarmerDemand(FarmerDemandAddDTO dto) {
-        // 1. 根据当前年份自动获取或创建批次
+        // 根据当前年份自动获取或创建批次
         int currentYear = java.time.Year.now().getValue();
         DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(currentYear);
 
         // 设置批次ID
         dto.setBatchId(batch.getId());
 
-        // 2. Validate input categories
-        for (FarmerDemandAddDTO.InputItemDTO item : dto.getInputItems()) {
-            if (CategoryEnum.getByCode(item.getInputCategory()) == null) {
-                throw new ServiceException("Invalid input category: " + item.getInputCategory());
-            }
-        }
 
-        // 3. Create farmer demand detail
+        // Create farmer demand detail
         DemandFarmerDetail detail = BeanUtil.copyProperties(dto, DemandFarmerDetail.class);
-        detail.setStatus(DemandStatusEnum.DRAFT.getCode());
+        // 直接赋值状态字符串（替代原DemandStatusEnum.DRAFT.getCode()）
+        detail.setStatus(STATUS_DRAFT);
         detail.setCreatedTime(new Date());
 
         // TODO: Get current user ID and name from security context
@@ -118,6 +117,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             inputItem.setDemandId(detail.getId());
             inputItem.setCreatedTime(new Date());
             inputItem.setCreatedBy("current_user_id");
+            // 新增：给variety字段赋值（空字符串，避免无默认值报错）
+            inputItem.setVariety(StrUtil.blankToDefault(item.getVariety(), ""));
             return inputItem;
         }).collect(Collectors.toList());
 
@@ -138,8 +139,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         }
 
         // 2. Validate status is draft or rejected
-        if (!DemandStatusEnum.DRAFT.getCode().equals(demand.getStatus())
-            && !DemandStatusEnum.REJECTED.getCode().equals(demand.getStatus())) {
+        // 替换原枚举判断，直接用字符串比较
+        if (!STATUS_DRAFT.equals(demand.getStatus())
+                && !STATUS_REJECTED.equals(demand.getStatus())) {
             throw new ServiceException("Can only update demand in draft or rejected status");
         }
 
@@ -149,19 +151,14 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         if (!currentUserId.equals(demand.getDaUserId())) {
             throw new ServiceException("Only the creator can update this demand");
         }
-
-        // 4. Validate input categories
-        for (FarmerDemandUpdateDTO.InputItemDTO item : dto.getInputItems()) {
-            if (CategoryEnum.getByCode(item.getInputCategory()) == null) {
-                throw new ServiceException("Invalid input category: " + item.getInputCategory());
-            }
-        }
+        
 
         // 5. Update farmer demand detail
         DemandFarmerDetail updatedDetail = BeanUtil.copyProperties(dto, DemandFarmerDetail.class);
         updatedDetail.setUpdatedTime(new Date());
         updatedDetail.setUpdatedBy(currentUserId);
-        updatedDetail.setStatus(DemandStatusEnum.DRAFT.getCode()); // Reset to draft
+        // 直接赋值状态字符串（替代原DemandStatusEnum.DRAFT.getCode()）
+        updatedDetail.setStatus(STATUS_DRAFT); // Reset to draft
         updatedDetail.setCurrentAuditLevel(null); // Clear audit level
 
         // Recalculate max quantities
@@ -185,6 +182,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             inputItem.setDemandId(dto.getId());
             inputItem.setCreatedTime(new Date());
             inputItem.setCreatedBy(currentUserId);
+            // 新增：给variety字段赋值（空字符串，避免无默认值报错）
+            inputItem.setVariety(StrUtil.blankToDefault(item.getVariety(), ""));
             return inputItem;
         }).collect(Collectors.toList());
 
@@ -197,28 +196,22 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
     @Override
     public FarmerDemandDetailVO getFarmerDemandDetail(String id) {
-        // 1. Get farmer demand detail
+        // 1. 获取主表数据（原有逻辑不变）
         DemandFarmerDetail demand = this.getById(id);
         if (demand == null || demand.getIsDeleted() == 1) {
             throw new ServiceException("Demand not found");
         }
 
-        // 2. Convert to VO
+        // 2. 转换主表VO（原有逻辑不变）
         FarmerDemandDetailVO vo = BeanUtil.copyProperties(demand, FarmerDemandDetailVO.class);
-
-        // Get batch number
         DemandCollectionBatch batch = batchMapper.selectById(demand.getBatchId());
         if (batch != null) {
             vo.setBatchNo(batch.getBatchNo());
         }
-
-        // Set status name
         DemandStatusEnum statusEnum = DemandStatusEnum.fromCode(demand.getStatus());
         if (statusEnum != null) {
             vo.setStatusName(statusEnum.getMessage());
         }
-
-        // Set audit level name
         if (StrUtil.isNotBlank(demand.getCurrentAuditLevel())) {
             AuditLevelEnum levelEnum = AuditLevelEnum.fromCode(demand.getCurrentAuditLevel());
             if (levelEnum != null) {
@@ -226,29 +219,43 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             }
         }
 
-        // 3. Get input items
+        // 3. 获取投入品明细（重点修改这部分）
         LambdaQueryWrapper<DemandFarmerInputItem> itemWrapper = new LambdaQueryWrapper<>();
         itemWrapper.eq(DemandFarmerInputItem::getDemandId, id);
         itemWrapper.eq(DemandFarmerInputItem::getIsDeleted, 0);
         List<DemandFarmerInputItem> inputItems = inputItemMapper.selectList(itemWrapper);
 
         List<FarmerDemandDetailVO.InputItemVO> inputItemVOs = inputItems.stream().map(item -> {
-            FarmerDemandDetailVO.InputItemVO itemVO = BeanUtil.copyProperties(item, FarmerDemandDetailVO.InputItemVO.class);
-            CategoryEnum categoryEnum = CategoryEnum.getByCode(item.getInputCategory());
+            FarmerDemandDetailVO.InputItemVO itemVO = new FarmerDemandDetailVO.InputItemVO();
+
+            // ========== 关键修正：字段映射 ==========
+            // 表的 input_type（大类）→ VO 的 inputCategory（前端显示的大类）
+            itemVO.setInputCategory(item.getInputType());
+            // 表的 input_category（小类）→ VO 的 inputType（前端可新增显示小类）
+            itemVO.setInputType(item.getInputCategory());
+
+            // 原有字段赋值（不变）
+            itemVO.setVariety(item.getVariety());
+            itemVO.setUnit(item.getUnit());
+            itemVO.setQuantity(item.getQuantity());
+            itemVO.setSpecification(item.getSpecification()); // 如有该字段
+
+            // 修正：用表的 input_type（大类）匹配 CategoryEnum，获取大类名称
+            CategoryEnum categoryEnum = CategoryEnum.getByCode(item.getInputType());
             if (categoryEnum != null) {
                 itemVO.setInputCategoryName(categoryEnum.getDesc());
             }
+
             return itemVO;
         }).collect(Collectors.toList());
         vo.setInputItems(inputItemVOs);
 
-        // 4. Get audit records
+        // 4. 审计记录（原有逻辑不变）
         LambdaQueryWrapper<DemandAuditRecord> auditWrapper = new LambdaQueryWrapper<>();
         auditWrapper.eq(DemandAuditRecord::getDemandId, id);
         auditWrapper.eq(DemandAuditRecord::getIsDeleted, 0);
         auditWrapper.orderByDesc(DemandAuditRecord::getAuditTime);
         List<DemandAuditRecord> auditRecords = auditRecordMapper.selectList(auditWrapper);
-
         List<FarmerDemandDetailVO.AuditRecordVO> auditRecordVOs = auditRecords.stream().map(record -> {
             FarmerDemandDetailVO.AuditRecordVO recordVO = BeanUtil.copyProperties(record, FarmerDemandDetailVO.AuditRecordVO.class);
             AuditLevelEnum levelEnum = AuditLevelEnum.fromCode(record.getAuditLevel());
@@ -369,7 +376,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 4. Update summary if demand was submitted (before deleting)
         if (DemandStatusEnum.SUBMITTED.getCode().equals(demand.getStatus())
-            || DemandStatusEnum.APPROVED.getCode().equals(demand.getStatus())) {
+                || DemandStatusEnum.APPROVED.getCode().equals(demand.getStatus())) {
             try {
                 summaryService.updateSummaryOnDemandDelete(id);
             } catch (Exception e) {
@@ -439,10 +446,10 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         return count;
     }
 
-        /**
-         * Calculate max seed quantity based on land area
-         * Simplified calculation: land area * 100 kg/hectare
-         */
+    /**
+     * Calculate max seed quantity based on land area
+     * Simplified calculation: land area * 100 kg/hectare
+     */
     private BigDecimal calculateMaxSeedQuantity(BigDecimal landArea, List<?> inputItems) {
         if (landArea == null) {
             return null;

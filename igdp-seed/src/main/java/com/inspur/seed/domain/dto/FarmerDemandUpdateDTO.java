@@ -100,6 +100,11 @@ public class FarmerDemandUpdateDTO {
     private String remark;
 
     /**
+     * Year
+     */
+    private String year;
+
+    /**
      * Input Items
      */
     @NotEmpty(message = "Input items cannot be empty")

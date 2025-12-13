@@ -1,5 +1,6 @@
 package com.inspur.agriculture.input.service.demand.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.inspur.agriculture.input.domain.demand.DemandInputSummaryItem;
 import com.inspur.agriculture.input.domain.oauth.PubRegion;
@@ -112,6 +113,16 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
 
         // 物理删除(根据表结构没有del_flag字段)
         return demandInputSummaryItemMapper.deleteById(id);
+    }
+
+    @Override
+    public int deleteDeandInputItemBySummaryId(String summaryId){
+        DemandInputSummaryItem item = new DemandInputSummaryItem();
+        item.setSummaryId(summaryId);
+        QueryWrapper<DemandInputSummaryItem> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("summary_id",summaryId);
+
+        return demandInputSummaryItemMapper.delete(queryWrapper);
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -7,13 +7,18 @@ import com.inspur.agriculture.input.service.IAgriInputService;
 import com.inspur.common.core.domain.AjaxResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * 农业投入品Controller
+ * 农业投入品控制器
  *
  * @author igdp
  */
@@ -24,23 +29,20 @@ public class AgriInputController {
     @Autowired
     private IAgriInputService agriInputService;
 
+    // 图片存储配置（建议移到application.yml）
+    private static final String UPLOAD_ROOT_PATH = "/usr/local/agriculture/upload/input/";
+    private static final String IMAGE_ACCESS_PREFIX = "/agriculture/upload/input/";
+    private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(".jpg", ".png", ".webp");
+    private static final long MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+
     /**
      * 查询投入品列表（分页）
-     *
-     * @param inputName    投入品名称
-     * @param type         投入品类型
-     * @param registerCode 登记批号
-     * @param inputSku     SKU编码
-     * @param status       状态
-     * @param keyword      关键词搜索
-     * @param page         页码
-     * @param pageSize     每页数量
-     * @return 投入品列表
      */
     @GetMapping("/list")
     public AjaxResult list(
             @RequestParam(required = false) String inputName,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String agriculturalInputType,
             @RequestParam(required = false) String registerCode,
             @RequestParam(required = false) String inputSku,
             @RequestParam(required = false) String status,
@@ -51,18 +53,19 @@ public class AgriInputController {
         AgriInput agriInput = new AgriInput();
         agriInput.setInputName(inputName);
         agriInput.setType(type);
+        agriInput.setAgriculturalInputType(agriculturalInputType);
         agriInput.setRegisterCode(registerCode);
         agriInput.setInputSku(inputSku);
         agriInput.setStatus(status);
 
-        // 如果有keyword，覆盖inputName和registerCode
         if (keyword != null && !keyword.trim().isEmpty()) {
             agriInput.setInputName(keyword);
-            agriInput.setRegisterCode(keyword);
             agriInput.setInputSku(keyword);
+            agriInput.setRegisterCode(keyword);
+            agriInput.setTrademark(keyword);
+            agriInput.setAgriculturalInputType(keyword);
         }
 
-        // 启动分页
         PageHelper.startPage(page, pageSize);
         List<AgriInput> list = agriInputService.selectInputList(agriInput);
         PageInfo<AgriInput> pageInfo = new PageInfo<>(list);
@@ -76,6 +79,9 @@ public class AgriInputController {
         return AjaxResult.success(result);
     }
 
+    /**
+     * 获取全部投入品列表（不分页）
+     */
     @GetMapping("/getAllInputList")
     public AjaxResult getAllInputList() {
         AgriInput agriInput = new AgriInput();
@@ -86,112 +92,94 @@ public class AgriInputController {
     }
 
     /**
-     * 获取投入品详情
-     *
-     * @param id 投入品ID
-     * @return 投入品详情
+     * 根据ID获取投入品详情
      */
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id) {
         AgriInput agriInput = agriInputService.selectInputById(id);
         if (agriInput == null) {
-            return AjaxResult.error("投入品不存在");
+            return AjaxResult.error("Agricultural input does not exist");
         }
         return AjaxResult.success(agriInput);
     }
 
     /**
      * 新增投入品
-     *
-     * @param agriInput 投入品信息
-     * @return 操作结果
      */
     @PostMapping
     public AjaxResult add(@RequestBody AgriInput agriInput) {
-        // 参数校验
         if (agriInput.getInputName() == null || agriInput.getInputName().trim().isEmpty()) {
-            return AjaxResult.error("投入品名称不能为空");
+            return AjaxResult.error("Input product name cannot be empty");
         }
         if (agriInput.getType() == null || agriInput.getType().trim().isEmpty()) {
-            return AjaxResult.error("投入品类型不能为空");
+            return AjaxResult.error("Input product type cannot be empty");
         }
         if (agriInput.getInputSku() == null || agriInput.getInputSku().trim().isEmpty()) {
-            return AjaxResult.error("产品标识码不能为空");
+            return AjaxResult.error("Product identification code cannot be empty");
         }
 
-        // 设置默认状态
         if (agriInput.getStatus() == null || agriInput.getStatus().trim().isEmpty()) {
             agriInput.setStatus("active");
+        }
+        if (agriInput.getDelFlag() == null || agriInput.getDelFlag().trim().isEmpty()) {
+            agriInput.setDelFlag("0");
         }
 
         int rows = agriInputService.insertInput(agriInput);
         if (rows > 0) {
-            return AjaxResult.success("新增成功", agriInput);
+            return AjaxResult.success("Add successfully", agriInput);
         }
-        return AjaxResult.error("新增失败");
+        return AjaxResult.error("Add failed");
     }
 
     /**
      * 修改投入品
-     *
-     * @param id        投入品ID
-     * @param agriInput 投入品信息
-     * @return 操作结果
      */
     @PutMapping("/{id}")
     public AjaxResult edit(@PathVariable("id") Long id, @RequestBody AgriInput agriInput) {
-        // 检查投入品是否存在
         AgriInput existInput = agriInputService.selectInputById(id);
         if (existInput == null) {
-            return AjaxResult.error("投入品不存在");
+            return AjaxResult.error("Agricultural input does not exist");
         }
 
         agriInput.setInputId(id);
         int rows = agriInputService.updateInput(agriInput);
         if (rows > 0) {
-            return AjaxResult.success("修改成功", agriInput);
+            return AjaxResult.success("Modify successfully", agriInput);
         }
-        return AjaxResult.error("修改失败");
+        return AjaxResult.error("Modify failed");
     }
 
     /**
-     * 删除投入品
-     *
-     * @param id 投入品ID
-     * @return 操作结果
+     * 删除投入品（单条）
      */
     @DeleteMapping("/{id}")
     public AjaxResult remove(@PathVariable("id") Long id) {
         int rows = agriInputService.deleteInputById(id);
         if (rows > 0) {
-            return AjaxResult.success("删除成功");
+            return AjaxResult.success("Delete successfully");
         }
-        return AjaxResult.error("删除失败");
+        return AjaxResult.error("Delete failed");
     }
 
     /**
      * 批量删除投入品
-     *
-     * @param ids 投入品ID数组
-     * @return 操作结果
      */
     @DeleteMapping("/batch")
     public AjaxResult removeBatch(@RequestBody Long[] ids) {
         if (ids == null || ids.length == 0) {
-            return AjaxResult.error("请选择要删除的投入品");
+            return AjaxResult.error("Please select agricultural inputs to delete");
         }
 
         int rows = agriInputService.deleteInputByIds(ids);
         if (rows > 0) {
-            return AjaxResult.success("批量删除成功");
+            return AjaxResult.success("Batch delete successfully");
         }
-        return AjaxResult.error("批量删除失败");
+        return AjaxResult.error("Batch delete failed");
     }
 
     /**
      * 获取投入品统计信息
-     *
-     * @return 统计信息
      */
     @GetMapping("/statistics")
     public AjaxResult getStatistics() {
@@ -201,11 +189,6 @@ public class AgriInputController {
 
     /**
      * 导出投入品数据
-     *
-     * @param inputName 投入品名称
-     * @param type      投入品类型
-     * @param keyword   关键词搜索
-     * @return 投入品数据
      */
     @GetMapping("/export")
     public AjaxResult export(
@@ -217,14 +200,67 @@ public class AgriInputController {
         agriInput.setInputName(inputName);
         agriInput.setType(type);
 
-        // 如果有keyword，覆盖inputName
         if (keyword != null && !keyword.trim().isEmpty()) {
             agriInput.setInputName(keyword);
+            agriInput.setInputSku(keyword);
             agriInput.setRegisterCode(keyword);
+            agriInput.setTrademark(keyword);
         }
 
         List<AgriInput> list = agriInputService.selectInputList(agriInput);
-        return AjaxResult.success("导出成功", list);
+        return AjaxResult.success("Export successfully", list);
+    }
+
+    /**
+     * 投入品图片上传接口
+     */
+    @PostMapping("/uploadImage")
+    public AjaxResult uploadImage(@RequestParam("file") MultipartFile file) {
+        // 空文件校验
+        if (file.isEmpty()) {
+            return AjaxResult.error("The uploaded image cannot be empty");
+        }
+
+        // 文件后缀校验
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null || originalFileName.lastIndexOf(".") == -1) {
+            return AjaxResult.error("Invalid image file (no suffix)");
+        }
+        String fileSuffix = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
+
+        // 图片类型校验
+        if (!ALLOWED_IMAGE_TYPES.contains(fileSuffix)) {
+            return AjaxResult.error("Only JPG, PNG, WEBP format images are supported!");
+        }
+
+        // 大小校验
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            return AjaxResult.error("Image size cannot exceed 2MB!");
+        }
+
+        // 生成唯一文件名
+        String uniqueFileName = UUID.randomUUID().toString() + fileSuffix;
+        File saveFile = new File(UPLOAD_ROOT_PATH + uniqueFileName);
+
+        try {
+            // 创建目录
+            if (!saveFile.getParentFile().exists()) {
+                boolean mkdirs = saveFile.getParentFile().mkdirs();
+                if (!mkdirs) {
+                    return AjaxResult.error("Failed to create image storage directory, please check server permissions!");
+                }
+            }
+
+            // 写入文件
+            file.transferTo(saveFile);
+
+            // 返回可访问的图片URL
+            String imageUrl = IMAGE_ACCESS_PREFIX + uniqueFileName;
+            return AjaxResult.success(imageUrl);
+
+        } catch (IOException e) {
+            return AjaxResult.error("Image upload failed: " + e.getMessage());
+        }
     }
 
 }
