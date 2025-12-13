@@ -160,7 +160,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
         // 根据审核结果更新状态
         if ("approved".equals(auditStatus)) {
-            outboundOrder.setOutboundStatus("approved");
+            outboundOrder.setOutboundStatus("completed");
 
             // 审批通过时同步更新库存（并发安全）
             // 校验仓库

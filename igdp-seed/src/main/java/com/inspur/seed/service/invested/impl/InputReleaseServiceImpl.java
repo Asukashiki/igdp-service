@@ -257,7 +257,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
                     .eq(Stock::getMaterialId, detailDTO.getInputId());
             List<Stock> stocks = stockMapper.selectList(stockWrapper);
             BigDecimal totalQuantity = BigDecimal.ZERO;
-            if (stocks.size() > 0) {
+            if (!stocks.isEmpty() && stocks.get(0) != null) {
                 totalQuantity = stocks.get(0).getQuantity();
             }
             String inputId = detailDTO.getInputId();
