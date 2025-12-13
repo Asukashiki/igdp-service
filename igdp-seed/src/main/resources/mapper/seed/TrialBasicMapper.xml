@@ -15,6 +15,25 @@
         <result property="cropType" column="crop_type"/>
         <result property="varietyCode" column="variety_code"/>
         <result property="varietyName" column="variety_name"/>
+        <result property="trialStatus" column="trial_status"/>
+        <result property="submittedBy" column="submitted_by"/>
+        <result property="submittedName" column="submitted_name"/>
+        <result property="submittedTime" column="submitted_time"/>
+        <result property="approvedBy" column="approved_by"/>
+        <result property="approvedName" column="approved_name"/>
+        <result property="approvedTime" column="approved_time"/>
+        <result property="rejectedBy" column="rejected_by"/>
+        <result property="rejectedName" column="rejected_name"/>
+        <result property="rejectedTime" column="rejected_time"/>
+        <result property="cancelledBy" column="cancelled_by"/>
+        <result property="cancelledName" column="cancelled_name"/>
+        <result property="cancelledTime" column="cancelled_time"/>
+        <result property="cancelReason" column="cancel_reason"/>
+        <result property="archivedBy" column="archived_by"/>
+        <result property="archivedName" column="archived_name"/>
+        <result property="archivedTime" column="archived_time"/>
+        <result property="createdName" column="created_name"/>
+        <result property="modifiedName" column="modified_name"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
@@ -25,6 +44,12 @@
     <sql id="selectTrialBasicVo">
         select t.trial_id, t.batch_id, t.trial_name, t.location_id, t.gps_location,
                t.season, t.year, t.design_type, t.replications, t.crop_type, t.variety_code, t.variety_name,
+               t.trial_status, t.submitted_by, t.submitted_name, t.submitted_time,
+               t.approved_by, t.approved_name, t.approved_time,
+               t.rejected_by, t.rejected_name, t.rejected_time,
+               t.cancelled_by, t.cancelled_name, t.cancelled_time, t.cancel_reason,
+               t.archived_by, t.archived_name, t.archived_time,
+               t.created_name, t.modified_name,
                t.create_time, t.update_time, t.create_by, t.update_by, t.is_deleted
         from trial_basic t
     </sql>

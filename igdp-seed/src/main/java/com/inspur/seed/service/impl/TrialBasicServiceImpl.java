@@ -33,6 +33,12 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
     @Autowired
     private TrialPlotRelationMapper trialPlotRelationMapper;
 
+    @Autowired
+    private com.inspur.seed.mapper.TrialBasicAuditMapper trialBasicAuditMapper;
+
+    @Autowired
+    private com.inspur.seed.mapper.TrialBasicAuditHistoryMapper trialBasicAuditHistoryMapper;
+
     @Override
     public List<TrialBasic> selectTrialBasicList(TrialBasic trialBasic) {
         List<TrialBasic> list = trialBasicMapper.selectTrialBasicList(trialBasic);
@@ -59,7 +65,9 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
 
         // 设置创建信息
         trialBasic.setCreateTime(LocalDateTime.now());
-        trialBasic.setCreateBy(SecurityUtils.getUsername());
+        trialBasic.setCreateBy(SecurityUtils.getUserId().toString());
+        trialBasic.setCreatedName(SecurityUtils.getUsername());
+        trialBasic.setTrialStatus("S0"); // 默认草稿状态
 
         // 保存试验信息
         trialBasicMapper.insert(trialBasic);
@@ -77,7 +85,8 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
 
         // 设置更新信息
         trialBasic.setUpdateTime(LocalDateTime.now());
-        trialBasic.setUpdateBy(SecurityUtils.getUsername());
+        trialBasic.setUpdateBy(SecurityUtils.getUserId().toString());
+        trialBasic.setModifiedName(SecurityUtils.getUsername());
 
         // 更新试验信息
         int rows = trialBasicMapper.updateById(trialBasic);
@@ -171,5 +180,215 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
             // 如果找不到对应的国际化key，返回原值
             return season;
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean submitTrialForAudit(String trialId) {
+        // 1. 获取试验信息
+        TrialBasic trial = trialBasicMapper.selectById(trialId);
+        if (trial == null) {
+            throw new ServiceException("Trial information not found");
+        }
+
+        // 2. 检查试验状态（只有草稿和已退回状态可以提交）
+        if (!"S0".equals(trial.getTrialStatus()) && !"S3".equals(trial.getTrialStatus())) {
+            throw new ServiceException("Only trials with 'Draft' or 'Rejected' status can be submitted");
+        }
+
+        // 3. 获取当前用户信息
+        String currentUserId = SecurityUtils.getUserId().toString();
+        String currentUserName = SecurityUtils.getUsername();
+
+        // 4. 更新试验状态为待审批
+        String beforeStatus = trial.getTrialStatus();
+        trial.setTrialStatus("S1");
+        trial.setSubmittedBy(currentUserId);
+        trial.setSubmittedName(currentUserName);
+        trial.setSubmittedTime(LocalDateTime.now());
+        trial.setUpdateTime(LocalDateTime.now());
+        trial.setUpdateBy(currentUserId);
+        trialBasicMapper.updateById(trial);
+
+        // 5. 创建或更新审核记录
+        com.inspur.seed.domain.entity.TrialBasicAudit audit = null;
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.TrialBasicAudit> queryWrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        queryWrapper.eq(com.inspur.seed.domain.entity.TrialBasicAudit::getTrialId, trialId)
+                .eq(com.inspur.seed.domain.entity.TrialBasicAudit::getDeleted, "0")
+                .orderByDesc(com.inspur.seed.domain.entity.TrialBasicAudit::getSubmitTime)
+                .last("LIMIT 1");
+        audit = trialBasicAuditMapper.selectOne(queryWrapper);
+
+        if (audit != null && "S3".equals(audit.getAuditStatus())) {
+            // 如果是退回后重新提交，更新现有审核记录
+            audit.setAuditStatus("S1");
+            audit.setAuditOpinion(null);
+            audit.setRejectReason(null);
+            audit.setAuditorId(null);
+            audit.setAuditorName(null);
+            audit.setAuditTime(null);
+            audit.setSubmitTime(LocalDateTime.now());
+            audit.setUpdateTime(LocalDateTime.now());
+            audit.setUpdateBy(currentUserId);
+            // 更新试验数据快照
+            audit.setTrialDataSnapshot(cn.hutool.json.JSONUtil.toJsonStr(trial));
+            trialBasicAuditMapper.updateById(audit);
+        } else {
+            // 首次提交，创建新审核记录
+            audit = new com.inspur.seed.domain.entity.TrialBasicAudit();
+            audit.setAuditId(IdUtil.simpleUUID());
+            audit.setTrialId(trial.getTrialId());
+            audit.setBatchId(trial.getBatchId());
+            audit.setTrialName(trial.getTrialName());
+            audit.setAuditNode("Trial Information Audit");
+            audit.setAuditOrder(1);
+            audit.setAuditStatus("S1");
+            audit.setSubmitterId(currentUserId);
+            audit.setSubmitterName(currentUserName);
+            audit.setSubmitTime(LocalDateTime.now());
+            audit.setTrialDataSnapshot(cn.hutool.json.JSONUtil.toJsonStr(trial));
+            audit.setCreateTime(LocalDateTime.now());
+            audit.setCreateBy(currentUserId);
+            audit.setDeleted("0");
+            trialBasicAuditMapper.insert(audit);
+        }
+
+        // 6. 记录审核历史
+        com.inspur.seed.domain.entity.TrialBasicAuditHistory history = new com.inspur.seed.domain.entity.TrialBasicAuditHistory();
+        history.setHistoryId(IdUtil.simpleUUID());
+        history.setAuditId(audit.getAuditId());
+        history.setTrialId(trial.getTrialId());
+        history.setOperationType("SUBMIT");
+        history.setOperationDesc("Submit trial for audit");
+        history.setOperatorId(currentUserId);
+        history.setOperatorName(currentUserName);
+        history.setOperationTime(LocalDateTime.now());
+        history.setBeforeStatus(beforeStatus);
+        history.setAfterStatus("S1");
+        history.setCreateTime(LocalDateTime.now());
+        history.setDeleted("0");
+        trialBasicAuditHistoryMapper.insert(history);
+
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean cancelTrial(String trialId, String cancelReason) {
+        // 1. 获取试验信息
+        TrialBasic trial = trialBasicMapper.selectById(trialId);
+        if (trial == null) {
+            throw new ServiceException("Trial information not found");
+        }
+
+        // 2. 检查试验状态（只有草稿和已退回状态可以作废）
+        if (!"S0".equals(trial.getTrialStatus()) && !"S3".equals(trial.getTrialStatus())) {
+            throw new ServiceException("Only trials with 'Draft' or 'Rejected' status can be cancelled");
+        }
+
+        // 3. 检查作废原因
+        if (cancelReason == null || cancelReason.trim().isEmpty()) {
+            throw new ServiceException("Cancellation reason is required");
+        }
+
+        // 4. 获取当前用户信息
+        String currentUserId = SecurityUtils.getUserId().toString();
+        String currentUserName = SecurityUtils.getUsername();
+
+        // 5. 更新试验状态为作废
+        String beforeStatus = trial.getTrialStatus();
+        trial.setTrialStatus("S10");
+        trial.setCancelledBy(currentUserId);
+        trial.setCancelledName(currentUserName);
+        trial.setCancelledTime(LocalDateTime.now());
+        trial.setCancelReason(cancelReason);
+        trial.setUpdateTime(LocalDateTime.now());
+        trial.setUpdateBy(currentUserId);
+        trialBasicMapper.updateById(trial);
+
+        // 6. 如果存在审核记录，也需要标记
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.TrialBasicAudit> queryWrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        queryWrapper.eq(com.inspur.seed.domain.entity.TrialBasicAudit::getTrialId, trialId)
+                .eq(com.inspur.seed.domain.entity.TrialBasicAudit::getDeleted, "0");
+        com.inspur.seed.domain.entity.TrialBasicAudit audit = trialBasicAuditMapper.selectOne(queryWrapper);
+
+        if (audit != null) {
+            // 记录审核历史
+            com.inspur.seed.domain.entity.TrialBasicAuditHistory history = new com.inspur.seed.domain.entity.TrialBasicAuditHistory();
+            history.setHistoryId(IdUtil.simpleUUID());
+            history.setAuditId(audit.getAuditId());
+            history.setTrialId(trial.getTrialId());
+            history.setOperationType("CANCEL");
+            history.setOperationDesc("Cancel trial: " + cancelReason);
+            history.setOperatorId(currentUserId);
+            history.setOperatorName(currentUserName);
+            history.setOperationTime(LocalDateTime.now());
+            history.setBeforeStatus(beforeStatus);
+            history.setAfterStatus("S10");
+            history.setCreateTime(LocalDateTime.now());
+            history.setDeleted("0");
+            trialBasicAuditHistoryMapper.insert(history);
+        }
+
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean archiveTrial(String trialId) {
+        // 1. 获取试验信息
+        TrialBasic trial = trialBasicMapper.selectById(trialId);
+        if (trial == null) {
+            throw new ServiceException("Trial information not found");
+        }
+
+        // 2. 检查试验状态（只有已审批状态可以归档）
+        if (!"S2".equals(trial.getTrialStatus())) {
+            throw new ServiceException("Only approved trials can be archived");
+        }
+
+        // 3. 获取当前用户信息
+        String currentUserId = SecurityUtils.getUserId().toString();
+        String currentUserName = SecurityUtils.getUsername();
+
+        // 4. 更新试验状态为已归档
+        String beforeStatus = trial.getTrialStatus();
+        trial.setTrialStatus("S9");
+        trial.setArchivedBy(currentUserId);
+        trial.setArchivedName(currentUserName);
+        trial.setArchivedTime(LocalDateTime.now());
+        trial.setUpdateTime(LocalDateTime.now());
+        trial.setUpdateBy(currentUserId);
+        trialBasicMapper.updateById(trial);
+
+        // 5. 记录审核历史
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.TrialBasicAudit> queryWrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        queryWrapper.eq(com.inspur.seed.domain.entity.TrialBasicAudit::getTrialId, trialId)
+                .eq(com.inspur.seed.domain.entity.TrialBasicAudit::getDeleted, "0")
+                .orderByDesc(com.inspur.seed.domain.entity.TrialBasicAudit::getSubmitTime)
+                .last("LIMIT 1");
+        com.inspur.seed.domain.entity.TrialBasicAudit audit = trialBasicAuditMapper.selectOne(queryWrapper);
+
+        if (audit != null) {
+            com.inspur.seed.domain.entity.TrialBasicAuditHistory history = new com.inspur.seed.domain.entity.TrialBasicAuditHistory();
+            history.setHistoryId(IdUtil.simpleUUID());
+            history.setAuditId(audit.getAuditId());
+            history.setTrialId(trial.getTrialId());
+            history.setOperationType("ARCHIVE");
+            history.setOperationDesc("Archive trial");
+            history.setOperatorId(currentUserId);
+            history.setOperatorName(currentUserName);
+            history.setOperationTime(LocalDateTime.now());
+            history.setBeforeStatus(beforeStatus);
+            history.setAfterStatus("S9");
+            history.setCreateTime(LocalDateTime.now());
+            history.setDeleted("0");
+            trialBasicAuditHistoryMapper.insert(history);
+        }
+
+        return true;
     }
 }
