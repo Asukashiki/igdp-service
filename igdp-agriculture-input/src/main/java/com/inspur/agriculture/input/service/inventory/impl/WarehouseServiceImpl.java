@@ -45,12 +45,12 @@ public class WarehouseServiceImpl implements IWarehouseService {
     @Override
     public int addWarehouse(WarehouseDTO dto) {
         // 生成仓库编号
-        String warehouseCode = generateWarehouseCode();
+        /*String warehouseCode = generateWarehouseCode();*/
 
         // DTO转Entity
         Warehouse warehouse = new Warehouse();
         BeanUtils.copyProperties(dto, warehouse);
-        warehouse.setWarehouseCode(warehouseCode);
+        /*warehouse.setWarehouseCode(warehouseCode);*/
         warehouse.setUsedCapacity(java.math.BigDecimal.ZERO);
 
         // 设置审计字段

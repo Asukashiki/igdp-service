@@ -63,13 +63,13 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     private InputReleaseMainMapper inputReleaseMainMapper;
 
     @Override
-    public List<InputReleaseMain> queryReleaseList(String releaseType, String releaseName, String inputType,
-                                                    LocalDate startTime, LocalDate endTime) {
+    public List<InputReleaseMain> queryReleaseList(String releaseType, String unionName, String inputType,
+                                                   LocalDate startTime, LocalDate endTime) {
         LambdaQueryWrapper<InputReleaseMain> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(InputReleaseMain::getReleaseType, releaseType);
 
-        if (StringUtils.isNotEmpty(releaseName)) {
-            wrapper.like(InputReleaseMain::getReleaseName, releaseName);
+        if (StringUtils.isNotEmpty(unionName)) {
+            wrapper.like(InputReleaseMain::getTargetId, unionName);
         }
         if (startTime != null) {
             wrapper.ge(InputReleaseMain::getReleaseDate, LocalDateTime.of(startTime, LocalTime.MIN));
@@ -257,7 +257,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
                     .eq(Stock::getMaterialId, detailDTO.getInputId());
             List<Stock> stocks = stockMapper.selectList(stockWrapper);
             BigDecimal totalQuantity = BigDecimal.ZERO;
-            if (stocks.size() > 0) {
+            if (!stocks.isEmpty() && stocks.get(0) != null) {
                 totalQuantity = stocks.get(0).getQuantity();
             }
             String inputId = detailDTO.getInputId();

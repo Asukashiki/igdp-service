@@ -160,7 +160,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
         // 根据审核结果更新状态
         if ("approved".equals(auditStatus)) {
-            outboundOrder.setOutboundStatus("approved");
+            outboundOrder.setOutboundStatus("completed");
 
             // 审批通过时同步更新库存（并发安全）
             // 校验仓库
@@ -486,18 +486,18 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 if (autoApproved) {
                     // 自动审核通过
                     inboundOrderService.auditInboundOrder(
-                        inboundOrderId,
-                        "approved",
-                        "系统自动审核",
-                        new Date(),
-                        "调拨出库自动生成的入库单，已自动审核通过"
+                            inboundOrderId,
+                            "approved",
+                            "系统自动审核",
+                            new Date(),
+                            "调拨出库自动生成的入库单，已自动审核通过"
                     );
 
                     // 自动执行入库
                     inboundOrderService.confirmInbound(
-                        inboundOrderId,
-                        outboundTime != null ? outboundTime : new Date(),
-                        operator != null ? operator : outboundOrder.getOperator()
+                            inboundOrderId,
+                            outboundTime != null ? outboundTime : new Date(),
+                            operator != null ? operator : outboundOrder.getOperator()
                     );
                 }
 
