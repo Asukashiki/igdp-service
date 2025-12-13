@@ -33,4 +33,6 @@ public class FarmerInputAggregationVO {
      * Total Quantity
      */
     private BigDecimal totalQuantity;
+
+    private String farmerName;
 }

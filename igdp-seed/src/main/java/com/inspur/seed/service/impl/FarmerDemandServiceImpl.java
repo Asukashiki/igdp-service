@@ -98,9 +98,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         detail.setCreatedTime(new Date());
 
         // TODO: Get current user ID and name from security context
-        detail.setDaUserId("current_user_id");
-        detail.setDaUserName("current_user_name");
-        detail.setCreatedBy("current_user_id");
+        detail.setDaUserId(dto.getDaUserId());
+        detail.setDaUserName(dto.getDaUserName());
+        detail.setCreatedBy(dto.getDaUserName());
 
         // Calculate max seed and fertilizer quantities (simplified version)
         detail.setMaxSeedQuantity(calculateMaxSeedQuantity(dto.getLandArea(), dto.getInputItems()));
@@ -151,7 +151,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         if (!currentUserId.equals(demand.getDaUserId())) {
             throw new ServiceException("Only the creator can update this demand");
         }
-        
+
 
         // 5. Update farmer demand detail
         DemandFarmerDetail updatedDetail = BeanUtil.copyProperties(dto, DemandFarmerDetail.class);
@@ -473,32 +473,32 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         if (StrUtil.isBlank(farmerId)) {
             return new ArrayList<>();
         }
-        
+
         // 1. 查询该农民的需求记录
         LambdaQueryWrapper<DemandFarmerDetail> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DemandFarmerDetail::getFarmerId, farmerId);
         wrapper.eq(DemandFarmerDetail::getIsDeleted, 0);
         // 只查询已通过审核的需求
-        wrapper.in(DemandFarmerDetail::getStatus, 
-            DemandStatusEnum.APPROVED.getCode(), 
+        wrapper.in(DemandFarmerDetail::getStatus,
+            DemandStatusEnum.APPROVED.getCode(),
             DemandStatusEnum.SUBMITTED.getCode());
-        
+
         List<DemandFarmerDetail> demands = this.list(wrapper);
         if (demands.isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         // 2. 获取所有需求ID
         List<String> demandIds = demands.stream()
             .map(DemandFarmerDetail::getId)
             .collect(Collectors.toList());
-        
+
         // 3. 查询所有投入品明细
         LambdaQueryWrapper<DemandFarmerInputItem> itemWrapper = new LambdaQueryWrapper<>();
         itemWrapper.in(DemandFarmerInputItem::getDemandId, demandIds);
         itemWrapper.eq(DemandFarmerInputItem::getIsDeleted, 0);
         List<DemandFarmerInputItem> inputItems = inputItemMapper.selectList(itemWrapper);
-        
+
         // 4. 按 inputType 和 inputCategory 汇总
         return inputItems.stream()
             .collect(Collectors.groupingBy(

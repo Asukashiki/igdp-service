@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 
+import static cn.hutool.core.util.RandomUtil.randomString;
+
 /**
  * Demand Collection Batch Service Implementation
  * 需求采集批次管理服务实现
@@ -44,7 +46,7 @@ public class DemandCollectionBatchServiceImpl extends ServiceImpl<DemandCollecti
         if (batch == null) {
             batch = new DemandCollectionBatch();
             batch.setBatchName(year + "年度农民需求采集");
-            batch.setBatchNo("BATCH-" + year);
+            batch.setBatchNo("BATCH-" + year + randomString(9));
             batch.setYear(year);
             batch.setStatus(BatchStatusEnum.COLLECTING.getCode());
 
