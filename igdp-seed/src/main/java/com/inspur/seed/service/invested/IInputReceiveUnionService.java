@@ -5,6 +5,7 @@ import com.inspur.seed.domain.invested.InputReceiveUnion;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Union接收确认Service接口
@@ -46,5 +47,5 @@ public interface IInputReceiveUnionService extends IService<InputReceiveUnion> {
      * @param id 接收确认表ID
      * @return 接收确认详情
      */
-    InputReceiveUnion queryById(String id);
+    Map<String, Object> queryById(String id);
 }

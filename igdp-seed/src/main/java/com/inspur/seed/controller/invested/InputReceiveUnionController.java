@@ -70,7 +70,7 @@ public class InputReceiveUnionController extends BaseController {
      */
     @GetMapping("/detail/{id}")
     public AjaxResult getDetail(@PathVariable String id) {
-        InputReceiveUnion receive = receiveService.queryById(id);
+        Map<String, Object> receive = receiveService.queryById(id);
         if (receive == null) {
             return AjaxResult.error("接收记录不存在");
         }

@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.seed.domain.invested.InputReceiveUnion;
+import com.inspur.seed.domain.invested.InputReleaseDetail;
 import com.inspur.seed.domain.invested.InputReleaseMain;
 import com.inspur.seed.mapper.invested.InputReceiveUnionMapper;
+import com.inspur.seed.mapper.invested.InputReleaseDetailMapper;
 import com.inspur.seed.mapper.invested.InputReleaseMainMapper;
 import com.inspur.seed.service.invested.IInputReceiveUnionService;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ public class InputReceiveUnionServiceImpl extends ServiceImpl<InputReceiveUnionM
 
     @Resource
     private InputReleaseMainMapper inputReleaseMainMapper;
+    @Resource
+    private InputReleaseDetailMapper detailMapper;
 
     @Override
     public List<InputReceiveUnion> queryReceiveList(String releaseBy, String batchId, String cropType,
@@ -87,7 +91,21 @@ public class InputReceiveUnionServiceImpl extends ServiceImpl<InputReceiveUnionM
     }
 
     @Override
-    public InputReceiveUnion queryById(String id) {
-        return getById(id);
+    public Map<String, Object> queryById(String id) {
+        InputReceiveUnion receive = getById(id);
+        if (receive == null) {
+            throw new ServiceException("接收确认记录不存在");
+        }
+
+        // 查询关联的分发明细
+        LambdaQueryWrapper<InputReleaseDetail> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InputReleaseDetail::getReleaseId, receive.getReleaseId());
+        wrapper.orderByAsc(InputReleaseDetail::getCreateTime);
+        List<InputReleaseDetail> details = detailMapper.selectList(wrapper);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("main", receive);
+        result.put("details", details);
+        return result;
     }
 }

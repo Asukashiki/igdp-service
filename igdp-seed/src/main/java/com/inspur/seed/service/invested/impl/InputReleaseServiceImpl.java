@@ -107,7 +107,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
 
         // 保存明细
         if (dto.getDetails() != null && !dto.getDetails().isEmpty()) {
-            saveDetails(releaseId, releaseType, dto.getDetails());
+            saveDetails(main, dto.getDetails());
         }
 
         // 自动创建接收确认记录（待确认状态）
@@ -168,7 +168,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
 
         // 保存新明细
         if (dto.getDetails() != null && !dto.getDetails().isEmpty()) {
-            saveDetails(main.getReleaseId(), main.getReleaseType(), dto.getDetails());
+            saveDetails(main, dto.getDetails());
         }
 
         return true;
@@ -248,7 +248,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     /**
      * 保存分发明细
      */
-    private void saveDetails(String releaseId, String releaseType, List<InputReleaseDetailDTO> detailDTOs) {
+    private void saveDetails(InputReleaseMain main, List<InputReleaseDetailDTO> detailDTOs) {
         for (InputReleaseDetailDTO detailDTO : detailDTOs) {
             // 1、校验需求数量是否超过库存
             // 1.1 根据投入品id获取库存总量
@@ -262,7 +262,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             }
             String inputId = detailDTO.getInputId();
             // 1.2 获取相同投入品、未出库的分发单对应的需求量
-            BigDecimal requiredQuantity = inputReleaseMainMapper.getRequiredFromNotDeliveryInputRelease(inputId, releaseType);
+            BigDecimal requiredQuantity = inputReleaseMainMapper.getRequiredFromNotDeliveryInputRelease(inputId, main.getReleaseType());
 
             // 1.3 以上二者相减，小于当前库存，则抛出异常，提示库存不足，重新输入需求数量
             if (totalQuantity.subtract(requiredQuantity).compareTo(detailDTO.getRequired()) < 0) {
@@ -278,7 +278,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             BeanUtils.copyProperties(detailDTO, detail);
             detail.setId(IdUtils.fastSimpleUUID());
             detail.setReleaseDetailId(detailId);
-            detail.setReleaseId(releaseId);
+            detail.setReleaseId(main.getReleaseId());
             detail.setCreateTime(LocalDateTime.now());
             detail.setReleaseTime(LocalDateTime.now());
             detail.setInputId(Long.parseLong(detailDTO.getInputId()));
