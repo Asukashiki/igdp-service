@@ -98,9 +98,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         detail.setCreatedTime(new Date());
 
         // TODO: Get current user ID and name from security context
-        detail.setDaUserId("current_user_id");
-        detail.setDaUserName("current_user_name");
-        detail.setCreatedBy("current_user_id");
+        detail.setDaUserId(dto.getDaUserId());
+        detail.setDaUserName(dto.getDaUserName());
+        detail.setCreatedBy(dto.getDaUserName());
 
         // Calculate max seed and fertilizer quantities (simplified version)
         detail.setMaxSeedQuantity(calculateMaxSeedQuantity(dto.getLandArea(), dto.getInputItems()));
@@ -151,7 +151,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         if (!currentUserId.equals(demand.getDaUserId())) {
             throw new ServiceException("Only the creator can update this demand");
         }
-        
+
 
         // 5. Update farmer demand detail
         DemandFarmerDetail updatedDetail = BeanUtil.copyProperties(dto, DemandFarmerDetail.class);
@@ -204,6 +204,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 2. 转换主表VO（原有逻辑不变）
         FarmerDemandDetailVO vo = BeanUtil.copyProperties(demand, FarmerDemandDetailVO.class);
+
         DemandCollectionBatch batch = batchMapper.selectById(demand.getBatchId());
         if (batch != null) {
             vo.setBatchNo(batch.getBatchNo());

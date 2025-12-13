@@ -19,4 +19,8 @@ public class DemandAuditSubmitDTO {
      */
     @NotEmpty(message = "Demand IDs cannot be empty")
     private List<String> ids;
+
+    private String currentUserId;
+
+    private String currentUserName;
 }
