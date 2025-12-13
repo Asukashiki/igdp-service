@@ -58,6 +58,9 @@ public class OutboundOrderController {
             if (queryDTO.getRelatedOrderNo() != null && !queryDTO.getRelatedOrderNo().isEmpty()) {
                 params.put("relatedOrderNo", queryDTO.getRelatedOrderNo());
             }
+            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+                params.put("organCode", queryDTO.getOrganCode());
+            }
 
             // 开启分页
             PageHelper.startPage(page, pageSize);

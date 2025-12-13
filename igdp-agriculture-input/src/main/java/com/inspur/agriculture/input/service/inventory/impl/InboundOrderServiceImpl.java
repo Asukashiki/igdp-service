@@ -65,6 +65,11 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         // 查询明细
         List<Map<String, Object>> details = inboundOrderDetailMapper.selectDetailsByOrderId(inboundOrderId);
         result.put("details", details);
+        
+        // 确保表单备注和审核意见正确返回
+        // 表单备注使用 formRemark 字段
+        // 审核意见使用 remark 字段，并在前端通过 audit_remark 显示
+        
         return result;
     }
 
@@ -183,7 +188,7 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         // 更新入库单
         inboundOrder.setAuditUser(auditUser);
         inboundOrder.setAuditTime(auditTime != null ? auditTime : new Date());
-        inboundOrder.setRemark(remark);
+        inboundOrder.setRemark(remark);  // 只更新审核意见，不影响表单备注
         inboundOrder.setUpdatedAt(new Date());
 
         // 根据审核结果更新状态

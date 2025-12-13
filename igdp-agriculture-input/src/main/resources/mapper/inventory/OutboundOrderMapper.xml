@@ -76,6 +76,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                      or oo.related_order_no like concat('%', #{params.keyword}, '%')
                      or w.warehouse_name like concat('%', #{params.keyword}, '%'))
             </if>
+            <if test="params.organCode != null and params.organCode != ''">
+                and w.organ_code = #{params.organCode}
+            </if>
         </where>
         order by oo.created_at desc
     </select>
