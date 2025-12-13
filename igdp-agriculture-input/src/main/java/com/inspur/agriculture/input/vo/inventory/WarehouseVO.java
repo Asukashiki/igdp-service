@@ -79,4 +79,16 @@ public class WarehouseVO {
     /** 修改时间 */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
+
+    /** 仓库归属部门名称 */
+    private String organName;
+
+    /** 仓库归属部门ID */
+    private String organCode;
+
+    /** 仓库面积 */
+    private java.math.BigDecimal warehouseArea;
+
+    /** 场地证明材料 */
+    private String siteCertificate;
 }

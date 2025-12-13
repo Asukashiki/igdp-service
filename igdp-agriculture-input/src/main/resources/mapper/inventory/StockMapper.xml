@@ -52,6 +52,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="params.maxQuantity != null">
                 and s.quantity &lt;= #{params.maxQuantity}
             </if>
+            <if test="params.organCode != null and params.organCode != ''">
+                and w.organ_code = #{params.organCode}
+            </if>
         </where>
         order by s.created_at desc
     </select>
