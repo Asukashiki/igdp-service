@@ -77,8 +77,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     private PubRegionMapper regionMapper;
 
 
-    private static final String STATUS_DRAFT = "DRAFT";
-    private static final String STATUS_REJECTED = "REJECTED";
+    private static final String STATUS_DRAFT = "0";
+    private static final String STATUS_REJECTED = "3";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
