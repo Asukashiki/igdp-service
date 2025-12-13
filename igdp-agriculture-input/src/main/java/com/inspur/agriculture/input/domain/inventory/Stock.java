@@ -44,6 +44,17 @@ public class Stock implements Serializable {
     private String materialBatchId;
 
     private String materialName;
+    
+    /**
+     * 投入品类型
+     */
+    private String materialType;
+    
+    /**
+     * 农资类型(投入品品类)
+     */
+    private String agriculturalInputType;
+
     /**
      * 库存数量
      */
