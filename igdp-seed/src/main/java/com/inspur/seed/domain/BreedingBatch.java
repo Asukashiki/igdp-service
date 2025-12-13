@@ -74,7 +74,21 @@ public class BreedingBatch extends BaseEntity {
     @TableField("year")
     private Integer year;
 
-    /** 批次状态 (not_approved/approved/ongoing/done) */
+    /** 
+     * 批次状态 
+     * 使用BreedingBatchStatusEnum枚举定义的状态码：
+     * S0: 草稿
+     * S1: 待审核
+     * S2: 审核通过
+     * S3: 审核驳回
+     * S4: 进行中
+     * S5: 暂停
+     * S6: 终止
+     * S7: 完成
+     * S8: 已归档
+     * S9: 已作废
+     * S10: 异常
+     */
     @TableField("status")
     private String status;
 
