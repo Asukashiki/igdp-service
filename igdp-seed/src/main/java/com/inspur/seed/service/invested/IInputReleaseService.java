@@ -67,4 +67,23 @@ public interface IInputReleaseService extends IService<InputReleaseMain> {
      * @return 是否成功
      */
     boolean removeRelease(List<String> ids);
+
+    /**
+     * 查询分发单出入库状态
+     *
+     * @param releaseIds 分发单编号集合
+     * @return Map<releaseId, stockStatus> 出入库状态映射
+     */
+    Map<String, String> queryStockStatus(List<String> releaseIds);
+
+    /**
+     * 查询可用库存（仓库库存 - 未入库分发单数量）
+     *
+     * @param inputType 投入品类型
+     * @param inputCategory 投入品类别
+     * @param organCode 组织编码
+     * @return 可用库存信息
+     */
+    Map<String, Object> queryAvailableStock(String inputType, String inputCategory, String organCode);
 }
+

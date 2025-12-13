@@ -116,4 +116,39 @@ public class InputReleaseController extends BaseController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    /**
+     * 查询分发单出入库状态
+     * @param releaseIds 逗号分隔的分发单ID列表
+     */
+    @GetMapping("/stockStatus")
+    public AjaxResult getStockStatus(@RequestParam String releaseIds) {
+        try {
+            List<String> idList = Arrays.asList(releaseIds.split(","));
+            Map<String, String> statusMap = releaseService.queryStockStatus(idList);
+            return AjaxResult.success("查询成功", statusMap);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 查询可用库存（仓库库存 - 未入库分发单数量）
+     * @param inputType 投入品类型
+     * @param inputCategory 投入品类别
+     * @param organCode 用户组织编码
+     */
+    @GetMapping("/availableStock")
+    public AjaxResult getAvailableStock(
+            @RequestParam String inputType,
+            @RequestParam(required = false) String inputCategory,
+            @RequestParam String organCode) {
+        try {
+            Map<String, Object> result = releaseService.queryAvailableStock(inputType, inputCategory, organCode);
+            return AjaxResult.success("查询成功", result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
 }
+
