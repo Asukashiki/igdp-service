@@ -194,6 +194,28 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     }
 
     @Override
+    public Map<String, Object> queryReleaseDetailByReleaseId(String releaseId) {
+        // 根据releaseId查询主表
+        LambdaQueryWrapper<InputReleaseMain> mainWrapper = new LambdaQueryWrapper<>();
+        mainWrapper.eq(InputReleaseMain::getReleaseId, releaseId);
+        InputReleaseMain main = getOne(mainWrapper);
+        if (main == null) {
+            throw new ServiceException("分发单不存在");
+        }
+
+        // 查询明细
+        LambdaQueryWrapper<InputReleaseDetail> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InputReleaseDetail::getReleaseId, releaseId);
+        wrapper.orderByAsc(InputReleaseDetail::getCreateTime);
+        List<InputReleaseDetail> details = detailMapper.selectList(wrapper);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("main", main);
+        result.put("details", details);
+        return result;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean removeRelease(List<String> ids) {
         for (String id : ids) {
@@ -250,24 +272,29 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
      */
     private void saveDetails(InputReleaseMain main, List<InputReleaseDetailDTO> detailDTOs) {
         for (InputReleaseDetailDTO detailDTO : detailDTOs) {
-            // 1、校验需求数量是否超过库存
-            // 1.1 根据投入品id获取库存总量
-            QueryWrapper<Stock> stockWrapper = new QueryWrapper<>();
-            stockWrapper.select("SUM(quantity) as quantity").lambda()
-                    .eq(Stock::getMaterialId, detailDTO.getInputId());
-            List<Stock> stocks = stockMapper.selectList(stockWrapper);
-            BigDecimal totalQuantity = BigDecimal.ZERO;
-            if (!stocks.isEmpty() && stocks.get(0) != null) {
-                totalQuantity = stocks.get(0).getQuantity();
-            }
             String inputId = detailDTO.getInputId();
-            // 1.2 获取相同投入品、未出库的分发单对应的需求量
-            BigDecimal requiredQuantity = inputReleaseMainMapper.getRequiredFromNotDeliveryInputRelease(inputId, main.getReleaseType());
+            
+            // 只有当 inputId 存在时才进行库存校验
+            if (StringUtils.isNotEmpty(inputId)) {
+                // 1、校验需求数量是否超过库存
+                // 1.1 根据投入品id获取库存总量
+                QueryWrapper<Stock> stockWrapper = new QueryWrapper<>();
+                stockWrapper.select("SUM(quantity) as quantity").lambda()
+                        .eq(Stock::getMaterialId, inputId);
+                List<Stock> stocks = stockMapper.selectList(stockWrapper);
+                BigDecimal totalQuantity = BigDecimal.ZERO;
+                if (!stocks.isEmpty() && stocks.get(0) != null) {
+                    totalQuantity = stocks.get(0).getQuantity();
+                }
+                // 1.2 获取相同投入品、未出库的分发单对应的需求量
+                BigDecimal requiredQuantity = inputReleaseMainMapper.getRequiredFromNotDeliveryInputRelease(inputId, main.getReleaseType());
 
-            // 1.3 以上二者相减，小于当前库存，则抛出异常，提示库存不足，重新输入需求数量
-            if (totalQuantity.subtract(requiredQuantity).compareTo(detailDTO.getRequired()) < 0) {
-                String inputName = agriInputMapper.selectById(inputId).getInputName();
-                throw new ServiceException("Insufficient inventory for input[" + inputName + "], required: " + detailDTO.getRequired() + ", available: " + totalQuantity + ", please reduce the required quantity");
+                // 1.3 以上二者相减，小于当前库存，则抛出异常，提示库存不足，重新输入需求数量
+                BigDecimal requiredAmount = detailDTO.getRequired() != null ? detailDTO.getRequired() : detailDTO.getQuantity();
+                if (requiredAmount != null && totalQuantity.subtract(requiredQuantity).compareTo(requiredAmount) < 0) {
+                    String inputName = agriInputMapper.selectById(inputId).getInputName();
+                    throw new ServiceException("Insufficient inventory for input[" + inputName + "], required: " + requiredAmount + ", available: " + totalQuantity + ", please reduce the required quantity");
+                }
             }
 
             // 2、保存表
@@ -281,7 +308,15 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             detail.setReleaseId(main.getReleaseId());
             detail.setCreateTime(LocalDateTime.now());
             detail.setReleaseTime(LocalDateTime.now());
-            detail.setInputId(Long.parseLong(detailDTO.getInputId()));
+            
+            // 设置 inputId（如果有）
+            if (StringUtils.isNotEmpty(inputId)) {
+                detail.setInputId(Long.parseLong(inputId));
+            }
+            
+            // 设置 inputType 和 inputCategory
+            detail.setInputType(detailDTO.getInputType());
+            detail.setInputCategory(detailDTO.getInputCategory());
 
             detailMapper.insert(detail);
         }

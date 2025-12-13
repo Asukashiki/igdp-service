@@ -91,6 +91,19 @@ public class InputReleaseController extends BaseController {
     }
 
     /**
+     * 根据releaseId查询分发单详情
+     */
+    @GetMapping("/detailByReleaseId/{releaseId}")
+    public AjaxResult getDetailByReleaseId(@PathVariable String releaseId) {
+        try {
+            Map<String, Object> detail = releaseService.queryReleaseDetailByReleaseId(releaseId);
+            return AjaxResult.success("查询成功", detail);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
      * 删除分发单
      */
     @DeleteMapping("/delete/{ids}")

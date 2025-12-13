@@ -53,6 +53,14 @@ public interface IInputReleaseService extends IService<InputReleaseMain> {
     Map<String, Object> queryReleaseDetail(String id);
 
     /**
+     * 根据releaseId查询分发单详情（包含明细）
+     *
+     * @param releaseId 分发单编号
+     * @return 分发单详情（包含main和details）
+     */
+    Map<String, Object> queryReleaseDetailByReleaseId(String releaseId);
+
+    /**
      * 删除分发单（主表+明细）
      *
      * @param ids 分发主表ID集合

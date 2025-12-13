@@ -72,6 +72,15 @@ public class InputReleaseUnionController extends BaseController {
     }
 
     /**
+     * 根据releaseId查询Union分发单详情
+     */
+    @GetMapping("/detailByReleaseId/{releaseId}")
+    public AjaxResult detailByReleaseId(@PathVariable String releaseId) {
+        Map<String, Object> result = releaseService.queryReleaseDetailByReleaseId(releaseId);
+        return AjaxResult.success(result);
+    }
+
+    /**
      * 删除Union分发单
      */
     @GetMapping("/delete/{ids}")
