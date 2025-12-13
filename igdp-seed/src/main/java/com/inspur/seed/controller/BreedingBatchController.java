@@ -33,9 +33,9 @@ public class BreedingBatchController extends BaseController {
     }
 
     /**
-     * 获取育种批次详情
+     * 获取育种批次详细信息
      */
-    @GetMapping("/getInfo")
+    @GetMapping(value = "/getInfo")
     public AjaxResult getInfo(@RequestParam("dataId") String dataId) {
         return AjaxResult.success(breedingBatchService.selectBreedingBatchById(dataId));
     }
@@ -72,5 +72,45 @@ public class BreedingBatchController extends BaseController {
     @GetMapping("/options")
     public AjaxResult getOptions() {
         return AjaxResult.success(breedingBatchService.selectBatchOptions());
+    }
+
+    /**
+     * 提交审核
+     */
+    @PostMapping("/submitAudit")
+    public AjaxResult submitAudit(@RequestBody BreedingBatch breedingBatch) {
+        return toAjax(breedingBatchService.submitAudit(breedingBatch.getDataId()));
+    }
+
+    /**
+     * 审核通过
+     */
+    @PostMapping("/approve")
+    public AjaxResult approve(@RequestBody BreedingBatch breedingBatch) {
+        return toAjax(breedingBatchService.approve(breedingBatch.getDataId()));
+    }
+
+    /**
+     * 审核驳回
+     */
+    @PostMapping("/reject")
+    public AjaxResult reject(@RequestBody BreedingBatch breedingBatch) {
+        return toAjax(breedingBatchService.reject(breedingBatch.getDataId()));
+    }
+
+    /**
+     * 归档
+     */
+    @PostMapping("/archive")
+    public AjaxResult archive(@RequestBody BreedingBatch breedingBatch) {
+        return toAjax(breedingBatchService.archive(breedingBatch.getDataId()));
+    }
+
+    /**
+     * 作废
+     */
+    @PostMapping("/cancel")
+    public AjaxResult cancel(@RequestBody BreedingBatch breedingBatch) {
+        return toAjax(breedingBatchService.cancel(breedingBatch.getDataId()));
     }
 }

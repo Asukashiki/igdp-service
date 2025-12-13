@@ -57,4 +57,44 @@ public interface IBreedingBatchService {
      * @return 育种批次列表
      */
     List<BreedingBatch> selectBatchOptions();
+
+    /**
+     * 提交审核
+     *
+     * @param dataId 数据ID
+     * @return 影响行数
+     */
+    int submitAudit(String dataId);
+
+    /**
+     * 审核通过
+     *
+     * @param dataId 数据ID
+     * @return 影响行数
+     */
+    int approve(String dataId);
+
+    /**
+     * 审核驳回
+     *
+     * @param dataId 数据ID
+     * @return 影响行数
+     */
+    int reject(String dataId);
+
+    /**
+     * 归档
+     *
+     * @param dataId 数据ID
+     * @return 影响行数
+     */
+    int archive(String dataId);
+
+    /**
+     * 作废
+     *
+     * @param dataId 数据ID
+     * @return 影响行数
+     */
+    int cancel(String dataId);
 }
