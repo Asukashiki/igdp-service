@@ -27,7 +27,8 @@ public interface DemandFarmerInputItemMapper extends BaseMapper<DemandFarmerInpu
             "    i.input_category AS inputCategory, " +  // 别名对应DTO属性名（驼峰命名）
             "    i.input_type AS inputType, " +
             "    COUNT(*) AS totalCount, " +
-            "    SUM(i.quantity) AS totalQuantity " +
+            "    SUM(i.quantity) AS totalQuantity, " +
+            "    d.farmer_name "+
             "FROM demand_farmer_input_item i, demand_farmer_detail d " +
             "WHERE " +
             "    i.demand_id = d.id " +

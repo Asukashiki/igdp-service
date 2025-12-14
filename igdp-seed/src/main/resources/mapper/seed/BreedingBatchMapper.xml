@@ -45,6 +45,9 @@
             <if test="varietyName != null and varietyName != ''">
                 AND variety_name like concat('%', #{varietyName}, '%')
             </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
         </where>
         order by create_time desc
     </select>

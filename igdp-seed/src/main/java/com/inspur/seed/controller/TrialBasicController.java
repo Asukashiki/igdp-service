@@ -73,4 +73,28 @@ public class TrialBasicController extends BaseController {
     public AjaxResult getOptions(@RequestParam(value = "batchId", required = false) String batchId) {
         return AjaxResult.success(trialBasicService.selectTrialOptions(batchId));
     }
+
+    /**
+     * 提交试验审核
+     */
+    @PostMapping("/submit/{trialId}")
+    public AjaxResult submit(@PathVariable("trialId") String trialId) {
+        return toAjax(trialBasicService.submitTrialForAudit(trialId));
+    }
+
+    /**
+     * 作废试验
+     */
+    @PostMapping("/cancel/{trialId}")
+    public AjaxResult cancel(@PathVariable("trialId") String trialId, @RequestParam("cancelReason") String cancelReason) {
+        return toAjax(trialBasicService.cancelTrial(trialId, cancelReason));
+    }
+
+    /**
+     * 归档试验
+     */
+    @PostMapping("/archive/{trialId}")
+    public AjaxResult archive(@PathVariable("trialId") String trialId) {
+        return toAjax(trialBasicService.archiveTrial(trialId));
+    }
 }

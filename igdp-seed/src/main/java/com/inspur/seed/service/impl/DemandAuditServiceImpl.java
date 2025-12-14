@@ -82,11 +82,11 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
 
 
                 // 2. Validate current user is the DA who created the demand
-                if (!currentUserId.equals(demand.getDaUserId())) {
-                    log.warn("User is not the creator of demand: {}", demandId);
-                    failCount++;
-                    continue;
-                }
+//                if (!currentUserId.equals(demand.getDaUserId())) {
+//                    log.warn("User is not the creator of demand: {}", demandId);
+//                    failCount++;
+//                    continue;
+//                }
 
                 // 3. Update demand status to submitted and set audit level to village
                 LambdaUpdateWrapper<DemandFarmerDetail> updateWrapper = new LambdaUpdateWrapper<>();

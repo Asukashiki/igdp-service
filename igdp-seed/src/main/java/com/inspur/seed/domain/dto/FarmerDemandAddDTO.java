@@ -97,6 +97,12 @@ public class FarmerDemandAddDTO {
      */
     private String remark;
 
+    private String daUserId;
+
+    private String daUserName;
+
+    private String createBy;
+
     /**
      * Input Items
      */

@@ -158,6 +158,8 @@ public class FarmerDemandDetailVO {
      */
     private List<AuditRecordVO> auditRecords;
 
+    private String year;
+
     @Data
     public static class InputItemVO {
         /**
@@ -244,6 +246,5 @@ public class FarmerDemandDetailVO {
          */
         private String auditOpinion;
 
-        private String year;
     }
 }

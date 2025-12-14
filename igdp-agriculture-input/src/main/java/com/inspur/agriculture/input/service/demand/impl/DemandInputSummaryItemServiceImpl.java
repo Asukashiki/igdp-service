@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -125,6 +127,20 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
         return demandInputSummaryItemMapper.delete(queryWrapper);
     }
 
+
+
+    @Override
+    public int updateDemandItemStatus(String summaryId){
+        // 将指定汇总ID下的所有明细状态更新为“成功”（状态码：1）
+        DemandInputSummaryItem entity = new DemandInputSummaryItem();
+        entity.setStatus("1");
+
+        QueryWrapper<DemandInputSummaryItem> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("summary_id", summaryId);
+
+        return demandInputSummaryItemMapper.update(entity, queryWrapper);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int batchDeleteDemandInputSummaryItem(List<String> ids) {
@@ -175,6 +191,17 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
 
     @Override
     public List<InputAggregationSummaryVO> getInputAggregation(DemandOrganDTO demandOrganDTO) {
+        // 1. 获取当前日期，提取年份
+//        int currentYear = Integer.parseInt(demandOrganDTO.getYear());
+//
+//        // 2. 构造开始日期（当年1月1日）和结束日期（下一年1月1日）
+//        String startDate = currentYear + "-01-01";
+//        String endDate = (currentYear + 1) + "-01-01";
+//
+//        // 3. 将日期设置到DTO中，传递给Mapper
+//        demandOrganDTO.setStartDate(Date.valueOf(startDate));
+//        demandOrganDTO.setEndDate(Date.valueOf(endDate));
+
         return demandInputSummaryItemMapper.getInputAggregation(demandOrganDTO);
     }
 }
