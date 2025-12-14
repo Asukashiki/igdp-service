@@ -469,7 +469,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     }
 
     @Override
-    public List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId) {
+    public List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId, String year) {
         if (StrUtil.isBlank(farmerId)) {
             return new ArrayList<>();
         }
@@ -482,6 +482,11 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         wrapper.in(DemandFarmerDetail::getStatus,
             DemandStatusEnum.APPROVED.getCode(),
             DemandStatusEnum.SUBMITTED.getCode());
+        
+        // 按年度过滤
+        if (StrUtil.isNotBlank(year)) {
+            wrapper.eq(DemandFarmerDetail::getYear, year);
+        }
 
         List<DemandFarmerDetail> demands = this.list(wrapper);
         if (demands.isEmpty()) {
