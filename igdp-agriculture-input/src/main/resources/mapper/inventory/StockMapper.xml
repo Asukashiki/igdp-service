@@ -21,15 +21,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="materialName" column="material_name"/>
         <result property="materialType" column="material_type"/>
         <result property="agriculturalInputType" column="agricultural_input_type"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="variety" column="variety"/>
     </resultMap>
 
     <sql id="selectStockVo">
         select s.id, s.warehouse_id, w.warehouse_name,
-               s.material_id, s.material_batch_id,s.material_name,
+               s.material_id, s.material_batch_id, s.material_name,
                s.quantity, s.inbound_quantity, s.outbound_quantity,
                s.expiry_date, s.qr_code, s.status,
                s.created_at, s.updated_at,
-               iod.material_type, iod.agricultural_input_type, iod.variety
+               iod.material_type, iod.agricultural_input_type, iod.variety, iod.batch_no
         from stock s
         left join inv_warehouse w on s.warehouse_id = w.warehouse_id and w.del_flag = '0'
         left join inbound_order_detail iod on s.material_batch_id = iod.batch_no

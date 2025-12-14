@@ -42,9 +42,9 @@ public class Stock implements Serializable {
      * 投入品批次ID
      */
     private String materialBatchId;
-
-    private String materialName;
     
+    private String materialName;
+
     /**
      * 投入品类型
      */
@@ -97,4 +97,8 @@ public class Stock implements Serializable {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updatedAt;
+    
+    // 为了兼容之前的查询结果，添加一些额外的字段
+    private String batchNo;
+    private String variety;
 }

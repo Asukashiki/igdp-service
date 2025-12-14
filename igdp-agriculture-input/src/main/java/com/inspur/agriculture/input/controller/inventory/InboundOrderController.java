@@ -213,9 +213,9 @@ public class InboundOrderController {
                     dto.getOperator()
             );
 
-            return AjaxResult.success("入库成功", result);
+            return AjaxResult.success("Successful entry into the warehouse", result);
         } catch (Exception e) {
-            return AjaxResult.error("执行入库失败: " + e.getMessage());
+            return AjaxResult.error("The entry into the warehouse failed: " + e.getMessage());
         }
     }
 
