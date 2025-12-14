@@ -20,6 +20,9 @@ public class InboundOrderQueryDTO {
     /** 入库单ID */
     private String inboundOrderId;
 
+    /** 部门编码(用于权限过滤) */
+    private String organCode;
+
     /** 页码 */
     private Integer page;
 

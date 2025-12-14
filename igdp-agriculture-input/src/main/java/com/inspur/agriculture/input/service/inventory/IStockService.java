@@ -129,10 +129,10 @@ public interface IStockService {
     List<Stock> selectAvailableStockFIFO(String warehouseId, String materialId, BigDecimal quantity);
 
     /**
-     * 查询库存变动日志
+     * 查询库存变动日志列表
      *
      * @param params 查询条件
-     * @return 日志列表
+     * @return 库存变动日志列表
      */
     List<Map<String, Object>> selectStockLogList(Map<String, Object> params);
 
@@ -145,4 +145,12 @@ public interface IStockService {
      * @return 是否充足
      */
     boolean checkStockSufficient(String warehouseId, String materialId, BigDecimal quantity);
+
+    /**
+     * 按投入品类型和投入品品类统计库存合计
+     *
+     * @param params 查询条件
+     * @return 合计统计列表
+     */
+    List<Map<String, Object>> selectStockSummary(Map<String, Object> params);
 }

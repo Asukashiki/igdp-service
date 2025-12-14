@@ -190,4 +190,54 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
 //            }
 //        }
     }
+
+    @Override
+    public int submitAudit(String dataId) {
+        BreedingBatch batch = new BreedingBatch();
+        batch.setDataId(dataId);
+        batch.setStatus("S1"); // 设置为待审核状态
+        batch.setUpdateTime(LocalDateTime.now());
+        batch.setUpdateBy(SecurityUtils.getUsername());
+        return breedingBatchMapper.updateById(batch);
+    }
+
+    @Override
+    public int approve(String dataId) {
+        BreedingBatch batch = new BreedingBatch();
+        batch.setDataId(dataId);
+        batch.setStatus("S2"); // 设置为审核通过状态
+        batch.setUpdateTime(LocalDateTime.now());
+        batch.setUpdateBy(SecurityUtils.getUsername());
+        return breedingBatchMapper.updateById(batch);
+    }
+
+    @Override
+    public int reject(String dataId) {
+        BreedingBatch batch = new BreedingBatch();
+        batch.setDataId(dataId);
+        batch.setStatus("S3"); // 设置为审核驳回状态
+        batch.setUpdateTime(LocalDateTime.now());
+        batch.setUpdateBy(SecurityUtils.getUsername());
+        return breedingBatchMapper.updateById(batch);
+    }
+
+    @Override
+    public int archive(String dataId) {
+        BreedingBatch batch = new BreedingBatch();
+        batch.setDataId(dataId);
+        batch.setStatus("S9"); // 设置为已归档状态
+        batch.setUpdateTime(LocalDateTime.now());
+        batch.setUpdateBy(SecurityUtils.getUsername());
+        return breedingBatchMapper.updateById(batch);
+    }
+
+    @Override
+    public int cancel(String dataId) {
+        BreedingBatch batch = new BreedingBatch();
+        batch.setDataId(dataId);
+        batch.setStatus("S10"); // 设置为已作废状态
+        batch.setUpdateTime(LocalDateTime.now());
+        batch.setUpdateBy(SecurityUtils.getUsername());
+        return breedingBatchMapper.updateById(batch);
+    }
 }

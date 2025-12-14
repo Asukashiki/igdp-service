@@ -28,4 +28,7 @@ public class WarehouseQueryDTO {
 
     /** 关键词搜索 */
     private String keyword;
+
+    /** 部门编码(用于权限过滤) */
+    private String organCode;
 }

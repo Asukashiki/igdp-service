@@ -77,6 +77,16 @@ public class FarmerDemandController {
     }
 
     /**
+     * Get farmer demand list by farmerId
+     * Returns list of demand items for a specific farmer
+     */
+    @GetMapping("/getByFarmerId")
+    public AjaxResult getByFarmerId(@RequestParam String farmerId) {
+        List<FarmerInputAggregationVO> list = farmerDemandService.getDemandByFarmerId(farmerId);
+        return AjaxResult.success(list);
+    }
+
+    /**
      * Get aggregated statistics of farmer input items
      * Returns aggregated data grouped by input category and type
      */

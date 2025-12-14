@@ -73,4 +73,88 @@ public class TrialBasic extends BaseEntity {
     @TableLogic
     @TableField("is_deleted")
     private Integer isDeleted;
+
+    /** 试验状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废) */
+    @TableField("trial_status")
+    private String trialStatus;
+
+    /** 创建人ID */
+    @TableField("created_by")
+    private String createdBy;
+
+    /** 创建人姓名 */
+    @TableField("created_name")
+    private String createdName;
+
+    /** 修改人ID */
+    @TableField("modified_by")
+    private String modifiedBy;
+
+    /** 修改人姓名 */
+    @TableField("modified_name")
+    private String modifiedName;
+
+    /** 审批人ID */
+    @TableField("approved_by")
+    private String approvedBy;
+
+    /** 审批人姓名 */
+    @TableField("approved_name")
+    private String approvedName;
+
+    /** 审批时间 */
+    @TableField("approved_time")
+    private java.time.LocalDateTime approvedTime;
+
+    /** 提交人ID */
+    @TableField("submitted_by")
+    private String submittedBy;
+
+    /** 提交人姓名 */
+    @TableField("submitted_name")
+    private String submittedName;
+
+    /** 提交时间 */
+    @TableField("submitted_time")
+    private java.time.LocalDateTime submittedTime;
+
+    /** 退回人ID */
+    @TableField("rejected_by")
+    private String rejectedBy;
+
+    /** 退回人姓名 */
+    @TableField("rejected_name")
+    private String rejectedName;
+
+    /** 退回时间 */
+    @TableField("rejected_time")
+    private java.time.LocalDateTime rejectedTime;
+
+    /** 归档人ID */
+    @TableField("archived_by")
+    private String archivedBy;
+
+    /** 归档人姓名 */
+    @TableField("archived_name")
+    private String archivedName;
+
+    /** 归档时间 */
+    @TableField("archived_time")
+    private java.time.LocalDateTime archivedTime;
+
+    /** 作废人ID */
+    @TableField("cancelled_by")
+    private String cancelledBy;
+
+    /** 作废人姓名 */
+    @TableField("cancelled_name")
+    private String cancelledName;
+
+    /** 作废时间 */
+    @TableField("cancelled_time")
+    private java.time.LocalDateTime cancelledTime;
+
+    /** 作废原因 */
+    @TableField("cancel_reason")
+    private String cancelReason;
 }

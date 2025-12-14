@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.allocation.AllocationQuotaMapper">
+
+    <!-- Result map for ZoneAllocationQuota -->
+    <resultMap id="ZoneAllocationQuotaResultMap" type="com.inspur.agriculture.input.domain.allocation.entity.AllocationQuota">
+        <id column="id" property="id"/>
+        <result column="allocation_id" property="allocationId"/>
+        <result column="input_type" property="inputType"/>
+        <result column="input_category" property="inputCategory"/>
+        <result column="total_quantity" property="totalQuantity"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- Get quota list by allocation ID -->
+    <select id="selectByAllocationId" resultMap="ZoneAllocationQuotaResultMap">
+        SELECT
+            id,
+            allocation_id,
+            input_type,
+            input_category,
+            total_quantity,
+            create_time,
+            update_time
+        FROM t_zone_allocation_quota
+        WHERE allocation_id = #{allocationId}
+        ORDER BY create_time ASC
+    </select>
+
+    <!-- Delete quota items by allocation ID -->
+    <delete id="deleteByAllocationId">
+        DELETE FROM t_zone_allocation_quota
+        WHERE allocation_id = #{allocationId}
+    </delete>
+</mapper>

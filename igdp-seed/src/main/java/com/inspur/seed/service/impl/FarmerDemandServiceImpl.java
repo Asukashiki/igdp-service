@@ -204,7 +204,6 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 2. 转换主表VO（原有逻辑不变）
         FarmerDemandDetailVO vo = BeanUtil.copyProperties(demand, FarmerDemandDetailVO.class);
-
         DemandCollectionBatch batch = batchMapper.selectById(demand.getBatchId());
         if (batch != null) {
             vo.setBatchNo(batch.getBatchNo());
@@ -467,5 +466,59 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             return null;
         }
         return landArea.multiply(new BigDecimal("200"));
+    }
+
+    @Override
+    public List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId) {
+        if (StrUtil.isBlank(farmerId)) {
+            return new ArrayList<>();
+        }
+
+        // 1. 查询该农民的需求记录
+        LambdaQueryWrapper<DemandFarmerDetail> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DemandFarmerDetail::getFarmerId, farmerId);
+        wrapper.eq(DemandFarmerDetail::getIsDeleted, 0);
+        // 只查询已通过审核的需求
+        wrapper.in(DemandFarmerDetail::getStatus,
+            DemandStatusEnum.APPROVED.getCode(),
+            DemandStatusEnum.SUBMITTED.getCode());
+
+        List<DemandFarmerDetail> demands = this.list(wrapper);
+        if (demands.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 2. 获取所有需求ID
+        List<String> demandIds = demands.stream()
+            .map(DemandFarmerDetail::getId)
+            .collect(Collectors.toList());
+
+        // 3. 查询所有投入品明细
+        LambdaQueryWrapper<DemandFarmerInputItem> itemWrapper = new LambdaQueryWrapper<>();
+        itemWrapper.in(DemandFarmerInputItem::getDemandId, demandIds);
+        itemWrapper.eq(DemandFarmerInputItem::getIsDeleted, 0);
+        List<DemandFarmerInputItem> inputItems = inputItemMapper.selectList(itemWrapper);
+
+        // 4. 按 inputType 和 inputCategory 汇总
+        return inputItems.stream()
+            .collect(Collectors.groupingBy(
+                item -> item.getInputType() + "|" + item.getInputCategory(),
+                Collectors.reducing(
+                    BigDecimal.ZERO,
+                    DemandFarmerInputItem::getQuantity,
+                    BigDecimal::add
+                )
+            ))
+            .entrySet().stream()
+            .map(entry -> {
+                String[] keys = entry.getKey().split("\\|");
+                FarmerInputAggregationVO vo = new FarmerInputAggregationVO();
+                vo.setInputType(keys[0]);
+                vo.setInputCategory(keys.length > 1 ? keys[1] : "");
+                vo.setTotalQuantity(entry.getValue());
+                vo.setTotalCount(1); // 简化处理
+                return vo;
+            })
+            .collect(Collectors.toList());
     }
 }

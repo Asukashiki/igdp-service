@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.allocation.AllocationMapper">
+
+    <!-- Result map for ZoneAllocation -->
+    <resultMap id="ZoneAllocationResultMap" type="com.inspur.agriculture.input.domain.allocation.entity.Allocation">
+        <id column="id" property="id"/>
+        <result column="allocation_name" property="allocationName"/>
+        <result column="year" property="year"/>
+        <result column="zone" property="zone"/>
+        <result column="zone_name" property="zoneName"/>
+        <result column="level" property="level"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- Result map for ZoneAllocationVO -->
+    <resultMap id="ZoneAllocationVOResultMap" type="com.inspur.agriculture.input.domain.allocation.vo.AllocationVO">
+        <id column="id" property="id"/>
+        <result column="allocation_name" property="allocationName"/>
+        <result column="year" property="year"/>
+        <result column="zone" property="zone"/>
+        <result column="zone_name" property="zoneName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- Page query zone allocation with associated data -->
+    <select id="selectPageWithDetail" resultMap="ZoneAllocationVOResultMap">
+        SELECT
+            id,
+            allocation_name,
+            year,
+            zone,
+            zone_name,
+            create_time,
+            update_time
+        FROM t_zone_allocation
+        <where>
+            <if test="allocationName != null and allocationName != ''">
+                AND allocation_name LIKE CONCAT('%', #{allocationName}, '%')
+            </if>
+            <if test="year != null and year != ''">
+                AND year = #{year}
+            </if>
+            <if test="zone != null and zone != ''">
+                AND zone = #{zone}
+            </if>
+            <if test="level != null and level != ''">
+                AND level = #{level}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- Get zone allocation detail by ID -->
+    <select id="selectDetailById" resultMap="ZoneAllocationVOResultMap">
+        SELECT
+            id,
+            allocation_name,
+            year,
+            zone,
+            zone_name,
+            create_time,
+            update_time
+        FROM t_zone_allocation
+        WHERE id = #{id}
+    </select>
+</mapper>

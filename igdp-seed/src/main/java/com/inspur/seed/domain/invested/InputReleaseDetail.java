@@ -54,6 +54,16 @@ public class InputReleaseDetail extends BaseEntity {
     private Long inputId;
 
     /**
+     * 投入品类型
+     */
+    private String inputType;
+
+    /**
+     * 投入品类别
+     */
+    private String inputCategory;
+
+    /**
      * 需求数量
      */
     private BigDecimal required;

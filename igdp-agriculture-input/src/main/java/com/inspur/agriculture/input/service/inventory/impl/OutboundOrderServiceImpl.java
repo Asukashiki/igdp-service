@@ -112,6 +112,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             detailEntity.setMaterialType(detail.get("materialType").toString());
             detailEntity.setMaterialName(detail.get("materialName").toString());
             detailEntity.setMaterialBatchId(detail.get("materialBatchId") != null ? detail.get("materialBatchId").toString() : null);
+            detailEntity.setAgriculturalInputType(detail.get("agriculturalInputType") != null ? detail.get("agriculturalInputType").toString() : null);
             detailEntity.setQuantity(new BigDecimal(detail.get("quantity").toString()));
             detailEntity.setSpecModel(detail.get("specModel") != null ? detail.get("specModel").toString() : null);
             detailEntity.setUnitOfMeasure(detail.get("unitOfMeasure") != null ? detail.get("unitOfMeasure").toString() : null);
@@ -324,10 +325,10 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         }
 
         // 校验状态（必须是已审核状态）
-        if (!"approved".equals(outboundOrder.getOutboundStatus())) {
+   /*     if (!"approved".equals(outboundOrder.getOutboundStatus())) {
             throw new ServiceException("只有已审核的出库单才能执行出库");
         }
-
+*/
         // 校验仓库
         Warehouse warehouse = warehouseMapper.selectById(Long.valueOf(outboundOrder.getWarehouseId()));
         if (warehouse == null) {
@@ -390,13 +391,13 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         boolean autoApproved = false; // 是否自动审核通过
 
         // 判断是否需要创建入库单（所有出库类型都需要）
-        if (outboundOrder.getOutboundType() != null) {
+        if (outboundOrder.getOutboundType() != null && StringUtils.isNotBlank(outboundOrder.getOutboundObjectId()) && !"CUSTOMER_DEFAULT".equals(outboundOrder.getOutboundObjectId())) {
             try {
                 // 校验目标仓库ID
-                if (StringUtils.isEmpty(outboundOrder.getOutboundObjectId())) {
+              /*  if (StringUtils.isEmpty(outboundOrder.getOutboundObjectId())) {
                     throw new ServiceException("出库对象ID不能为空");
                 }
-
+*/
                 // 确定入库类型和入库仓库
                 Integer inboundType;
                 String targetWarehouseId;
@@ -512,19 +513,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         result.put("outbound_order_id", outboundOrderId);
         result.put("updated_stock", updatedStock);
         result.put("batch_splits", batchSplits);
-
-        // 返回生成的入库单ID
-        if (inboundOrderId != null) {
-            result.put("inbound_order_id", inboundOrderId);
-            result.put("auto_approved", autoApproved);
-            if (autoApproved) {
-                result.put("transfer_success", true);
-                result.put("transfer_message", "调拨入库单已自动创建并完成入库");
-            } else {
-                result.put("transfer_success", false);
-                result.put("transfer_message", "关联入库单已创建，等待审核");
-            }
-        }
+        result.put("message", "出库单确认完成");
 
         return result;
     }

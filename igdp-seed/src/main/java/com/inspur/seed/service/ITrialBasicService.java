@@ -58,4 +58,29 @@ public interface ITrialBasicService {
      * @return 试验列表
      */
     List<TrialBasic> selectTrialOptions(String batchId);
+
+    /**
+     * 提交试验审核
+     *
+     * @param trialId 试验ID
+     * @return 是否成功
+     */
+    boolean submitTrialForAudit(String trialId);
+
+    /**
+     * 作废试验
+     *
+     * @param trialId 试验ID
+     * @param cancelReason 作废原因
+     * @return 是否成功
+     */
+    boolean cancelTrial(String trialId, String cancelReason);
+
+    /**
+     * 归档试验
+     *
+     * @param trialId 试验ID
+     * @return 是否成功
+     */
+    boolean archiveTrial(String trialId);
 }
