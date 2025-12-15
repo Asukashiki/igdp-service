@@ -37,7 +37,11 @@ public class FarmerDemandController {
         String demandId = farmerDemandService.addFarmerDemand(dto);
         Map<String, String> result = new HashMap<>();
         result.put("id", demandId);
-        return AjaxResult.success("Operation successful", result);
+        if (demandId == "1"){
+            return AjaxResult.error("Farmer demand already exists for the current year");
+        }else{
+            return AjaxResult.success("Operation successful", result);
+        }
     }
 
     /**

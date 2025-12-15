@@ -24,6 +24,8 @@ public interface DemandInputSummaryMapper extends BaseMapper<DemandInputSummary>
      */
     List<DemandInputSummaryVO> selectDemandInputSummaryList(@Param("query") DemandInputSummaryQueryDTO query);
 
+    List<DemandInputSummaryVO> selectDemandInputSummaryList1(@Param("query") DemandInputSummaryQueryDTO query);
+
     /**
      * 根据ID查询农资需求汇总详情
      *
