@@ -98,7 +98,9 @@ public class Stock implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updatedAt;
     
-    // 为了兼容之前的查询结果，添加一些额外的字段
+    // 为了兼容之前的查询结果，添加一些额外的字段（非数据库字段）
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String batchNo;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String variety;
 }

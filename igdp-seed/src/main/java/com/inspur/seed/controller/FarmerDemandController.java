@@ -37,7 +37,11 @@ public class FarmerDemandController {
         String demandId = farmerDemandService.addFarmerDemand(dto);
         Map<String, String> result = new HashMap<>();
         result.put("id", demandId);
-        return AjaxResult.success("Operation successful", result);
+        if (demandId == "1"){
+            return AjaxResult.error("Farmer demand already exists for the current year");
+        }else{
+            return AjaxResult.success("Operation successful", result);
+        }
     }
 
     /**
@@ -79,10 +83,13 @@ public class FarmerDemandController {
     /**
      * Get farmer demand list by farmerId
      * Returns list of demand items for a specific farmer
+     * @param farmerId farmer id
+     * @param year optional year filter
      */
     @GetMapping("/getByFarmerId")
-    public AjaxResult getByFarmerId(@RequestParam String farmerId) {
-        List<FarmerInputAggregationVO> list = farmerDemandService.getDemandByFarmerId(farmerId);
+    public AjaxResult getByFarmerId(@RequestParam String farmerId,
+                                    @RequestParam(required = false) String year) {
+        List<FarmerInputAggregationVO> list = farmerDemandService.getDemandByFarmerId(farmerId, year);
         return AjaxResult.success(list);
     }
 

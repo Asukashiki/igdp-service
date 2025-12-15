@@ -3,6 +3,7 @@ package com.inspur.seed.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -83,6 +84,17 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String addFarmerDemand(FarmerDemandAddDTO dto) {
+
+        // 判断该农民当年需求是否已经存在
+        QueryWrapper<DemandFarmerDetail> query = new QueryWrapper<>();
+        query.eq("year",dto.getYear());
+        query.eq("farmer_id",dto.getFarmerId());
+        List<DemandFarmerDetail> currentDetail = super.baseMapper.selectList(query);
+        if(currentDetail.size()>0){
+            return "1";
+        }
+
+
         // 根据当前年份自动获取或创建批次
         int currentYear = java.time.Year.now().getValue();
         DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(currentYear);
@@ -469,7 +481,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     }
 
     @Override
-    public List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId) {
+    public List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId, String year) {
         if (StrUtil.isBlank(farmerId)) {
             return new ArrayList<>();
         }
@@ -482,6 +494,11 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         wrapper.in(DemandFarmerDetail::getStatus,
             DemandStatusEnum.APPROVED.getCode(),
             DemandStatusEnum.SUBMITTED.getCode());
+
+        // 按年度过滤
+        if (StrUtil.isNotBlank(year)) {
+            wrapper.eq(DemandFarmerDetail::getYear, year);
+        }
 
         List<DemandFarmerDetail> demands = this.list(wrapper);
         if (demands.isEmpty()) {

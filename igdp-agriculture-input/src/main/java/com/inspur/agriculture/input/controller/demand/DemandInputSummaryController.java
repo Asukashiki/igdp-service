@@ -54,6 +54,29 @@ public class DemandInputSummaryController {
         }
     }
 
+    @GetMapping("/listSub")
+    public AjaxResult listSub(
+            DemandInputSummaryQueryDTO queryDTO,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        try {
+            PageHelper.startPage(page, pageSize);
+            List<DemandInputSummaryVO> list = demandInputSummaryService.getDemandInputSummaryList1(queryDTO);
+            PageInfo<DemandInputSummaryVO> pageInfo = new PageInfo<>(list);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", pageInfo.getList());
+            result.put("total", pageInfo.getTotal());
+            result.put("page", pageInfo.getPageNum());
+            result.put("pageSize", pageInfo.getPageSize());
+
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
     /**
      * 查询农资需求汇总详情
      */
@@ -100,6 +123,11 @@ public class DemandInputSummaryController {
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }
+    }
+
+    @GetMapping("/distributeTask")
+    public AjaxResult distributeTask(String year){
+        return AjaxResult.success(demandInputSummaryService.createAllMainTask(year));
     }
 
 }
