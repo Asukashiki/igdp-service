@@ -63,4 +63,12 @@ public interface IInputReleaseFarmerService extends IService<InputReleaseFarmerM
      * @return 是否成功
      */
     boolean removeRelease(List<String> ids);
+
+    /**
+     * 确认农民领用
+     *
+     * @param id 分发单ID
+     * @return 是否成功
+     */
+    boolean confirmReceive(String id);
 }
