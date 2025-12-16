@@ -21,8 +21,16 @@
         <result property="plotAreaM2" column="plot_area_m2"/>
         <result property="gpsLat" column="gps_lat"/>
         <result property="gpsLong" column="gps_long"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdName" column="created_name"/>
         <result property="createTime" column="create_time"/>
+        <result property="modifiedBy" column="modified_by"/>
+        <result property="modifiedName" column="modified_name"/>
         <result property="updateTime" column="update_time"/>
+        <result property="auditedBy" column="audited_by"/>
+        <result property="auditedName" column="audited_name"/>
+        <result property="auditTime" column="audit_time"/>
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
@@ -34,7 +42,10 @@
                p.variety_code, p.sowing_date, p.seed_quantity, p.sowing_method, p.sowing_time,
                p.region, p.zone, p.woreda, p.kebele,
                p.plot_area_m2, p.gps_lat, p.gps_long,
-               p.create_time, p.update_time, p.create_by, p.update_by, p.is_deleted
+               p.audit_status, p.created_by, p.created_name, p.create_time, 
+               p.modified_by, p.modified_name, p.update_time,
+               p.audited_by, p.audited_name, p.audit_time,
+               p.create_by, p.update_by, p.is_deleted
         from plot_info p
 
     </sql>

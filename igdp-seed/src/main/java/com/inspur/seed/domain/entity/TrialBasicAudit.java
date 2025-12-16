@@ -58,9 +58,9 @@ public class TrialBasicAudit implements Serializable {
     private Integer auditOrder;
 
     /**
-     * 审核状态(S1=待审核,S2=已通过,S3=已退回)
+     * 审核/流程状态(S1=待审核,S2=已通过,S3=已退回)
      */
-    @TableField("audit_status")
+    @TableField("workflow_status")
     private String auditStatus;
 
     /**
