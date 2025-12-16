@@ -72,7 +72,7 @@ public class BreedingYieldData {
     private String recorderName;
 
     /**
-     * 状态:1有效0无效
+     * 业务状态：submit/approve 等
      */
     private String status;
 
@@ -110,6 +110,21 @@ public class BreedingYieldData {
      * 更新时间
      */
     private LocalDateTime updatedTime;
+
+    /**
+     * 审核人
+     */
+    private String auditBy;
+
+    /**
+     * 审核时间
+     */
+    private LocalDateTime auditTime;
+
+    /**
+     * 流程审核状态（字典 flow_status）
+     */
+    private String workflowStatus;
 
     /**
      * 备注
