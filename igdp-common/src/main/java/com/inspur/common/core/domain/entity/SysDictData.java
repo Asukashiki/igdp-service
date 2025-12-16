@@ -45,8 +45,8 @@ public class SysDictData extends BaseEntity {
      * 字典标签
      */
     @Excel(name = "字典标签")
-    @NotBlank(message = "字典标签不能为空")
-    @Size(min = 0, max = 100, message = "字典标签长度不能超过100个字符")
+    @NotBlank(message = "Dictionary label cannot be empty")
+    @Size(min = 0, max = 100, message = "Dictionary label length cannot exceed 100 characters")
     private String dictLabel;
 
     /**
@@ -61,22 +61,22 @@ public class SysDictData extends BaseEntity {
      * 字典键值
      */
     @Excel(name = "字典键值")
-    @NotBlank(message = "字典键值不能为空")
-    @Size(min = 0, max = 100, message = "字典键值长度不能超过100个字符")
+    @NotBlank(message = "Dictionary key cannot be empty")
+    @Size(min = 0, max = 100, message = "Dictionary key length cannot exceed 100 characters")
     private String dictValue;
 
     /**
      * 字典类型
      */
     @Excel(name = "字典类型")
-    @NotBlank(message = "字典类型不能为空")
-    @Size(min = 0, max = 100, message = "字典类型长度不能超过100个字符")
+    @NotBlank(message = "Dictionary type cannot be empty")
+    @Size(min = 0, max = 100, message = "Dictionary type length cannot exceed 100 characters")
     private String dictType;
 
     /**
      * 样式属性（其他样式扩展）
      */
-    @Size(min = 0, max = 100, message = "样式属性长度不能超过100个字符")
+    @Size(min = 0, max = 100, message = "Style property length cannot exceed 100 characters")
     private String cssClass;
 
     /**
@@ -100,6 +100,13 @@ public class SysDictData extends BaseEntity {
      * 备注
      */
     private String remark;
+
+    /**
+     * 实际值
+     */
+    @Excel(name = "实际值")
+    @Size(min = 0, max = 200, message = "Actual value length cannot exceed 200 characters")
+    private String actualValue;
 
     public static final String STATUS_VALID = "0";
     public static final String STATUS_INVALID = "1";

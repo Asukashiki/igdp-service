@@ -82,11 +82,11 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
 
 
                 // 2. Validate current user is the DA who created the demand
-                if (!currentUserId.equals(demand.getDaUserId())) {
-                    log.warn("User is not the creator of demand: {}", demandId);
-                    failCount++;
-                    continue;
-                }
+//                if (!currentUserId.equals(demand.getDaUserId())) {
+//                    log.warn("User is not the creator of demand: {}", demandId);
+//                    failCount++;
+//                    continue;
+//                }
 
                 // 3. Update demand status to submitted and set audit level to village
                 LambdaUpdateWrapper<DemandFarmerDetail> updateWrapper = new LambdaUpdateWrapper<>();
@@ -202,7 +202,6 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
         // 2. Query page
         Page<DemandFarmerDetail> page = new Page<>(dto.getPageNum(), dto.getPageSize());
         Page<DemandFarmerDetail> resultPage = demandDetailMapper.selectPage(page, wrapper);
-
         // 3. Convert to VO
         Page<DemandPendingPageVO> voPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
         List<DemandPendingPageVO> voList = resultPage.getRecords().stream().map(demand -> {

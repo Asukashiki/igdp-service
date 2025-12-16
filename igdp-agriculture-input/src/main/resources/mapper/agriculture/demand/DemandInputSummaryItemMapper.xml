@@ -103,12 +103,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             input_type AS inputType,
             COUNT(*) AS totalCount,
             SUM(total_quantity) AS totalQuantity
-        FROM demand_input_summary_item
-        WHERE target_code = #{query.sourceCode}
-          AND status = '1'
-          AND created_time >= '2025-01-01'
-          AND created_time &lt; '2026-01-01'
-        GROUP BY input_category, input_type
+        FROM demand_input_summary_item i INNER JOIN demand_input_summary s
+        ON i.summary_id = s.id COLLATE utf8mb4_unicode_ci
+        WHERE s.year = #{query.year}
+        AND i.target_code = #{query.sourceCode}
+        AND i.status = '1'
+
+        GROUP BY i.input_category, i.input_type
     </select>
 
 </mapper>

@@ -61,6 +61,9 @@ public class StockInItem implements Serializable {
     /** 删除标志: 0-正常/2-删除 */
     private String delFlag;
 
+    /** 生产批次 */
+    private String productionBatchNo;
+
     /** 投入品名称(非数据库字段) */
     @TableField(exist = false)
     private String inputName;

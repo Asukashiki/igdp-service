@@ -197,4 +197,15 @@ public class InputReleaseFarmerServiceImpl extends ServiceImpl<InputReleaseFarme
             detailMapper.insert(detail);
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean confirmReceive(String id) {
+        InputReleaseFarmerMain main = getById(id);
+        if (main == null) {
+            return false;
+        }
+        main.setReceiveStatus("received");
+        return updateById(main);
+    }
 }

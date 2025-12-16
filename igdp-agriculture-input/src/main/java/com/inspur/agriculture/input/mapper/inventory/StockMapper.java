@@ -147,6 +147,14 @@ public interface StockMapper extends BaseMapper<Stock> {
      * @return 库存
      */
     Stock selectByBatchForUpdate(@Param("warehouseId") String warehouseId,
-                                   @Param("materialId") String materialId,
-                                   @Param("materialBatchId") String materialBatchId);
+                                  @Param("materialId") String materialId,
+                                  @Param("materialBatchId") String materialBatchId);
+
+    /**
+     * 按投入品类型和投入品品类统计库存合计
+     *
+     * @param params 查询条件
+     * @return 合计统计列表
+     */
+    List<Map<String, Object>> selectStockSummary(@Param("params") Map<String, Object> params);
 }

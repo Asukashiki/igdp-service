@@ -29,6 +29,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select si.stock_in_id, si.warehouse_id, w.warehouse_name,
                si.batch_no, si.operator, si.supplier_id,
                sc.org_name as supplier_name,
+               sc.contact_name as supplier_contact,
+               sc.contact_phone as supplier_phone,
                si.type,
                CASE si.type WHEN '0' THEN '采购入库' WHEN '1' THEN '退货入库' ELSE '' END as type_desc,
                si.status,

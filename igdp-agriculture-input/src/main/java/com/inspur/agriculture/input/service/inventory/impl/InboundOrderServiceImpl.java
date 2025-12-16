@@ -65,6 +65,11 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         // 查询明细
         List<Map<String, Object>> details = inboundOrderDetailMapper.selectDetailsByOrderId(inboundOrderId);
         result.put("details", details);
+        
+        // 确保表单备注和审核意见正确返回
+        // 表单备注使用 formRemark 字段
+        // 审核意见使用 remark 字段，并在前端通过 audit_remark 显示
+        
         return result;
     }
 
@@ -183,7 +188,7 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         // 更新入库单
         inboundOrder.setAuditUser(auditUser);
         inboundOrder.setAuditTime(auditTime != null ? auditTime : new Date());
-        inboundOrder.setRemark(remark);
+        inboundOrder.setRemark(remark);  // 只更新审核意见，不影响表单备注
         inboundOrder.setUpdatedAt(new Date());
 
         // 根据审核结果更新状态
@@ -201,7 +206,7 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
     public Map<String, Object> confirmInbound(String inboundOrderId, Date inboundTime, String operator) {
         // 校验参数
         if (StringUtils.isEmpty(inboundOrderId)) {
-            throw new ServiceException("入库单ID不能为空");
+            throw new ServiceException("The ID of the inbound order cannot be empty");
         }
 
         // 查询入库单
@@ -209,21 +214,21 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         wrapper.eq(InboundOrder::getInboundOrderId, inboundOrderId);
         InboundOrder inboundOrder = inboundOrderMapper.selectOne(wrapper);
         if (inboundOrder == null) {
-            throw new ServiceException("入库单不存在");
+            throw new ServiceException("The warehouse receipt does not exist");
         }
 
         // 校验状态（必须是已审核状态）
         if (!"approved".equals(inboundOrder.getInboundStatus())) {
-            throw new ServiceException("只有已审核的入库单才能执行入库");
+            throw new ServiceException("Only the warehouse entry form that has been reviewed can be executed for entry");
         }
 
         // 校验仓库
         Warehouse warehouse = warehouseMapper.selectById(Long.valueOf(inboundOrder.getWarehouseId()));
         if (warehouse == null) {
-            throw new ServiceException("仓库不存在");
+            throw new ServiceException("The warehouse doesn't exist.");
         }
         if (!"1".equals(warehouse.getStatus())) {
-            throw new ServiceException("仓库已停用，无法入库");
+            throw new ServiceException("The warehouse is out of service and no goods can be stored");
         }
 
         // 校验仓库容量
@@ -231,7 +236,7 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         BigDecimal totalQuantity = inboundOrder.getTotalQuantity();
         BigDecimal availableCapacity = warehouse.getCapacity().subtract(usedCapacity);
         if (availableCapacity.compareTo(totalQuantity) < 0) {
-            throw new ServiceException("仓库容量不足，可用容量：" + availableCapacity + "，需要容量：" + totalQuantity);
+            throw new ServiceException("The warehouse capacity is insufficient. Available capacity：" + availableCapacity + "，Required capacity：" + totalQuantity);
         }
 
         // 查询入库明细
@@ -302,8 +307,8 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
                 stockLogMapper.insert(stockLog);
 
             } catch (Exception e) {
-                throw new ServiceException("库存同步失败 - 投入品ID: " + detail.getMaterialId()
-                        + ", 批次: " + detail.getBatchNo() + ", 错误: " + e.getMessage());
+                throw new ServiceException("Inventory synchronization failed - Input ID: " + detail.getMaterialId()
+                        + ", Batch: " + detail.getBatchNo() + ", Error: " + e.getMessage());
             }
         }
 
@@ -312,7 +317,7 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
             // 使用用户选择的批次号（从投入品目录中选择）
             String batchNo = detail.getBatchNo();
             if (StringUtils.isEmpty(batchNo)) {
-                throw new ServiceException("投入品批次号不能为空");
+                throw new ServiceException("The batch number of the input product cannot be empty");
             }
 
             // 生成二维码
@@ -356,7 +361,7 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         try {
             warehouseMapper.updateUsedCapacity(Long.valueOf(inboundOrder.getWarehouseId()), totalQuantity);
         } catch (Exception e) {
-            throw new ServiceException("更新仓库容量失败: " + e.getMessage());
+            throw new ServiceException("Failed to update the warehouse capacity: " + e.getMessage());
         }
 
         // 更新入库单状态
@@ -377,7 +382,7 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
     @Transactional(rollbackFor = Exception.class)
     public boolean cancelInboundOrder(String inboundOrderId, String operator) {
         if (StringUtils.isEmpty(inboundOrderId)) {
-            throw new ServiceException("入库单ID不能为空");
+            throw new ServiceException("The ID of the inbound order cannot be empty");
         }
 
         LambdaQueryWrapper<InboundOrder> wrapper = new LambdaQueryWrapper<>();
@@ -385,11 +390,11 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         InboundOrder inboundOrder = inboundOrderMapper.selectOne(wrapper);
 
         if (inboundOrder == null) {
-            throw new ServiceException("入库单不存在");
+            throw new ServiceException("The warehouse receipt does not exist");
         }
 
         if ("completed".equals(inboundOrder.getInboundStatus())) {
-            throw new ServiceException("已完成的入库单不能取消");
+            throw new ServiceException("Completed warehouse entry forms cannot be cancelled");
         }
 
         inboundOrder.setInboundStatus("cancelled");

@@ -55,6 +55,9 @@ public class InboundOrderController {
             if (queryDTO.getInboundOrderId() != null && !queryDTO.getInboundOrderId().isEmpty()) {
                 params.put("inboundOrderId", queryDTO.getInboundOrderId());
             }
+            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+                params.put("organCode", queryDTO.getOrganCode());
+            }
 
             // 开启分页
             PageHelper.startPage(page, pageSize);
@@ -114,6 +117,10 @@ public class InboundOrderController {
             inboundOrder.setApplyTime(dto.getApplyTime());
             inboundOrder.setOperator(dto.getOperator());
             inboundOrder.setRemark(dto.getRemark());
+            inboundOrder.setFormRemark(dto.getRemark()); // 同时设置表单备注字段
+            inboundOrder.setSupplierName(dto.getSupplierName());
+            inboundOrder.setSupplierContact(dto.getSupplierContact());
+            inboundOrder.setSupplierPhone(dto.getSupplierPhone());
 
             // 构建明细列表
             List<Map<String, Object>> details = new java.util.ArrayList<>();
@@ -128,6 +135,9 @@ public class InboundOrderController {
                 detailMap.put("specModel", detail.getSpecModel());
                 detailMap.put("unitOfMeasure", detail.getUnitOfMeasure());
                 detailMap.put("expiryDate", detail.getExpiryDate());
+                detailMap.put("agriculturalInputType", detail.getAgriculturalInputType());
+                detailMap.put("variety", detail.getVariety());
+                detailMap.put("productionBatchNo", detail.getProductionBatchNo());
                 details.add(detailMap);
             }
 
@@ -203,9 +213,9 @@ public class InboundOrderController {
                     dto.getOperator()
             );
 
-            return AjaxResult.success("入库成功", result);
+            return AjaxResult.success("Successful entry into the warehouse", result);
         } catch (Exception e) {
-            return AjaxResult.error("执行入库失败: " + e.getMessage());
+            return AjaxResult.error("The entry into the warehouse failed: " + e.getMessage());
         }
     }
 

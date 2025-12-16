@@ -2,6 +2,8 @@ package com.inspur.agriculture.input.dto.demand;
 
 import lombok.Data;
 
+import java.sql.Date;
+
 @Data
 public class DemandOrganDTO {
 
@@ -20,5 +22,9 @@ public class DemandOrganDTO {
     private String year;
 
     private String summaryId;
+
+    private Date startDate;
+
+    private Date endDate;
 
 }

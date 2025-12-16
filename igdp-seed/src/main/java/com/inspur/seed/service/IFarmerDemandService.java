@@ -69,4 +69,13 @@ public interface IFarmerDemandService extends IService<DemandFarmerDetail> {
     List<FarmerInputAggregationVO>  getInputAggregation(DemandOrganDTO demanOrganDTO);
 
     int submitInputAggregation(DemandOrganDTO demandOrganDTO);
+
+    /**
+     * Get demand list by farmerId
+     *
+     * @param farmerId Farmer ID
+     * @param year Optional year filter
+     * @return List of aggregated input items for the farmer
+     */
+    List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId, String year);
 }

@@ -3,6 +3,7 @@ package com.inspur.seed.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -83,6 +84,17 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String addFarmerDemand(FarmerDemandAddDTO dto) {
+
+        // 判断该农民当年需求是否已经存在
+        QueryWrapper<DemandFarmerDetail> query = new QueryWrapper<>();
+        query.eq("year",dto.getYear());
+        query.eq("farmer_id",dto.getFarmerId());
+        List<DemandFarmerDetail> currentDetail = super.baseMapper.selectList(query);
+        if(currentDetail.size()>0){
+            return "1";
+        }
+
+
         // 根据当前年份自动获取或创建批次
         int currentYear = java.time.Year.now().getValue();
         DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(currentYear);
@@ -98,9 +110,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         detail.setCreatedTime(new Date());
 
         // TODO: Get current user ID and name from security context
-        detail.setDaUserId("current_user_id");
-        detail.setDaUserName("current_user_name");
-        detail.setCreatedBy("current_user_id");
+        detail.setDaUserId(dto.getDaUserId());
+        detail.setDaUserName(dto.getDaUserName());
+        detail.setCreatedBy(dto.getDaUserName());
 
         // Calculate max seed and fertilizer quantities (simplified version)
         detail.setMaxSeedQuantity(calculateMaxSeedQuantity(dto.getLandArea(), dto.getInputItems()));
@@ -151,7 +163,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         if (!currentUserId.equals(demand.getDaUserId())) {
             throw new ServiceException("Only the creator can update this demand");
         }
-        
+
 
         // 5. Update farmer demand detail
         DemandFarmerDetail updatedDetail = BeanUtil.copyProperties(dto, DemandFarmerDetail.class);
@@ -466,5 +478,64 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             return null;
         }
         return landArea.multiply(new BigDecimal("200"));
+    }
+
+    @Override
+    public List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId, String year) {
+        if (StrUtil.isBlank(farmerId)) {
+            return new ArrayList<>();
+        }
+
+        // 1. 查询该农民的需求记录
+        LambdaQueryWrapper<DemandFarmerDetail> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DemandFarmerDetail::getFarmerId, farmerId);
+        wrapper.eq(DemandFarmerDetail::getIsDeleted, 0);
+        // 只查询已通过审核的需求
+        wrapper.in(DemandFarmerDetail::getStatus,
+            DemandStatusEnum.APPROVED.getCode(),
+            DemandStatusEnum.SUBMITTED.getCode());
+
+        // 按年度过滤
+        if (StrUtil.isNotBlank(year)) {
+            wrapper.eq(DemandFarmerDetail::getYear, year);
+        }
+
+        List<DemandFarmerDetail> demands = this.list(wrapper);
+        if (demands.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 2. 获取所有需求ID
+        List<String> demandIds = demands.stream()
+            .map(DemandFarmerDetail::getId)
+            .collect(Collectors.toList());
+
+        // 3. 查询所有投入品明细
+        LambdaQueryWrapper<DemandFarmerInputItem> itemWrapper = new LambdaQueryWrapper<>();
+        itemWrapper.in(DemandFarmerInputItem::getDemandId, demandIds);
+        itemWrapper.eq(DemandFarmerInputItem::getIsDeleted, 0);
+        List<DemandFarmerInputItem> inputItems = inputItemMapper.selectList(itemWrapper);
+
+        // 4. 按 inputType 和 inputCategory 汇总
+        return inputItems.stream()
+            .collect(Collectors.groupingBy(
+                item -> item.getInputType() + "|" + item.getInputCategory(),
+                Collectors.reducing(
+                    BigDecimal.ZERO,
+                    DemandFarmerInputItem::getQuantity,
+                    BigDecimal::add
+                )
+            ))
+            .entrySet().stream()
+            .map(entry -> {
+                String[] keys = entry.getKey().split("\\|");
+                FarmerInputAggregationVO vo = new FarmerInputAggregationVO();
+                vo.setInputType(keys[0]);
+                vo.setInputCategory(keys.length > 1 ? keys[1] : "");
+                vo.setTotalQuantity(entry.getValue());
+                vo.setTotalCount(1); // 简化处理
+                return vo;
+            })
+            .collect(Collectors.toList());
     }
 }

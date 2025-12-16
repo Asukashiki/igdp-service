@@ -58,6 +58,9 @@ public class OutboundOrderController {
             if (queryDTO.getRelatedOrderNo() != null && !queryDTO.getRelatedOrderNo().isEmpty()) {
                 params.put("relatedOrderNo", queryDTO.getRelatedOrderNo());
             }
+            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+                params.put("organCode", queryDTO.getOrganCode());
+            }
 
             // 开启分页
             PageHelper.startPage(page, pageSize);
@@ -129,6 +132,7 @@ public class OutboundOrderController {
                 detailMap.put("quantity", detail.getQuantity());
                 detailMap.put("specModel", detail.getSpecModel());
                 detailMap.put("unitOfMeasure", detail.getUnitOfMeasure());
+                detailMap.put("agriculturalInputType", detail.getAgriculturalInputType());
                 details.add(detailMap);
             }
 

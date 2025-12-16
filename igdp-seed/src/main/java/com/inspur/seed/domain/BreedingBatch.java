@@ -60,7 +60,9 @@ public class BreedingBatch extends BaseEntity {
     @TableField(exist = false)
     private String breedingMethodName;
 
-
+    /** 亲本来源 */
+    @TableField("germplasm_source")
+    private String germplasmSource;
 
     /** 亲本种子来源 */
     @TableField("parental_seed_source")
@@ -74,8 +76,17 @@ public class BreedingBatch extends BaseEntity {
     @TableField("year")
     private Integer year;
 
-    /** 
-     * 批次状态 
+    /**
+     * 批次状态
+     * 使用BreedingBatchStatusEnum枚举定义的状态码：
+     * S0: onging
+     * S1: finished
+     */
+    @TableField("status")
+    private String status;
+
+    /**
+     * 批次状态
      * 使用BreedingBatchStatusEnum枚举定义的状态码：
      * S0: 草稿
      * S1: 待审核
@@ -89,8 +100,8 @@ public class BreedingBatch extends BaseEntity {
      * S9: 已作废
      * S10: 异常
      */
-    @TableField("status")
-    private String status;
+    @TableField("workflow_status")
+    private String workflowStatus;
 
     /** 备注 - 映射到数据库remarks字段 */
     @TableField("remarks")
