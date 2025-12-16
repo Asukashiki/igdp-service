@@ -4,6 +4,7 @@ import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.page.TableDataInfo;
 import com.inspur.seed.domain.BreedingBatch;
+import com.inspur.seed.domain.dto.BreedingBatchDTO;
 import com.inspur.seed.service.IBreedingBatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -86,16 +87,16 @@ public class BreedingBatchController extends BaseController {
      * 审核通过
      */
     @PostMapping("/approve")
-    public AjaxResult approve(@RequestBody BreedingBatch breedingBatch) {
-        return toAjax(breedingBatchService.approve(breedingBatch.getDataId()));
+    public AjaxResult approve(@RequestBody BreedingBatchDTO breedingBatchDTO) {
+        return toAjax(breedingBatchService.approve(breedingBatchDTO));
     }
 
     /**
      * 审核驳回
      */
     @PostMapping("/reject")
-    public AjaxResult reject(@RequestBody BreedingBatch breedingBatch) {
-        return toAjax(breedingBatchService.reject(breedingBatch.getDataId()));
+    public AjaxResult reject(@RequestBody BreedingBatchDTO breedingBatchDTO) {
+        return toAjax(breedingBatchService.reject(breedingBatchDTO));
     }
 
     /**

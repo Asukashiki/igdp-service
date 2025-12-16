@@ -1,11 +1,16 @@
 package com.inspur.seed.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.MessageUtils;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.BreedingBatch;
+import com.inspur.seed.domain.dto.BreedingBatchDTO;
+import com.inspur.seed.domain.entity.ApprovalComment;
+import com.inspur.seed.domain.vo.BreedingBatchDetailVO;
 import com.inspur.seed.mapper.BreedingBatchMapper;
+import com.inspur.seed.service.IApprovalCommentService;
 import com.inspur.seed.service.IBreedingBatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -26,6 +32,9 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
     @Autowired
     private BreedingBatchMapper breedingBatchMapper;
 
+    @Autowired
+    private IApprovalCommentService approvalCommentService;
+
     @Override
     public List<BreedingBatch> selectBreedingBatchList(BreedingBatch breedingBatch) {
         List<BreedingBatch> list = breedingBatchMapper.selectBreedingBatchList(breedingBatch);
@@ -34,13 +43,30 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
         return list;
     }
 
+
     @Override
-    public BreedingBatch selectBreedingBatchById(String dataId) {
+    public BreedingBatchDetailVO selectBreedingBatchById(String dataId) {
+        // 查询批次基本信息
         BreedingBatch batch = breedingBatchMapper.selectById(dataId);
-        if (batch != null) {
-            setChineseNames(batch);
+        if (batch == null) {
+            return null;
         }
-        return batch;
+
+        // 设置中文名称
+        setChineseNames(batch);
+
+        // 转换为VO对象
+        BreedingBatchDetailVO detailVO = new BreedingBatchDetailVO();
+        // 复制基本属性
+
+        BeanUtil.copyProperties(batch, detailVO);
+
+        // 查询审批意见列表
+        List<ApprovalComment> approvalComments = approvalCommentService.selectApprovalCommentByDataId(dataId);
+
+        detailVO.setApprovalComments(approvalComments);
+
+        return detailVO;
     }
 
     @Override
@@ -195,37 +221,67 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
     public int submitAudit(String dataId) {
         BreedingBatch batch = new BreedingBatch();
         batch.setDataId(dataId);
-        batch.setStatus("S1"); // 设置为待审核状态
+        batch.setWorkflowStatus("S1"); // 设置为待审核状态
         batch.setUpdateTime(LocalDateTime.now());
         batch.setUpdateBy(SecurityUtils.getUsername());
         return breedingBatchMapper.updateById(batch);
     }
 
     @Override
-    public int approve(String dataId) {
+    public int approve(BreedingBatchDTO breedingBatchDTO) {
+        String dataId = breedingBatchDTO.getDataId();
+
+        // 更新育种批次状态为审核通过
         BreedingBatch batch = new BreedingBatch();
         batch.setDataId(dataId);
-        batch.setStatus("S2"); // 设置为审核通过状态
+        batch.setWorkflowStatus("S2"); // 设置为审核通过状态
         batch.setUpdateTime(LocalDateTime.now());
         batch.setUpdateBy(SecurityUtils.getUsername());
-        return breedingBatchMapper.updateById(batch);
+        int result = breedingBatchMapper.updateById(batch);
+
+        // 保存审批意见
+        ApprovalComment approvalComment = breedingBatchDTO.getApprovalComment();
+        if (approvalComment != null) {
+            approvalComment.setDataId(dataId);
+            approvalComment.setApproverId(SecurityUtils.getUserId());
+            approvalComment.setApproverName(SecurityUtils.getUsername());
+            approvalComment.setApprovalTime(new Date());
+            approvalCommentService.insertApprovalComment(approvalComment);
+        }
+
+        return result;
     }
 
     @Override
-    public int reject(String dataId) {
+    public int reject(BreedingBatchDTO breedingBatchDTO) {
+        String dataId = breedingBatchDTO.getDataId();
+
+        // 更新育种批次状态为审核驳回
         BreedingBatch batch = new BreedingBatch();
         batch.setDataId(dataId);
-        batch.setStatus("S3"); // 设置为审核驳回状态
+        batch.setWorkflowStatus("S3"); // 设置为审核驳回状态
         batch.setUpdateTime(LocalDateTime.now());
         batch.setUpdateBy(SecurityUtils.getUsername());
-        return breedingBatchMapper.updateById(batch);
+        int result = breedingBatchMapper.updateById(batch);
+
+        // 保存审批意见
+        ApprovalComment approvalComment = breedingBatchDTO.getApprovalComment();
+        if (approvalComment != null) {
+            approvalComment.setDataId(dataId);
+            approvalComment.setApproverId(SecurityUtils.getUserId());
+            approvalComment.setApproverName(SecurityUtils.getUsername());
+            approvalComment.setApprovalTime(new Date());
+            approvalCommentService.insertApprovalComment(approvalComment);
+        }
+
+        return result;
     }
 
     @Override
     public int archive(String dataId) {
         BreedingBatch batch = new BreedingBatch();
         batch.setDataId(dataId);
-        batch.setStatus("S9"); // 设置为已归档状态
+        batch.setWorkflowStatus("S9"); // 设置为已归档状态
         batch.setUpdateTime(LocalDateTime.now());
         batch.setUpdateBy(SecurityUtils.getUsername());
         return breedingBatchMapper.updateById(batch);
@@ -235,7 +291,7 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
     public int cancel(String dataId) {
         BreedingBatch batch = new BreedingBatch();
         batch.setDataId(dataId);
-        batch.setStatus("S10"); // 设置为已作废状态
+        batch.setWorkflowStatus("S10"); // 设置为已作废状态
         batch.setUpdateTime(LocalDateTime.now());
         batch.setUpdateBy(SecurityUtils.getUsername());
         return breedingBatchMapper.updateById(batch);
