@@ -64,6 +64,10 @@ public class BreedingBatchDTO implements Serializable {
     private String breedingMethodName;
 
     /**
+     * 亲本来源
+     */
+    private String germplasmSource;
+    /**
      * 亲本种子来源
      */
     private String parentalSeedSource;
@@ -78,6 +82,8 @@ public class BreedingBatchDTO implements Serializable {
      */
     private Integer year;
 
+
+    private String status;
     /**
      * 工作流状态
      */

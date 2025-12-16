@@ -51,7 +51,8 @@ public class BreedingBatchDetailVO implements Serializable {
     /** 繁育方法名称（中文） */
     private String breedingMethodName;
 
-
+    /** 亲本来源 */
+    private String germplasmSource;
     /** 亲本种子来源 */
     private String parentalSeedSource;
 
@@ -60,6 +61,8 @@ public class BreedingBatchDetailVO implements Serializable {
 
     /** 开展年份 */
     private Integer year;
+
+    private String status;
 
     /**
      * 批次状态
