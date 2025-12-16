@@ -206,7 +206,6 @@ public class InputReleaseFarmerServiceImpl extends ServiceImpl<InputReleaseFarme
             return false;
         }
         main.setReceiveStatus("received");
-        main.setConfirmTime(LocalDateTime.now());
         return updateById(main);
     }
 }
