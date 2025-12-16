@@ -131,4 +131,46 @@ public class AgronomicTrait extends BaseEntity {
     /** 批次名称（关联字段，非数据库字段） */
     @TableField(exist = false)
     private String batchName;
+
+    /** 业务状态 submit/approve */
+    @TableField("status")
+    private String status;
+
+    /** 流程审核状态（字典 flow_status） */
+    @TableField("workflow_status")
+    private String workflowStatus;
+
+    /** 审核人 */
+    @TableField("audit_by")
+    private String auditBy;
+
+    /** 审核时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("audit_time")
+    private Date auditTime;
+
+    // ===== 查询辅助字段（非数据库字段）=====
+    @TableField(exist = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createTimeBegin;
+
+    @TableField(exist = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createTimeEnd;
+
+    @TableField(exist = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date updateTimeBegin;
+
+    @TableField(exist = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date updateTimeEnd;
+
+    @TableField(exist = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date auditTimeBegin;
+
+    @TableField(exist = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date auditTimeEnd;
 }

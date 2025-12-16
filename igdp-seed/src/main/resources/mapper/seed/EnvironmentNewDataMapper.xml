@@ -13,12 +13,16 @@
         <result property="value" column="value"/>
         <result property="unit" column="unit"/>
         <result property="source" column="source"/>
+        <result property="observerId" column="observer_id"/>
         <result property="remark" column="remark"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
+        <result property="workflowStatus" column="workflow_status"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditTime" column="audit_time"/>
         <result property="batchName" column="batch_name"/>
         <result property="trialName" column="trial_name"/>
         <result property="plotName" column="plot_name"/>
@@ -26,8 +30,9 @@
 
     <sql id="selectEnvironmentNewDataVo">
         select e.env_record_id, e.trial_id, e.batch_id, e.plot_id, e.station_id,
-               e.timestamp, e.parameter_code, e.value, e.unit, e.source, e.remark,
-               e.create_time, e.update_time, e.create_by, e.update_by, e.is_deleted
+               e.timestamp, e.parameter_code, e.value, e.unit, e.source, e.observer_id, e.remark,
+               e.create_time, e.update_time, e.create_by, e.update_by,
+               e.workflow_status, e.audit_by, e.audit_time, e.is_deleted
         from environment_new_data e
     </sql>
 
@@ -49,6 +54,9 @@
             </if>
             <if test="parameterCode != null and parameterCode != ''">
                 AND e.parameter_code = #{parameterCode}
+            </if>
+            <if test="workflowStatus != null and workflowStatus != ''">
+                AND e.workflow_status = #{workflowStatus}
             </if>
             <if test="queryStartTime != null and queryStartTime != ''">
                 AND e.timestamp &gt;= #{queryStartTime}

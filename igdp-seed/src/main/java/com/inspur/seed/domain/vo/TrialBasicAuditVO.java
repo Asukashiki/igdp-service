@@ -42,6 +42,12 @@ public class TrialBasicAuditVO implements Serializable {
      */
     private String auditStatus;
 
+    /** 为前端提供统一的字段名：workflowStatus（不移除 auditStatus 以保证兼容） */
+    @com.fasterxml.jackson.annotation.JsonProperty("workflowStatus")
+    public String getWorkflowStatus() {
+        return this.auditStatus;
+    }
+
     /**
      * 审核状态描述
      */
