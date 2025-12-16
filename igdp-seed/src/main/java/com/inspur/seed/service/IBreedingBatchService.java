@@ -1,6 +1,8 @@
 package com.inspur.seed.service;
 
 import com.inspur.seed.domain.BreedingBatch;
+import com.inspur.seed.domain.dto.BreedingBatchDTO;
+import com.inspur.seed.domain.vo.BreedingBatchDetailVO;
 
 import java.util.List;
 
@@ -19,13 +21,14 @@ public interface IBreedingBatchService {
      */
     List<BreedingBatch> selectBreedingBatchList(BreedingBatch breedingBatch);
 
+
     /**
-     * 根据数据ID查询育种批次详情
+     * 根据数据ID查询育种批次详细信息（包含审批意见）
      *
      * @param dataId 数据ID
-     * @return 育种批次
+     * @return 育种批次详细信息
      */
-    BreedingBatch selectBreedingBatchById(String dataId);
+    BreedingBatchDetailVO selectBreedingBatchById(String dataId);
 
     /**
      * 新增育种批次
@@ -69,18 +72,18 @@ public interface IBreedingBatchService {
     /**
      * 审核通过
      *
-     * @param dataId 数据ID
+     * @param breedingBatchDTO 包含审批意见的育种批次信息
      * @return 影响行数
      */
-    int approve(String dataId);
+    int approve(BreedingBatchDTO breedingBatchDTO);
 
     /**
      * 审核驳回
      *
-     * @param dataId 数据ID
+     * @param breedingBatchDTO 包含审批意见的育种批次信息
      * @return 影响行数
      */
-    int reject(String dataId);
+    int reject(BreedingBatchDTO breedingBatchDTO);
 
     /**
      * 归档
