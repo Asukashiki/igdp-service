@@ -66,4 +66,24 @@
         FROM t_zone_allocation
         WHERE id = #{id}
     </select>
+
+
+    <select id="selectByWoredaIdAndYear" resultType="java.util.Map">
+        SELECT
+            *
+        FROM demand_farmer_detail
+        WHERE woreda = #{woredaId}
+          AND year = #{year}
+          AND status = '2'
+          AND is_deleted = 0
+
+    </select>
+
+    <select id="selectByDemandId" resultType="java.util.Map">
+        SELECT
+            *
+        FROM demand_farmer_input_item
+        WHERE demand_id = #{demandId}
+          AND is_deleted = 0
+    </select>
 </mapper>

@@ -8,6 +8,9 @@ import com.inspur.agriculture.input.domain.allocation.vo.AllocationVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Zone Allocation Mapper
  * 区域分配额度Mapper接口
@@ -37,4 +40,15 @@ public interface AllocationMapper extends BaseMapper<Allocation> {
      * @return ZoneAllocationVO
      */
     AllocationVO selectDetailById(@Param("id") String id);
+
+
+    /**
+     * 根据woreda id和时间查询农民需求
+     */
+    List<Map<String, Object>> selectByWoredaIdAndYear(@Param("woredaId") String woredaId, @Param("year") String year);
+
+    /**
+     * 根据需求id查询农民具体需求
+     */
+    List<Map<String, Object>> selectByDemandId(@Param("demandId") String demandId);
 }
