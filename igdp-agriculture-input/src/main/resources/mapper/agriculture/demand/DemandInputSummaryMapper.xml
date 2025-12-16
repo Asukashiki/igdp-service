@@ -72,6 +72,46 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by d.create_time desc
     </select>
 
+    <select id="selectDemandInputSummaryList1" resultMap="DemandInputSummaryVOResult">
+        <include refid="selectDemandInputSummaryVo"/>
+        where 1=1
+            and d.status != '0'
+        <if test="query.sourceCode != null and query.sourceCode != ''">
+            and d.source_code = #{query.sourceCode}
+        </if>
+        <if test="query.sourceName != null and query.sourceName != ''">
+            and d.source_name like concat('%', #{query.sourceName}, '%')
+        </if>
+        <if test="query.targetCode != null and query.targetCode != ''">
+            and d.target_code = #{query.targetCode}
+        </if>
+        <if test="query.targetName != null and query.targetName != ''">
+            and d.target_name like concat('%', #{query.targetName}, '%')
+        </if>
+        <if test="query.status != null and query.status != ''">
+            and d.status = #{query.status}
+        </if>
+        <if test="query.year != null and query.year != ''">
+            and d.year = #{query.year}
+        </if>
+        <if test="query.creator != null and query.creator != ''">
+            and d.creator = #{query.creator}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (d.source_name like concat('%', #{query.keyword}, '%')
+            or d.target_name like concat('%', #{query.keyword}, '%')
+            or d.source_code like concat('%', #{query.keyword}, '%')
+            or d.target_code like concat('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.startTime != null">
+            and d.create_time &gt;= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            and d.create_time &lt;= #{query.endTime}
+        </if>
+        order by d.create_time desc
+    </select>
+
     <select id="selectDemandInputSummaryById" resultMap="DemandInputSummaryVOResult">
         <include refid="selectDemandInputSummaryVo"/>
         where d.id = #{id}

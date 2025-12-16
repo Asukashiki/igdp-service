@@ -81,4 +81,38 @@ public class InputReleaseFarmerController extends BaseController {
         boolean success = releaseService.removeRelease(idList);
         return success ? AjaxResult.success("农民分发单删除成功") : AjaxResult.error("农民分发单删除失败");
     }
+
+    /**
+     * 查询农民领用列表（从农民角度）
+     */
+    @GetMapping("/receive/list")
+    public TableDataInfo receiveList(@RequestParam(required = false) String farmerId,
+                                      @RequestParam(required = false) String farmerName,
+                                      @RequestParam(required = false) Integer year,
+                                      @RequestParam(required = false) String receiveStatus,
+                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
+                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
+        startPage();
+        List<InputReleaseFarmerMain> list = releaseService.queryReleaseList(null, farmerName, farmerId,
+                year, receiveStatus, startTime, endTime);
+        return getDataTable(list);
+    }
+
+    /**
+     * 查询农民领用详情
+     */
+    @GetMapping("/receive/detail/{id}")
+    public AjaxResult receiveDetail(@PathVariable String id) {
+        Map<String, Object> result = releaseService.queryReleaseDetail(id);
+        return AjaxResult.success(result);
+    }
+
+    /**
+     * 确认领用
+     */
+    @PostMapping("/receive/confirm/{id}")
+    public AjaxResult confirmReceive(@PathVariable String id) {
+        boolean success = releaseService.confirmReceive(id);
+        return success ? AjaxResult.success("领用确认成功") : AjaxResult.error("领用确认失败");
+    }
 }

@@ -2,6 +2,7 @@ package com.inspur.agriculture.input.service.demand;
 
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryQueryDTO;
+import com.inspur.agriculture.input.service.demand.impl.DemandInputSummaryServiceImpl;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryVO;
 
 import java.util.List;
@@ -21,6 +22,9 @@ public interface IDemandInputSummaryService {
      * @return 农资需求汇总列表
      */
     List<DemandInputSummaryVO> getDemandInputSummaryList(DemandInputSummaryQueryDTO queryDTO);
+
+
+    List<DemandInputSummaryVO> getDemandInputSummaryList1(DemandInputSummaryQueryDTO queryDTO);
 
     /**
      * 根据ID查询农资需求汇总详情
@@ -61,4 +65,6 @@ public interface IDemandInputSummaryService {
      * @return 结果
      */
     int batchDeleteDemandInputSummary(List<String> ids);
+
+    java.util.Map<String, DemandInputSummaryServiceImpl.CreateTaskResult> createAllMainTask(String year);
 }
