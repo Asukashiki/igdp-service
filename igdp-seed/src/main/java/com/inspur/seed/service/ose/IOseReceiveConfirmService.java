@@ -1,5 +1,7 @@
 package com.inspur.seed.service.ose;
 
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.inspur.seed.domain.ose.OseBreedSeedReceiveConfirm;
 import com.inspur.seed.dto.ose.OseReceiveConfirmDTO;
 import com.inspur.seed.dto.ose.OseReceiveConfirmQueryDTO;
 import com.inspur.seed.vo.ose.OseReceiveConfirmVO;
@@ -11,7 +13,7 @@ import java.util.List;
  *
  * @author igdp
  */
-public interface IOseReceiveConfirmService {
+public interface IOseReceiveConfirmService extends IService<OseBreedSeedReceiveConfirm> {
 
     /**
      * 查询接收确认列表

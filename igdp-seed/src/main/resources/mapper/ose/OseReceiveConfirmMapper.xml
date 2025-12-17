@@ -20,8 +20,8 @@
         </association>
     </resultMap>
 
-    <sql id="selectReceiveConfirmVo">
-        SELECT
+    <select id="selectReceiveConfirmById" resultMap="OseReceiveConfirmVOResult">
+        SELECT 
             rc.receive_confirm_id,
             rc.distribute_id,
             rc.ose_id,
@@ -36,56 +36,12 @@
         FROM ose_breed_seed_receive_confirm rc
         LEFT JOIN ose_info o ON rc.ose_id = o.ose_id
         LEFT JOIN breed_seed_distribute_main m ON rc.distribute_id = m.distribute_id
-    </sql>
-
-    <select id="selectReceiveConfirmList" resultMap="OseReceiveConfirmVOResult">
-        <include refid="selectReceiveConfirmVo"/>
-        <where>
-            <if test="query.produceBatchId != null and query.produceBatchId != ''">
-                AND EXISTS (
-                    SELECT 1 FROM breed_seed_distribute_detail d
-                    WHERE d.distribute_id = rc.distribute_id
-                    AND d.produce_batch_id = #{produceBatchId}
-                )
-            </if>
-            <if test="query.cropType != null and query.cropType != ''">
-                AND EXISTS (
-                    SELECT 1 FROM breed_seed_distribute_detail d
-                    WHERE d.distribute_id = rc.distribute_id
-                    AND d.crop_type = #{query.cropType}
-                )
-            </if>
-            <if test="query.varietyName != null and query.varietyName != ''">
-                AND EXISTS (
-                    SELECT 1 FROM breed_seed_distribute_detail d
-                    WHERE d.distribute_id = rc.distribute_id
-                    AND d.variety_name LIKE CONCAT('%', #{query.varietyName}, '%')
-                )
-            </if>
-            <if test="query.startTime != null">
-                AND DATE(rc.create_time) &gt;= #{query.startTime}
-            </if>
-            <if test="query.endTime != null">
-                AND DATE(rc.create_time) &lt;= #{query.endTime}
-            </if>
-            <if test="query.receiveStatus != null and query.receiveStatus != ''">
-                AND rc.receive_status = #{query.receiveStatus}
-            </if>
-            <if test ="query.oseId != null and query.oseId != ''">
-                AND rc.ose_id = #{query.oseId}
-            </if>
-        </where>
-        ORDER BY rc.create_time DESC
-    </select>
-
-    <select id="selectReceiveConfirmById" resultMap="OseReceiveConfirmVOResult">
-        <include refid="selectReceiveConfirmVo"/>
         WHERE rc.receive_confirm_id = #{receiveConfirmId}
     </select>
 
     <select id="selectDistributeDetailList" resultType="com.inspur.seed.vo.ose.OseReceiveConfirmVO$DetailItem">
         SELECT
-            d.breed_seed_produce_batch_id AS breedSeedProduceBatchId,
+            d.produce_batch_id AS breedSeedProduceBatchId,
             d.variety_name AS varietyName,
             d.crop_type AS cropType,
             d.distribute_quantity AS distributeQuantity

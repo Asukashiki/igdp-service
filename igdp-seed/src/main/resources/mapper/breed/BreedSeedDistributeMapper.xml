@@ -60,7 +60,7 @@
             <if test="query.varietyId != null and query.varietyId != ''">
                 AND EXISTS (
                     SELECT 1 FROM breed_seed_distribute_detail d
-                    INNER JOIN breed_seed_produce p ON d.breed_seed_produce_batch_id = p.breed_seed_produce_batch_id
+                    INNER JOIN breed_seed_produce p ON d.produce_batch_id = p.produce_batch_id
                     WHERE d.distribute_id = m.distribute_id
                     AND p.variety_id = #{query.varietyId}
                 )
