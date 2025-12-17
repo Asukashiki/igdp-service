@@ -18,7 +18,12 @@ public class BreedSeedProduceQueryDTO implements Serializable {
     /**
      * 种子生产批次ID
      */
-    private String breedSeedProduceBatchId;
+    private String produceBatchId;
+
+    /**
+     * 批次名称
+     */
+    private String produceBatchName;
 
     /**
      * 品种ID

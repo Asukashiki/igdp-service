@@ -2,92 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.inspur.seed.mapper.breed.BreedSeedProduceMapper">
 
-    <resultMap id="BreedSeedProduceVOResult" type="com.inspur.seed.vo.breed.BreedSeedProduceVO">
-        <id property="breedSeedProduceBatchId" column="breed_seed_produce_batch_id"/>
-        <result property="breedBatchId" column="breed_batch_id"/>
-        <result property="varietyId" column="variety_id"/>
-        <result property="varietyName" column="variety_name"/>
-        <result property="cropType" column="crop_type"/>
-        <result property="time" column="time"/>
-        <result property="landId" column="land_id"/>
-        <result property="landName" column="land_name"/>
-        <result property="inputSeedQuantity" column="input_seed_quantity"/>
-        <result property="produceSeedQuantrity" column="produce_seed_quantrity"/>
-        <result property="operatorId" column="operator_id"/>
-        <result property="operatorName" column="operator_name"/>
-        <result property="produceStatus" column="produce_status"/>
-        <result property="remainingQuantity" column="remaining_quantity"/>
-        <result property="createTime" column="create_time"/>
-        <result property="updateTime" column="update_time"/>
-    </resultMap>
-
-    <sql id="selectProduceVo">
-        SELECT
-            p.breed_seed_produce_batch_id,
-            p.breed_batch_id,
-            p.variety_id,
-            p.variety_name,
-            p.crop_type,
-            p.time,
-            p.land_id,
-            p.land_name,
-            p.input_seed_quantity,
-            p.produce_seed_quantrity,
-            p.operator_id,
-            p.operator_name,
-            p.produce_status,
-            (p.produce_seed_quantrity - IFNULL(
-                (SELECT SUM(d.distribute_quantity)
-                 FROM breed_seed_distribute_detail d
-                 WHERE d.breed_seed_produce_batch_id = p.breed_seed_produce_batch_id),
-                0)
-            ) AS remaining_quantity,
-            p.create_time,
-            p.update_time
-        FROM breed_seed_produce p
-    </sql>
-
-    <select id="selectProduceList" resultMap="BreedSeedProduceVOResult">
-        <include refid="selectProduceVo"/>
-        <where>
-            <if test="query.breedSeedProduceBatchId != null and query.breedSeedProduceBatchId != ''">
-                AND p.breed_seed_produce_batch_id = #{query.breedSeedProduceBatchId}
-            </if>
-            <if test="query.varietyId != null and query.varietyId != ''">
-                AND p.variety_id = #{query.varietyId}
-            </if>
-            <if test="query.startTime != null">
-                AND DATE(p.time) &gt;= #{query.startTime}
-            </if>
-            <if test="query.endTime != null">
-                AND DATE(p.time) &lt;= #{query.endTime}
-            </if>
-        </where>
-        ORDER BY p.create_time DESC
-    </select>
-
-    <select id="selectProduceById" resultMap="BreedSeedProduceVOResult">
-        <include refid="selectProduceVo"/>
-        WHERE p.breed_seed_produce_batch_id = #{breedSeedProduceBatchId}
-    </select>
-
     <select id="selectRemainingQuantity" resultType="java.math.BigDecimal">
         SELECT
             p.produce_seed_quantrity - IFNULL(SUM(d.distribute_quantity), 0) AS remaining_quantity
         FROM breed_seed_produce p
-        LEFT JOIN breed_seed_distribute_detail d ON p.breed_seed_produce_batch_id = d.breed_seed_produce_batch_id
+                 LEFT JOIN breed_seed_distribute_detail d ON p.breed_seed_produce_batch_id = d.breed_seed_produce_batch_id
         WHERE p.breed_seed_produce_batch_id = #{breedSeedProduceBatchId}
         GROUP BY p.breed_seed_produce_batch_id, p.produce_seed_quantrity
     </select>
-
-    <update id="updateRemainingQuantity">
-        UPDATE breed_seed_produce
-        SET update_time = NOW()
-        WHERE breed_seed_produce_batch_id = #{breedSeedProduceBatchId}
-          AND (produce_seed_quantrity -
-               (SELECT IFNULL(SUM(distribute_quantity), 0)
-                FROM breed_seed_distribute_detail
-                WHERE breed_seed_produce_batch_id = #{breedSeedProduceBatchId})) &gt;= #{distributeQuantity}
-    </update>
-
 </mapper>

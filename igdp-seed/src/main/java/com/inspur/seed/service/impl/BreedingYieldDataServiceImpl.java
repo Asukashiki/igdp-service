@@ -33,7 +33,6 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
     public List<BreedingYieldDataVO> selectBreedingYieldDataList(BreedingYieldDataDTO dto) {
         QueryWrapper<BreedingYieldData> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("deleted", "0");
-        queryWrapper.eq("status", "1");
 
         // 育种批次ID
         if (StrUtil.isNotBlank(dto.getBatchId())) {
@@ -58,6 +57,16 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
             queryWrapper.le("harvest_date", dto.getHarvestDateEnd());
         }
 
+        // 业务状态筛选（submit/approve 等）
+        if (StrUtil.isNotBlank(dto.getStatus())) {
+            queryWrapper.eq("status", dto.getStatus());
+        }
+
+        // 流程审核状态筛选（字典 flow_status）
+        if (StrUtil.isNotBlank(dto.getWorkflowStatus())) {
+            queryWrapper.eq("workflow_status", dto.getWorkflowStatus());
+        }
+
         queryWrapper.orderByDesc("created_time");
 
         List<BreedingYieldData> list = breedingYieldDataMapper.selectList(queryWrapper);
@@ -75,13 +84,13 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
         BreedingYieldData entity = new BreedingYieldData();
         BeanUtil.copyProperties(dto, entity);
 
-        entity.setStatus("1");
+        // 默认业务状态
+        if (StrUtil.isBlank(entity.getStatus())) {
+            entity.setStatus("submit");
+        }
         entity.setDeleted("0");
         entity.setCreatedTime(LocalDateTime.now());
-        // TODO: 从当前登录用户获取创建人信息
         entity.setCreatedBy(SecurityUtils.getUsername());
-//         entity.setCreatedBy(currentUserId);
-//         entity.setCreatedByName(currentUserName);
 
         return breedingYieldDataMapper.insert(entity);
     }
@@ -92,8 +101,7 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
         BeanUtil.copyProperties(dto, entity);
 
         entity.setUpdatedTime(LocalDateTime.now());
-        // TODO: 从当前登录用户获取更新人信息
-        // entity.setUpdatedBy(currentUserId);
+        entity.setUpdatedBy(SecurityUtils.getUsername());
 
         return breedingYieldDataMapper.updateById(entity);
     }
@@ -116,6 +124,11 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
     private BreedingYieldDataVO convertToVO(BreedingYieldData entity) {
         BreedingYieldDataVO vo = new BreedingYieldDataVO();
         BeanUtil.copyProperties(entity, vo);
+        // 字段名差异
+        vo.setUpdateBy(entity.getUpdatedBy());
+        vo.setUpdateTime(entity.getUpdatedTime());
         return vo;
     }
+
+    // 审核相关逻辑暂不纳入当前版本
 }

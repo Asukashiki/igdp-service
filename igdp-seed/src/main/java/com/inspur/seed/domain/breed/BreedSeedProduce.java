@@ -24,12 +24,22 @@ public class BreedSeedProduce implements Serializable {
      * 主键(UUID)
      */
     @TableId(type = IdType.ASSIGN_ID)
-    private String breedSeedProduceBatchId;
+    private String produceBatchId;
+
+    /**
+     * 批次名称
+     */
+    private String produceBatchName;
 
     /**
      * 育种批次ID
      */
     private String breedBatchId;
+
+    /**
+     * 育种批次名称(自动带出)
+     */
+    private String breedBatchName;
 
     /**
      * 品种ID
@@ -71,6 +81,16 @@ public class BreedSeedProduce implements Serializable {
      * 产出种子数量
      */
     private BigDecimal produceSeedQuantrity;
+
+    /**
+     * 种子等级来源
+     */
+    private String fromSeedLevel;
+
+    /**
+     * 种子等级去向
+     */
+    private String toSeedLevel;
 
     /**
      * 操作人ID

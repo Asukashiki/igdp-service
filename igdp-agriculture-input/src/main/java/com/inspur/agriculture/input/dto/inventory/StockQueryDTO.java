@@ -29,6 +29,9 @@ public class StockQueryDTO {
     /** 部门编码(用于权限过滤) */
     private String organCode;
 
+    /** 最小库存数量(用于过滤库存为0的记录) */
+    private Double minQuantity;
+
     /** 页码 */
     private Integer page;
 

@@ -396,19 +396,21 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             // 根据分发单状态判断出入库状态
             // status: Pending(待处理) -> notProcessed(未出库)
             // status: Approved(已审核) -> outPending(出库待处理)
-            // status: Completed(已完成) -> outCompleted(已出库)
+            // status: Completed(已完成)
+            // status: outCompleted(已出库)
             String releaseStatus = main.getStatus();
-            if ("Pending".equals(releaseStatus)) {
+            if ("Pending".equals(releaseStatus) || "pending".equals(releaseStatus)) {
                 statusMap.put(releaseId, "notProcessed");
-            } else if ("Approved".equals(releaseStatus)) {
+            } else if ("Approved".equals(releaseStatus) || "approved".equals(releaseStatus)) {
                 statusMap.put(releaseId, "outPending");
-            } else if ("Completed".equals(releaseStatus)) {
+            } else if ("Completed".equals(releaseStatus) || "completed".equals(releaseStatus)) {
+                statusMap.put(releaseId, "completed");
+            } else if ("outCompleted".equals(releaseStatus) || "OutCompleted".equals(releaseStatus)) {
                 statusMap.put(releaseId, "outCompleted");
-            } else {
+            }  else {
                 statusMap.put(releaseId, "notProcessed");
             }
         }
-        
         return statusMap;
     }
 

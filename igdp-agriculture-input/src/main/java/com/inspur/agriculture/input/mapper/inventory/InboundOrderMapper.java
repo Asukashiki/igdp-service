@@ -54,7 +54,7 @@ public interface InboundOrderMapper extends BaseMapper<InboundOrder> {
      * @return 影响行数
      */
     int updateInboundStatus(@Param("inboundOrderId") String inboundOrderId,
-                            @Param("status") String status);
+                           @Param("status") String status);
 
     /**
      * 查询待审核入库单数量
@@ -89,4 +89,12 @@ public interface InboundOrderMapper extends BaseMapper<InboundOrder> {
      * @return 分发单列表
      */
     List<Map<String, Object>> selectReleaseOrderList();
+    
+    /**
+     * 根据分发单ID查询分发投入品明细
+     *
+     * @param releaseId 分发单ID
+     * @return 分发投入品明细列表
+     */
+    List<Map<String, Object>> selectReleaseDetailsByReleaseId(@Param("releaseId") String releaseId);
 }

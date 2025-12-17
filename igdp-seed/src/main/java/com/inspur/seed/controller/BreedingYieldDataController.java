@@ -64,4 +64,20 @@ public class BreedingYieldDataController {
     public AjaxResult remove(@RequestBody String[] ids) {
         return AjaxResult.success(breedingYieldDataService.deleteBreedingYieldDataByIds(ids));
     }
+
+//    /**
+//     * 审核通过（支持批量）
+//     */
+//    @PostMapping("/approve")
+//    public AjaxResult approve(@RequestBody String[] ids) {
+//        return AjaxResult.success(breedingYieldDataService.approve(ids, null));
+//    }
+//
+//    /**
+//     * 审核驳回（支持批量）
+//     */
+//    @PostMapping("/reject")
+//    public AjaxResult reject(@RequestBody String[] ids) {
+//        return AjaxResult.success(breedingYieldDataService.reject(ids, null));
+//    }
 }

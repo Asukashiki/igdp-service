@@ -13,6 +13,7 @@ import com.inspur.seed.mapper.breed.BreedSeedProduceMapper;
 import com.inspur.seed.mapper.ose.OseInfoMapper;
 import com.inspur.seed.mapper.ose.OseReceiveConfirmMapper;
 import com.inspur.seed.service.breed.IBreedSeedDistributeService;
+import com.inspur.seed.service.breed.IBreedSeedProduceService;
 import com.inspur.seed.vo.breed.BreedSeedDistributeVO;
 import com.inspur.seed.vo.breed.BreedSeedProduceVO;
 import com.inspur.seed.vo.ose.OseInfoVO;
@@ -49,6 +50,9 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
     @Autowired
     private OseInfoMapper oseInfoMapper;
 
+    @Autowired
+    private IBreedSeedProduceService produceService;
+
     @Override
     public List<BreedSeedDistributeVO> getDistributeList(BreedSeedDistributeQueryDTO queryDTO) {
         return distributeMapper.selectDistributeList(queryDTO);
@@ -64,7 +68,8 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
         BigDecimal totalQuantity = BigDecimal.ZERO;
         for (BreedSeedDistributeDTO.DistributeDetailItem item : dto.getDetailList()) {
             // 验证分发数量不能超过生产批次剩余量
-            BigDecimal remaining = produceMapper.selectRemainingQuantity(item.getBreedSeedProduceBatchId());
+            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getBreedSeedProduceBatchId());
+            BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
             if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
                 throw new ServiceException("Distribution quantity exceeds the remaining quantity of the production batch");
             }
@@ -100,11 +105,11 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
             detail.setDistributeQuantity(item.getDistributeQuantity());
 
             // 计算并记录剩余量
-            BigDecimal remaining = produceMapper.selectRemainingQuantity(item.getBreedSeedProduceBatchId());
+            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getBreedSeedProduceBatchId());
+            BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
             detail.setProduceBatchRemaining(remaining.subtract(item.getDistributeQuantity()));
 
             // 从breed_seed_produce表自动带出品种名称、作物类型
-            BreedSeedProduceVO produceVO = produceMapper.selectProduceById(item.getBreedSeedProduceBatchId());
             if (produceVO != null) {
                 detail.setVarietyName(produceVO.getVarietyName());
                 detail.setCropType(produceVO.getCropType());

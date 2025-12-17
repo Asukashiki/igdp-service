@@ -173,12 +173,12 @@ public class OutboundOrderController {
             );
 
             if (success) {
-                return AjaxResult.success("审核成功");
+                return AjaxResult.success("Successful review");
             } else {
-                return AjaxResult.error("审核失败");
+                return AjaxResult.error("Review failed");
             }
         } catch (Exception e) {
-            return AjaxResult.error("审核出库单失败: " + e.getMessage());
+            return AjaxResult.error("The review of the outbound order failed: " + e.getMessage());
         }
     }
 
