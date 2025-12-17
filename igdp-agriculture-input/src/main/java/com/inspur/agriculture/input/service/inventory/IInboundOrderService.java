@@ -117,4 +117,14 @@ public interface IInboundOrderService {
      * @return 分发单列表
      */
     List<Map<String, Object>> selectReleaseOrderList();
+    
+    /**
+     * 根据分发单ID获取分发投入品明细并匹配库存
+     * 匹配规则：根据投入品类型和品类匹配库存中的投入品
+     *
+     * @param releaseId   分发单ID
+     * @param warehouseId 仓库ID
+     * @return 分发投入品明细及匹配的库存信息
+     */
+    Map<String, Object> matchReleaseStock(String releaseId, String warehouseId);
 }

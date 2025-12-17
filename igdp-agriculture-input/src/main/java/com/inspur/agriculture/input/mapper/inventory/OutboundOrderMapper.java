@@ -113,4 +113,38 @@ public interface OutboundOrderMapper extends BaseMapper<OutboundOrder> {
      * @return 分发单主表信息
      */
     Map<String, Object> selectReleaseMainById(@Param("releaseId") String releaseId);
+
+    /**
+     * 更新分发单状态
+     *
+     * @param releaseId 分发单ID
+     * @param status 状态
+     * @return 影响行数
+     */
+    int updateReleaseOrderStatus(@Param("releaseId") String releaseId, @Param("status") String status);
+
+    /**
+     * 更新Union确认接收单的接收状态
+     *
+     * @param releaseId 分发单ID
+     * @param receiveStatus 接收状态
+     * @return 影响行数
+     */
+    int updateReceiveUnionStatus(@Param("releaseId") String releaseId,
+                                  @Param("receiveStatus") String receiveStatus
+                                 );
+
+
+    /**
+     * 更新Woreda确认接收单的接收状态
+     *
+     * @param releaseId 分发单ID
+     * @param receiveStatus 接收状态
+     * @return 影响行数
+     */
+    int updateReceiveWoredaStatus(@Param("releaseId") String releaseId,
+                                 @Param("receiveStatus") String receiveStatus
+                                 );
+
+
 }
