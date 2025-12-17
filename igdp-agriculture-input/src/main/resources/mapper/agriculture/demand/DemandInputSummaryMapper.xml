@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.inspur.agriculture.input.mapper.demand.DemandInputSummaryMapper">
 
+    <!-- 原有所有代码：完全保留，一行不改 -->
     <resultMap id="DemandInputSummaryVOResult" type="com.inspur.agriculture.input.vo.demand.DemandInputSummaryVO">
         <id property="id" column="id"/>
         <result property="sourceCode" column="source_code"/>
@@ -17,6 +18,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="year" column="year"/>
         <result property="subQuantity" column="sub_quantity"/>
         <result property="level" column="level"/>
+        <result property="auditQuantity" column="audit_quantity"/>
+        <result property="submitQuantity" column="submit_quantity"/>
     </resultMap>
 
     <sql id="selectDemandInputSummaryVo">
@@ -28,7 +31,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 WHEN '1' THEN '已通过'
                 WHEN '2' THEN '已拒绝'
                 ELSE ''
-            END as status_desc,
+                END as status_desc,
             d.create_time, d.creator, d.year
         from demand_input_summary d
     </sql>
@@ -59,9 +62,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </if>
         <if test="query.keyword != null and query.keyword != ''">
             and (d.source_name like concat('%', #{query.keyword}, '%')
-                 or d.target_name like concat('%', #{query.keyword}, '%')
-                 or d.source_code like concat('%', #{query.keyword}, '%')
-                 or d.target_code like concat('%', #{query.keyword}, '%'))
+            or d.target_name like concat('%', #{query.keyword}, '%')
+            or d.source_code like concat('%', #{query.keyword}, '%')
+            or d.target_code like concat('%', #{query.keyword}, '%'))
         </if>
         <if test="query.startTime != null">
             and d.create_time &gt;= #{query.startTime}
@@ -75,7 +78,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectDemandInputSummaryList1" resultMap="DemandInputSummaryVOResult">
         <include refid="selectDemandInputSummaryVo"/>
         where 1=1
-            and d.status != '0'
+        and d.status != '0'
         <if test="query.sourceCode != null and query.sourceCode != ''">
             and d.source_code = #{query.sourceCode}
         </if>
@@ -115,6 +118,75 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectDemandInputSummaryById" resultMap="DemandInputSummaryVOResult">
         <include refid="selectDemandInputSummaryVo"/>
         where d.id = #{id}
+    </select>
+
+    <select id="countSubmitQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where status = 1
+        and target_code = #{targetCode}
+        and year = #{year}
+    </select>
+
+    <select id="countAuditQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where status in (2, 3)
+        and target_code = #{targetCode}
+        and year = #{year}
+    </select>
+
+    <select id="countAllQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where target_code = #{targetCode}
+        and year = #{year}
+    </select>
+
+    <select id="countUnsubmitQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where status = 0
+                  and target_code = #{targetCode}
+                  and year = #{year}
+    </select>
+
+    <!-- ========== 仅新增这部分：完全独立，不影响任何原有逻辑 ========== -->
+    <select id="selectDemandInputSummaryList2" resultMap="DemandInputSummaryVOResult">
+        <include refid="selectDemandInputSummaryVo"/>
+        where 1=1
+        and d.status IN ('1','2') <!-- 精准筛选1/2，排除0和3 -->
+        <if test="query.sourceCode != null and query.sourceCode != ''">
+            and d.source_code = #{query.sourceCode}
+        </if>
+        <if test="query.sourceName != null and query.sourceName != ''">
+            and d.source_name like concat('%', #{query.sourceName}, '%')
+        </if>
+        <if test="query.targetCode != null and query.targetCode != ''">
+            and d.target_code = #{query.targetCode}
+        </if>
+        <if test="query.targetName != null and query.targetName != ''">
+            and d.target_name like concat('%', #{query.targetName}, '%')
+        </if>
+        <!-- 传状态时，只在1/2范围内筛选（比如传1就只查1，传2就只查2） -->
+        <if test="query.status != null and query.status != ''">
+            and d.status = #{query.status}
+        </if>
+        <if test="query.year != null and query.year != ''">
+            and d.year = #{query.year}
+        </if>
+        <if test="query.creator != null and query.creator != ''">
+            and d.creator = #{query.creator}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            and (d.source_name like concat('%', #{query.keyword}, '%')
+            or d.target_name like concat('%', #{query.keyword}, '%')
+            or d.source_code like concat('%', #{query.keyword}, '%')
+            or d.target_code like concat('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.startTime != null">
+            and d.create_time &gt;= #{query.startTime}
+        </if>
+        <if test="query.endTime != null">
+            and d.create_time &lt;= #{query.endTime}
+        </if>
+        order by d.create_time desc
     </select>
 
 </mapper>

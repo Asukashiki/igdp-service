@@ -527,4 +527,82 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
 
         return voPage;
     }
+
+
+    public Page<DemandPendingPageVO> getAuditPage(DemandAuditPendingPageDTO dto) {
+        // TODO: Get current user's audit level and administrative division from security context
+        // Temporarily disable user-level filtering for testing and development
+        // String currentAuditLevel = "village"; // Should be determined by user role
+        // String currentAdminCode = "kebele_code"; // Should be from user's admin division
+
+        // 1. Build query wrapper
+        LambdaQueryWrapper<DemandFarmerDetail> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DemandFarmerDetail::getIsDeleted, 0);
+        wrapper.ne(DemandFarmerDetail::getStatus, DemandStatusEnum.DRAFT.getCode());
+        // Temporarily disable audit level filtering - show all submitted demands regardless of audit level
+        // wrapper.eq(DemandFarmerDetail::getCurrentAuditLevel, currentAuditLevel);
+
+        // Filter by user's administrative division
+        // This should be more sophisticated based on audit level
+        // For example, village level checks kebele, town level checks woreda, etc.
+        // Temporarily disabled to show all submitted demands
+        // if (AuditLevelEnum.VILLAGE.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getKebele, currentAdminCode);
+        // } else if (AuditLevelEnum.TOWN.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getWoreda, currentAdminCode);
+        // } else if (AuditLevelEnum.DISTRICT.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getZone, currentAdminCode);
+        // } else if (AuditLevelEnum.STATE.getCode().equals(currentAuditLevel)) {
+        //     wrapper.eq(DemandFarmerDetail::getRegion, currentAdminCode);
+        // }
+
+        // Filter by batch ID
+        if (StrUtil.isNotBlank(dto.getBatchId())) {
+            wrapper.eq(DemandFarmerDetail::getBatchId, dto.getBatchId());
+        }
+
+        // Filter by farmer name (fuzzy)
+        if (StrUtil.isNotBlank(dto.getFarmerName())) {
+            wrapper.like(DemandFarmerDetail::getFarmerName, dto.getFarmerName());
+        }
+
+        // Filter by administrative divisions
+        if (StrUtil.isNotBlank(dto.getKebele())) {
+            wrapper.eq(DemandFarmerDetail::getKebele, dto.getKebele());
+        }
+        if (StrUtil.isNotBlank(dto.getWoreda())) {
+            wrapper.eq(DemandFarmerDetail::getWoreda, dto.getWoreda());
+        }
+        if (StrUtil.isNotBlank(dto.getVillage())) {
+            wrapper.eq(DemandFarmerDetail::getVillage, dto.getVillage());
+        }
+
+        // Filter by year
+        if (StrUtil.isNotBlank(dto.getYear())) {
+            wrapper.eq(DemandFarmerDetail::getYear, dto.getYear());
+        }
+
+        // Order by submit time desc
+        wrapper.orderByDesc(DemandFarmerDetail::getSubmitTime);
+
+        // 2. Query page
+        Page<DemandFarmerDetail> page = new Page<>(dto.getPageNum(), dto.getPageSize());
+        Page<DemandFarmerDetail> resultPage = demandDetailMapper.selectPage(page, wrapper);
+        // 3. Convert to VO
+        Page<DemandPendingPageVO> voPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
+        List<DemandPendingPageVO> voList = resultPage.getRecords().stream().map(demand -> {
+            DemandPendingPageVO vo = BeanUtil.copyProperties(demand, DemandPendingPageVO.class);
+
+            // Get batch number
+            DemandCollectionBatch batch = batchMapper.selectById(demand.getBatchId());
+            if (batch != null) {
+                vo.setBatchNo(batch.getBatchNo());
+            }
+
+            return vo;
+        }).collect(Collectors.toList());
+        voPage.setRecords(voList);
+
+        return voPage;
+    }
 }

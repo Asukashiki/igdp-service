@@ -60,4 +60,6 @@ public interface IDemandAuditService {
      * @return Page result
      */
     Page<DemandPendingPageVO> getApprovedAuditPage(DemandAuditPendingPageDTO dto);
+
+    Page<DemandPendingPageVO> getAuditPage(DemandAuditPendingPageDTO dto);
 }

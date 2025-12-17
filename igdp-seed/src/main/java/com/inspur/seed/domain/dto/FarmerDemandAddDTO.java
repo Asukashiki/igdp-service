@@ -148,5 +148,7 @@ public class FarmerDemandAddDTO {
 
         private String year;
 
+
+
     }
 }

@@ -88,4 +88,10 @@ public class DemandFarmerInputItem implements Serializable {
      */
     @TableLogic
     private Integer isDeleted;
+
+    private String season;
+
+    private String cropLand;
+
+    private String fertilizerAmount;
 }

@@ -21,5 +21,5 @@ public interface IDemandCollectionBatchService {
      * @param year 年份
      * @return 批次信息
      */
-    DemandCollectionBatch getOrCreateBatchByYear(Integer year);
+    DemandCollectionBatch getOrCreateBatchByYear(String batchNo,Integer year);
 }
