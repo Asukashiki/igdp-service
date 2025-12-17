@@ -45,6 +45,16 @@ public class BreedSeedProduceVO implements Serializable {
     private String varietyName;
 
     /**
+     * 实验批次ID
+     */
+    private String trialId;
+
+    /**
+     * 实验批次名称(自动带出)
+     */
+    private String trialName;
+
+    /**
      * 作物类型
      */
     private String cropType;
