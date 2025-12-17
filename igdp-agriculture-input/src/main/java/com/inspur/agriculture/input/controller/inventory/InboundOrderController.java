@@ -331,4 +331,25 @@ public class InboundOrderController {
             return AjaxResult.error("查询分发单列表失败: " + e.getMessage());
         }
     }
+    
+    /**
+     * 根据关联单号（分发单ID）获取分发投入品明细并匹配库存
+     * 匹配规则：根据投入品类型和品类匹配库存中的投入品
+     *
+     * @param releaseId 分发单ID
+     * @param warehouseId 仓库ID
+     * @return 分发投入品明细及匹配的库存信息
+     */
+    @GetMapping("/release-details/{releaseId}")
+    public AjaxResult getReleaseDetails(
+            @PathVariable String releaseId,
+            @RequestParam String warehouseId
+    ) {
+        try {
+            Map<String, Object> result = inboundOrderService.matchReleaseStock(releaseId, warehouseId);
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error("查询分发单明细失败: " + e.getMessage());
+        }
+    }
 }

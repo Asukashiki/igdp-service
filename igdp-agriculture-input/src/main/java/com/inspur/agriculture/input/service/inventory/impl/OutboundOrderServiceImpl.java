@@ -6,6 +6,7 @@ import com.inspur.agriculture.input.mapper.inventory.*;
 import com.inspur.agriculture.input.service.inventory.IInboundOrderService;
 import com.inspur.agriculture.input.service.inventory.IOutboundOrderService;
 import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,6 +99,12 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         outboundOrder.setCreatedAt(new Date());
         outboundOrder.setUpdatedAt(new Date());
 
+        // 设置出库员为当前登录人
+        String currentUser = SecurityUtils.getUsername();
+        if (StringUtils.isNotEmpty(currentUser)) {
+            outboundOrder.setOutboundUser(currentUser);
+        }
+
         // 插入出库单
         outboundOrderMapper.insert(outboundOrder);
 
@@ -131,13 +138,13 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
     public boolean auditOutboundOrder(String outboundOrderId, String auditStatus, String auditUser, Date auditTime, String remark) {
         // 校验参数
         if (StringUtils.isEmpty(outboundOrderId)) {
-            throw new ServiceException("出库单ID不能为空");
+            throw new ServiceException("The outbound order ID cannot be empty");
         }
         if (StringUtils.isEmpty(auditStatus)) {
-            throw new ServiceException("审核状态不能为空");
+            throw new ServiceException("The review status cannot be empty");
         }
         if (!Arrays.asList("approved", "rejected").contains(auditStatus)) {
-            throw new ServiceException("审核状态无效");
+            throw new ServiceException("The review status is invalid");
         }
 
         // 查询出库单
@@ -145,16 +152,18 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         wrapper.eq(OutboundOrder::getOutboundOrderId, outboundOrderId);
         OutboundOrder outboundOrder = outboundOrderMapper.selectOne(wrapper);
         if (outboundOrder == null) {
-            throw new ServiceException("出库单不存在");
+            throw new ServiceException("The outbound order does not exist");
         }
 
         // 校验状态
         if (!"pending".equals(outboundOrder.getOutboundStatus())) {
-            throw new ServiceException("只有待审核状态的出库单才能审核");
+            throw new ServiceException("Only the outbound orders with pending review status can be reviewed");
         }
 
         // 更新出库单
-        outboundOrder.setAuditUser(auditUser);
+        // 设置审核人为当前登录人
+        String currentUser = SecurityUtils.getUsername();
+        outboundOrder.setAuditUser(StringUtils.isNotEmpty(currentUser) ? currentUser : auditUser);
         outboundOrder.setAuditTime(auditTime != null ? auditTime : new Date());
         outboundOrder.setRemark(remark);
         outboundOrder.setUpdatedAt(new Date());
@@ -167,10 +176,10 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             // 校验仓库
             Warehouse warehouse = warehouseMapper.selectById(Long.valueOf(outboundOrder.getWarehouseId()));
             if (warehouse == null) {
-                throw new ServiceException("仓库不存在");
+                throw new ServiceException("The warehouse doesn't exist.");
             }
             if (!"1".equals(warehouse.getStatus())) {
-                throw new ServiceException("仓库已停用，无法出库");
+                throw new ServiceException("The warehouse has been shut down and no goods can be dispatched");
             }
 
             // 查询出库明细
@@ -193,7 +202,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 );
 
                 if (availableStocks == null || availableStocks.isEmpty()) {
-                    throw new ServiceException("物料[" + detail.getMaterialId() + "]库存不足");
+                    throw new ServiceException("Materials[" + detail.getMaterialId() + "]Insufficient inventory");
                 }
 
                 // 计算总可用库存
@@ -203,14 +212,14 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 }
 
                 if (totalAvailable.compareTo(requiredQuantity) < 0) {
-                    throw new ServiceException("物料[" + detail.getMaterialId() + "]库存不足，需要：" + requiredQuantity + "，可用：" + totalAvailable);
+                    throw new ServiceException("Materials[" + detail.getMaterialId() + "]Insufficient inventory，Needed：" + requiredQuantity + "，Available：" + totalAvailable);
                 }
 
                 // 校验批次是否过期
                 Date now = new Date();
                 for (Stock stock : availableStocks) {
                     if (stock.getExpiryDate() != null && stock.getExpiryDate().before(now)) {
-                        throw new ServiceException("批次[" + stock.getMaterialBatchId() + "]已过期，不能出库");
+                        throw new ServiceException("Batch[" + stock.getMaterialBatchId() + "]Expired and cannot be taken out of the warehouse");
                     }
                 }
 
@@ -229,7 +238,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     );
 
                     if (lockedStock == null) {
-                        throw new ServiceException("批次[" + stock.getMaterialBatchId() + "]库存记录不存在");
+                        throw new ServiceException("Batch[" + stock.getMaterialBatchId() + "]There is no inventory record");
                     }
 
                     // 使用加锁后的最新库存数量
@@ -237,7 +246,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
                     // 再次校验库存是否充足（防止并发扣减）
                     if (stockQuantity.compareTo(BigDecimal.ZERO) <= 0) {
-                        throw new ServiceException("批次[" + stock.getMaterialBatchId() + "]库存不足（已被其他出库单占用）");
+                        throw new ServiceException("Batch[" + stock.getMaterialBatchId() + "]Insufficient inventory（It has been occupied by other outbound orders）");
                     }
 
                     BigDecimal outboundQuantity;
@@ -249,7 +258,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                         afterQuantity = stockQuantity.subtract(outboundQuantity);
                         remainingRequired = BigDecimal.ZERO;
                     } else {
-                        // 当前批次库存不足，需要拆分
+                        // 当前批次Insufficient inventory，需要拆分
                         outboundQuantity = stockQuantity;
                         afterQuantity = BigDecimal.ZERO;
                         remainingRequired = remainingRequired.subtract(outboundQuantity);
@@ -261,6 +270,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                             (lockedStock.getOutboundQuantity() != null ? lockedStock.getOutboundQuantity() : BigDecimal.ZERO)
                                     .add(outboundQuantity)
                     );
+                    // 更新投入品类型和投入品品类（确保数据一致性）
+                    lockedStock.setMaterialType(detail.getMaterialType());
+                    lockedStock.setAgriculturalInputType(detail.getAgriculturalInputType());
                     lockedStock.setUpdatedAt(new Date());
                     stockMapper.updateById(lockedStock);
 
@@ -281,7 +293,8 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     stockLog.setMaterialId(detail.getMaterialId());
                     stockLog.setMaterialBatchId(lockedStock.getMaterialBatchId());
                     stockLog.setOperationType("outbound");
-                    stockLog.setChangeQuantity(outboundQuantity.negate()); // 出库为负数
+                    // 出库为负数
+                    stockLog.setChangeQuantity(outboundQuantity.negate());
                     stockLog.setBeforeQuantity(stockQuantity);
                     stockLog.setAfterQuantity(afterQuantity);
                     stockLog.setReferenceOrderId(outboundOrderId);
@@ -300,6 +313,17 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
             // 更新仓库已用容量（减少）
             warehouseMapper.updateUsedCapacity(Long.valueOf(outboundOrder.getWarehouseId()), totalOutboundQuantity.negate());
+
+            // 审批通过后，更新关联的分发单状态和确认接收单状态
+            if (StringUtils.isNotEmpty(outboundOrder.getRelatedOrderNo())) {
+                try {
+                    // 更新分发单状态为Completed
+                    outboundOrderMapper.updateReleaseOrderStatus(outboundOrder.getRelatedOrderNo(), "outCompleted");
+                } catch (Exception e) {
+                    // 记录日志但不影响主流程
+                    throw new ServiceException("The outbound approval was successful, but the update of the associated distribution order status failed: " + e.getMessage());
+                }
+            }
 
         } else {
             outboundOrder.setOutboundStatus("rejected");
@@ -575,7 +599,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             }
             if (StringUtils.isEmpty(materialId)) {
                 result.put("valid", false);
-                result.put("message", "物料ID不能为空");
+                result.put("message", "MaterialsID不能为空");
                 return result;
             }
             if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
@@ -589,7 +613,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
             if (availableStocks == null || availableStocks.isEmpty()) {
                 result.put("valid", false);
-                result.put("message", "库存不足");
+                result.put("message", "Insufficient inventory");
                 result.put("available_quantity", BigDecimal.ZERO);
                 return result;
             }
@@ -603,7 +627,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             // 校验库存是否充足
             if (totalAvailable.compareTo(quantity) < 0) {
                 result.put("valid", false);
-                result.put("message", "库存不足，需要：" + quantity + "，可用：" + totalAvailable);
+                result.put("message", "Insufficient inventory，需要：" + quantity + "，可用：" + totalAvailable);
                 result.put("available_quantity", totalAvailable);
                 result.put("required_quantity", quantity);
                 result.put("shortage", quantity.subtract(totalAvailable));
@@ -670,9 +694,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             // 构建返回结果
             result.put("valid", allValid);
             if (allValid) {
-                result.put("message", "所有物料库存充足");
+                result.put("message", "所有Materials库存充足");
             } else {
-                result.put("message", "部分物料库存不足");
+                result.put("message", "部分MaterialsInsufficient inventory");
                 result.put("insufficient_items", insufficientItems);
             }
 
@@ -731,20 +755,26 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             for (Map<String, Object> detail : releaseDetails) {
                 Long inputId = detail.get("input_id") != null ? Long.parseLong(detail.get("input_id").toString()) : null;
                 String inputName = detail.get("input_name") != null ? detail.get("input_name").toString() : "";
-                String inputType = detail.get("input_type") != null ? detail.get("input_type").toString() : "";
-                String agriculturalInputType = detail.get("agricultural_input_type") != null ? detail.get("agricultural_input_type").toString() : "";
+                // 优先使用明细表中的input_type和input_category，如果没有则使用投入品表中的字段
+                String inputType = detail.get("input_type") != null ? detail.get("input_type").toString() : 
+                                 (detail.get("input_type_from_input") != null ? detail.get("input_type_from_input").toString() : "");
+                String agriculturalInputType = detail.get("input_category") != null ? detail.get("input_category").toString() : 
+                                            (detail.get("agricultural_input_type_from_input") != null ? detail.get("agricultural_input_type_from_input").toString() : "");
                 String variety = detail.get("input_variety") != null ? detail.get("input_variety").toString() : "";
                 BigDecimal required = detail.get("required") != null ? new BigDecimal(detail.get("required").toString()) : BigDecimal.ZERO;
 
-                if (inputId == null || required.compareTo(BigDecimal.ZERO) <= 0) {
+                // 检查是否提供了投入品类型和投入品品类
+                if (StringUtils.isEmpty(inputType) || StringUtils.isEmpty(agriculturalInputType) || required.compareTo(BigDecimal.ZERO) <= 0) {
                     enrichedDetails.add(detail);
                     continue;
                 }
 
-                // 查询库存
-                List<Stock> availableStocks = stockMapper.selectAvailableStockFIFO(
+                // 根据投入品类型和投入品品类查询库存
+                // 这里需要一个新的方法来查询符合条件的库存
+                List<Stock> availableStocks = stockMapper.selectAvailableStockByTypeAndCategory(
                         warehouseId,
-                        inputId.toString(),
+                        inputType,
+                        agriculturalInputType,
                         required
                 );
 
@@ -779,7 +809,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     insufficientItem.put("required_quantity", required);
                     insufficientItem.put("available_quantity", totalAvailable);
                     insufficientItem.put("shortage", required.subtract(totalAvailable));
-                    insufficientItem.put("message", "库存不足，需要：" + required + "，可用：" + totalAvailable);
+                    insufficientItem.put("message", "Insufficient inventory，需要：" + required + "，可用：" + totalAvailable);
                     insufficientItems.add(insufficientItem);
                 }
 
@@ -794,7 +824,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             if (allValid) {
                 result.put("message", "所有投入品库存充足");
             } else {
-                result.put("message", "部分投入品库存不足");
+                result.put("message", "部分投入品Insufficient inventory");
                 result.put("insufficient_items", insufficientItems);
             }
 

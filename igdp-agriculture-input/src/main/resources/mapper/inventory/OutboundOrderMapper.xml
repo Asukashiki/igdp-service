@@ -181,14 +181,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             d.crop_type,
             d.variety as detail_variety,
             d.input_id,
+            d.input_type,
+            d.input_category,
             d.required,
             d.quantity,
             d.unit,
             d.unit_price,
             d.release_time,
             i.input_name,
-            i.type as input_type,
-            i.agricultural_input_type,
+            i.type as input_type_from_input,
+            i.agricultural_input_type as agricultural_input_type_from_input,
             i.variety as input_variety
         from t_input_release_detail d
         left join agri_input i on d.input_id = i.input_id and i.del_flag = '0'
@@ -221,5 +223,34 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where release_id = #{releaseId}
           and is_deleted = 0
     </select>
+
+    <!-- 更新分发单状态 -->
+    <update id="updateReleaseOrderStatus">
+        update t_input_release_main
+        set status = #{status}
+        where id = #{releaseId}
+          and is_deleted = '0'
+    </update>
+
+    <!-- 更新Union确认接收单的接收状态 -->
+    <update id="updateReceiveUnionStatus">
+        update t_input_receive_union r
+            inner join t_input_release_main m on r.release_id = m.release_id
+        set r.receive_status = #{receiveStatus},
+            r.confirm_time = NOW()
+        where m.id = #{releaseId}
+          and m.is_deleted = '0'
+          and r.is_deleted = '0'
+    </update>
+
+    <update id="updateReceiveWoredaStatus">
+        update t_input_receive_woreda r
+            inner join t_input_release_main m on r.release_id = m.release_id
+        set r.receive_status = #{receiveStatus},
+            r.confirm_time = NOW()
+        where m.id = #{releaseId}
+          and m.is_deleted = '0'
+          and r.is_deleted = '0'
+    </update>
 
 </mapper>

@@ -6,14 +6,11 @@ import com.inspur.agriculture.input.domain.inventory.InboundOrderDetail;
 import com.inspur.agriculture.input.domain.inventory.Stock;
 import com.inspur.agriculture.input.domain.inventory.StockLog;
 import com.inspur.agriculture.input.domain.inventory.Warehouse;
-import com.inspur.agriculture.input.mapper.inventory.InboundOrderDetailMapper;
-import com.inspur.agriculture.input.mapper.inventory.InboundOrderMapper;
-import com.inspur.agriculture.input.mapper.inventory.StockLogMapper;
-import com.inspur.agriculture.input.mapper.inventory.StockMapper;
-import com.inspur.agriculture.input.mapper.inventory.WarehouseMapper;
+import com.inspur.agriculture.input.mapper.inventory.*;
 import com.inspur.agriculture.input.service.inventory.IBatchService;
 import com.inspur.agriculture.input.service.inventory.IInboundOrderService;
 import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +44,9 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
 
     @Autowired
     private IBatchService batchService;
+
+    @Autowired
+    private OutboundOrderMapper outboundOrderMapper;
 
     @Override
     public List<Map<String, Object>> selectInboundOrderList(Map<String, Object> params) {
@@ -107,6 +107,12 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         inboundOrder.setInboundStatus("pending");
         inboundOrder.setCreatedAt(new Date());
         inboundOrder.setUpdatedAt(new Date());
+
+        // 设置入库员为当前登录人
+        String currentUser = SecurityUtils.getUsername();
+        if (StringUtils.isNotEmpty(currentUser)) {
+            inboundOrder.setInboundUser(currentUser);
+        }
 
         // 计算总数量
         BigDecimal totalQuantity = BigDecimal.ZERO;
@@ -186,9 +192,12 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         }
 
         // 更新入库单
-        inboundOrder.setAuditUser(auditUser);
+        // 设置审核人为当前登录人
+        String currentUser = SecurityUtils.getUsername();
+        inboundOrder.setAuditUser(StringUtils.isNotEmpty(currentUser) ? currentUser : auditUser);
         inboundOrder.setAuditTime(auditTime != null ? auditTime : new Date());
-        inboundOrder.setRemark(remark);  // 只更新审核意见，不影响表单备注
+        // 只更新审核意见，不影响表单备注
+        inboundOrder.setRemark(remark);
         inboundOrder.setUpdatedAt(new Date());
 
         // 根据审核结果更新状态
@@ -270,6 +279,9 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
                                     .add(detail.getQuantity())
                     );
                     existStock.setExpiryDate(detail.getExpiryDate());
+                    // 更新投入品类型和投入品品类
+                    existStock.setMaterialType(detail.getMaterialType());
+                    existStock.setAgriculturalInputType(detail.getAgriculturalInputType());
                     existStock.setUpdatedAt(new Date());
                     stockMapper.updateById(existStock);
                 } else {
@@ -281,6 +293,9 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
                     newStock.setMaterialId(detail.getMaterialId());
                     newStock.setMaterialBatchId(detail.getBatchNo());
                     newStock.setMaterialName(detail.getMaterialName());
+                    // 保存投入品类型和投入品品类
+                    newStock.setMaterialType(detail.getMaterialType());
+                    newStock.setAgriculturalInputType(detail.getAgriculturalInputType());
                     newStock.setQuantity(detail.getQuantity());
                     newStock.setInboundQuantity(detail.getQuantity());
                     newStock.setOutboundQuantity(BigDecimal.ZERO);
@@ -357,6 +372,15 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
             }
         }
 
+            outboundOrderMapper.updateReceiveUnionStatus(
+                    inboundOrder.getRelatedOrderNo(),
+                    "HasBeenWarehoused"
+            );
+            outboundOrderMapper.updateReceiveWoredaStatus(
+                    inboundOrder.getRelatedOrderNo(),
+                    "HasBeenWarehoused"
+            );
+
         // 更新仓库已用容量
         try {
             warehouseMapper.updateUsedCapacity(Long.valueOf(inboundOrder.getWarehouseId()), totalQuantity);
@@ -425,5 +449,97 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
     @Override
     public List<Map<String, Object>> selectReleaseOrderList() {
         return inboundOrderMapper.selectReleaseOrderList();
+    }
+    
+    /**
+     * 根据分发单ID获取分发投入品明细并匹配库存
+     * 匹配规则：根据投入品类型和品类匹配库存中的投入品
+     *
+     * @param releaseId   分发单ID
+     * @param warehouseId 仓库ID
+     * @return 分发投入品明细及匹配的库存信息
+     */
+    @Override
+    public Map<String, Object> matchReleaseStock(String releaseId, String warehouseId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 校验参数
+            if (StringUtils.isEmpty(releaseId)) {
+                result.put("valid", false);
+                result.put("message", "分发单ID不能为空");
+                return result;
+            }
+            if (StringUtils.isEmpty(warehouseId)) {
+                result.put("valid", false);
+                result.put("message", "仓库ID不能为空");
+                return result;
+            }
+            
+            // 查询分发单明细（包含投入品的类型和品类）
+            List<Map<String, Object>> releaseDetails = inboundOrderMapper.selectReleaseDetailsByReleaseId(releaseId);
+            
+            if (releaseDetails == null || releaseDetails.isEmpty()) {
+                result.put("valid", false);
+                result.put("message", "分发单明细不存在");
+                return result;
+            }
+            
+            // 匹配每个投入品类型的库存
+            List<Map<String, Object>> matchedDetails = new ArrayList<>();
+            
+            for (Map<String, Object> detail : releaseDetails) {
+                // 获取投入品类型和品类
+                String inputType = (String) detail.get("input_type");
+                String agriculturalInputType = (String) detail.get("input_category");
+                BigDecimal required = (BigDecimal) detail.get("required");
+                
+                // 如果required为空，使用quantity字段
+                if (required == null) {
+                    required = (BigDecimal) detail.get("quantity");
+                }
+                
+                // 检查是否提供了投入品类型和投入品品类
+                if (StringUtils.isEmpty(inputType) || StringUtils.isEmpty(agriculturalInputType) || required == null || required.compareTo(BigDecimal.ZERO) <= 0) {
+                    // 添加未匹配的明细
+                    Map<String, Object> unmatchedDetail = new HashMap<>(detail);
+                    unmatchedDetail.put("matched", false);
+                    unmatchedDetail.put("message", "缺少必要的匹配信息");
+                    matchedDetails.add(unmatchedDetail);
+                    continue;
+                }
+                
+                // 根据投入品类型和投入品品类查询库存
+                List<Stock> availableStocks = stockMapper.selectAvailableStockByTypeAndCategory(
+                        warehouseId,
+                        inputType,
+                        agriculturalInputType,
+                        required
+                );
+                
+                // 将匹配结果添加到明细中
+                Map<String, Object> matchedDetail = new HashMap<>(detail);
+                matchedDetail.put("matched", !availableStocks.isEmpty());
+                matchedDetail.put("availableStocks", availableStocks);
+                
+                if (!availableStocks.isEmpty()) {
+                    matchedDetail.put("message", "找到匹配的库存");
+                } else {
+                    matchedDetail.put("message", "未找到匹配的库存");
+                }
+                
+                matchedDetails.add(matchedDetail);
+            }
+            
+            result.put("valid", true);
+            result.put("details", matchedDetails);
+            result.put("message", "匹配完成");
+            
+        } catch (Exception e) {
+            result.put("valid", false);
+            result.put("message", "匹配过程中发生错误: " + e.getMessage());
+        }
+        
+        return result;
     }
 }
