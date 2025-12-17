@@ -1,9 +1,12 @@
 package com.inspur.seed.service.breed;
 
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.inspur.seed.domain.breed.BreedSeedProduce;
 import com.inspur.seed.dto.breed.BreedSeedProduceDTO;
 import com.inspur.seed.dto.breed.BreedSeedProduceQueryDTO;
 import com.inspur.seed.vo.breed.BreedSeedProduceVO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -11,7 +14,7 @@ import java.util.List;
  *
  * @author igdp
  */
-public interface IBreedSeedProduceService {
+public interface IBreedSeedProduceService extends IService<BreedSeedProduce> {
 
     /**
      * 查询生产数据列表
@@ -36,6 +39,15 @@ public interface IBreedSeedProduceService {
      * @return 新增的生产数据
      */
     BreedSeedProduceVO addProduce(BreedSeedProduceDTO dto);
+
+    /**
+     * 更新生产批次剩余量(扣减)
+     *
+     * @param breedSeedProduceBatchId 生产批次ID
+     * @param distributeQuantity 分发数量
+     * @return 是否更新成功
+     */
+    boolean updateRemainingQuantity(String breedSeedProduceBatchId, BigDecimal distributeQuantity);
 
     void delete(String breedSeedProduceBatchId);
 }
