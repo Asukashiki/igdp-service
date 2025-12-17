@@ -80,4 +80,30 @@ public class FarmingRecord extends BaseEntity {
     @TableLogic
     @TableField("is_deleted")
     private Integer isDeleted;
+
+
+    /**
+     * 兼容前端字段：Creator/Modifier（首字母大写）
+     * 直接映射 BaseEntity 的 createBy/updateBy
+     */
+    @com.fasterxml.jackson.annotation.JsonProperty("Creator")
+    public String getCreatorAlias() {
+        return this.getCreateBy();
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("Modifier")
+    public String getModifierAlias() {
+        return this.getUpdateBy();
+    }
+
+    // 兼容小写字段
+    @com.fasterxml.jackson.annotation.JsonProperty("creator")
+    public String getCreatorAliasLower() {
+        return this.getCreateBy();
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("modifier")
+    public String getModifierAliasLower() {
+        return this.getUpdateBy();
+    }
 }
