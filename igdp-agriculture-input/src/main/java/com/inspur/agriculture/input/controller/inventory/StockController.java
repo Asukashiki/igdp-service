@@ -67,6 +67,9 @@ public class StockController {
             if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
                 params.put("organCode", queryDTO.getOrganCode());
             }
+            if (queryDTO.getMinQuantity() != null) {
+                params.put("minQuantity", queryDTO.getMinQuantity());
+            }
 
             // 开启分页
             PageHelper.startPage(page, pageSize);
@@ -345,9 +348,9 @@ public class StockController {
             if (queryDTO.getAgriculturalInputType() != null && !queryDTO.getAgriculturalInputType().isEmpty()) {
                 params.put("agriculturalInputType", queryDTO.getAgriculturalInputType());
             }
-            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+           /* if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
                 params.put("organCode", queryDTO.getOrganCode());
-            }
+            }*/
 
             List<Map<String, Object>> list = stockService.selectStockSummary(params);
             return AjaxResult.success(list);

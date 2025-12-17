@@ -25,6 +25,7 @@ public interface IDemandInputSummaryService {
 
 
     List<DemandInputSummaryVO> getDemandInputSummaryList1(DemandInputSummaryQueryDTO queryDTO);
+    List<DemandInputSummaryVO> getDemandInputSummaryList2(DemandInputSummaryQueryDTO queryDTO);
 
     /**
      * 根据ID查询农资需求汇总详情

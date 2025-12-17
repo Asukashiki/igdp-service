@@ -8,30 +8,11 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-/**
- * 农资需求汇总 Mapper
- *
- * @author inspur
- * @date 2025-12-10
- */
 public interface DemandInputSummaryMapper extends BaseMapper<DemandInputSummary> {
 
-    /**
-     * 查询农资需求汇总列表
-     *
-     * @param query 查询条件
-     * @return 农资需求汇总列表
-     */
+    // 原有方法：完全保留
     List<DemandInputSummaryVO> selectDemandInputSummaryList(@Param("query") DemandInputSummaryQueryDTO query);
-
     List<DemandInputSummaryVO> selectDemandInputSummaryList1(@Param("query") DemandInputSummaryQueryDTO query);
-
-    /**
-     * 根据ID查询农资需求汇总详情
-     *
-     * @param id 主键ID
-     * @return 农资需求汇总详情
-     */
     DemandInputSummaryVO selectDemandInputSummaryById(@Param("id") String id);
 
     int countSubmitQuantity(@Param("year") String year, @Param("targetCode") String targetCode);
@@ -41,4 +22,8 @@ public interface DemandInputSummaryMapper extends BaseMapper<DemandInputSummary>
     int countAllQuantity(@Param("year") String year, @Param("targetCode") String targetCode);
 
     int countUnsubmitQuantity(@Param("year") String year, @Param("targetCode") String targetCode);
+
+
+
+    List<DemandInputSummaryVO> selectDemandInputSummaryList2(@Param("query") DemandInputSummaryQueryDTO query);
 }

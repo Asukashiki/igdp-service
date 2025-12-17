@@ -20,10 +20,16 @@ public class BreedSeedProduceDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 批次名称
+     */
+    private String produceBatchName;
+    /**
      * 育种批次ID
      */
     @NotBlank(message = "育种批次ID不能为空")
     private String breedBatchId;
+
+    private String breedBatchName;
 
     /**
      * 品种ID
@@ -61,7 +67,15 @@ public class BreedSeedProduceDTO implements Serializable {
     /**
      * 产出种子数量
      */
-    @NotNull(message = "产出种子数量不能为空")
-    @DecimalMin(value = "0", message = "产出种子数量必须大于等于0")
     private BigDecimal produceSeedQuantrity;
+
+    /**
+     * 种子等级来源
+     */
+    private String fromSeedLevel;
+
+    /**
+     * 种子等级去向
+     */
+    private String toSeedLevel;
 }

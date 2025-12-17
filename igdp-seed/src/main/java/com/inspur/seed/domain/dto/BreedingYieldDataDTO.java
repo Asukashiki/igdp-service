@@ -89,6 +89,16 @@ public class BreedingYieldDataDTO {
      */
     private String scoreValue;
 
+    /**
+     * 业务状态：submit/approve
+     */
+    private String status;
+
+    /**
+     * 流程审核状态（字典 flow_status）
+     */
+    private String workflowStatus;
+
     // 查询条件字段
     /**
      * 收获日期开始

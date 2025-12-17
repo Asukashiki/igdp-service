@@ -91,12 +91,42 @@ public class BreedingYieldDataVO {
     private String scoreValue;
 
     /**
-     * 创建人姓名
+     * 业务状态：submit/approve
      */
-    private String createdByName;
+    private String status;
+
+    /**
+     * 流程审核状态（字典 flow_status）
+     */
+    private String workflowStatus;
+
+    /**
+     * 创建人ID
+     */
+    private String createdBy;
 
     /**
      * 创建时间
      */
     private LocalDateTime createdTime;
+
+    /**
+     * 修改人ID
+     */
+    private String updateBy;
+
+    /**
+     * 修改时间
+     */
+    private LocalDateTime updateTime;
+
+    /**
+     * 审核人
+     */
+    private String auditBy;
+
+    /**
+     * 审核时间
+     */
+    private LocalDateTime auditTime;
 }

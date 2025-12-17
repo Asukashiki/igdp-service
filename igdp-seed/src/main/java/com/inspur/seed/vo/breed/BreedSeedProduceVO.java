@@ -19,12 +19,20 @@ public class BreedSeedProduceVO implements Serializable {
     /**
      * 种子生产批次ID
      */
-    private String breedSeedProduceBatchId;
+    private String produceBatchId;
+
+    /**
+     * 批次名称
+     */
+    private String produceBatchName;
 
     /**
      * 育种批次ID
      */
     private String breedBatchId;
+
+
+    private String breedBatchName;
 
     /**
      * 品种ID
@@ -66,6 +74,16 @@ public class BreedSeedProduceVO implements Serializable {
      * 产出种子数量
      */
     private BigDecimal produceSeedQuantrity;
+
+    /**
+     * 种子等级来源
+     */
+    private String fromSeedLevel;
+
+    /**
+     * 种子等级去向
+     */
+    private String toSeedLevel;
 
     /**
      * 操作人ID
