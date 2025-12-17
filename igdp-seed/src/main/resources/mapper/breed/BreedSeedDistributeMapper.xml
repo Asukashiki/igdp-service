@@ -4,6 +4,9 @@
 
     <resultMap id="BreedSeedDistributeVOResult" type="com.inspur.seed.vo.breed.BreedSeedDistributeVO">
         <id property="distributeId" column="distribute_id"/>
+        <result property="distributeName" column="distribute_name"/>
+        <result property="fromSeedLevel" column="from_seed_level"/>
+        <result property="toSeedLevel" column="to_seed_level"/>
         <result property="oseId" column="ose_id"/>
         <result property="oseName" column="ose_name"/>
         <result property="time" column="time"/>
@@ -21,6 +24,9 @@
     <sql id="selectDistributeVo">
         SELECT
             m.distribute_id,
+            m.distribute_name,
+            m.from_seed_level,
+            m.to_seed_level,
             m.ose_id,
             m.ose_name,
             m.time,
@@ -37,11 +43,11 @@
     <select id="selectDistributeList" resultMap="BreedSeedDistributeVOResult">
         <include refid="selectDistributeVo"/>
         <where>
-            <if test="query.breedSeedProduceBatchId != null and query.breedSeedProduceBatchId != ''">
+            <if test="query.produceBatchId != null and query.produceBatchId != ''">
                 AND EXISTS (
                     SELECT 1 FROM breed_seed_distribute_detail d
                     WHERE d.distribute_id = m.distribute_id
-                    AND d.breed_seed_produce_batch_id = #{query.breedSeedProduceBatchId}
+                    AND d.produce_batch_id = #{produceBatchId}
                 )
             </if>
             <if test="query.cropType != null and query.cropType != ''">

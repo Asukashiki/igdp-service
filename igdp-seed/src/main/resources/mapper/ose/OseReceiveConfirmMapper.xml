@@ -41,11 +41,11 @@
     <select id="selectReceiveConfirmList" resultMap="OseReceiveConfirmVOResult">
         <include refid="selectReceiveConfirmVo"/>
         <where>
-            <if test="query.breedSeedProduceBatchId != null and query.breedSeedProduceBatchId != ''">
+            <if test="query.produceBatchId != null and query.produceBatchId != ''">
                 AND EXISTS (
                     SELECT 1 FROM breed_seed_distribute_detail d
                     WHERE d.distribute_id = rc.distribute_id
-                    AND d.breed_seed_produce_batch_id = #{query.breedSeedProduceBatchId}
+                    AND d.produce_batch_id = #{produceBatchId}
                 )
             </if>
             <if test="query.cropType != null and query.cropType != ''">

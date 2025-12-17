@@ -34,7 +34,20 @@ public class BreedSeedDistributeDetail implements Serializable {
     /**
      * 生产批次ID
      */
-    private String breedSeedProduceBatchId;
+    private String produceBatchId;
+
+    /**
+     * 生产批次名称(自动带出)
+     */
+    private String produceBatchName;
+
+    /**
+     * 品种ID
+     */
+    private String breedBatchName;
+
+
+    private String parentalSeedSource;
 
     /**
      * 品种名称(自动带出)
