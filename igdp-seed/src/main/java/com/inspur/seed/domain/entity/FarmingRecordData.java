@@ -30,6 +30,11 @@ public class FarmingRecordData extends BaseEntity {
     private String dataId;
 
     /**
+     * 活动日期时间
+     */
+    private Date activityDatetime;
+
+    /**
      * 管理措施
      */
     private String managementPractice;
@@ -78,6 +83,41 @@ public class FarmingRecordData extends BaseEntity {
      * 种子来源
      */
     private String seedSource;
+
+    /**
+     * 审核状态
+     */
+    private String auditStatus;
+
+    /**
+     * 创建人
+     */
+    private String creator;
+
+    /**
+     * 修改人
+     */
+    private String modifier;
+
+    /**
+     * 审核人
+     */
+    private String auditor;
+
+    /**
+     * 创建时间
+     */
+    private Date createdDatetime;
+
+    /**
+     * 修改时间
+     */
+    private Date modifiedDatetime;
+
+    /**
+     * 审核时间
+     */
+    private Date auditedDatetime;
 
     /**
      * 删除标志(0正常 2删除)

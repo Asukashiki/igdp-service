@@ -74,9 +74,22 @@ public class TrialBasic extends BaseEntity {
     @TableField("is_deleted")
     private Integer isDeleted;
 
-    /** 试验状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废) */
-    @TableField("trial_status")
+    /** 流程状态/审核状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废) */
+    @TableField("workflow_status")
     private String trialStatus;
+
+    /**
+     * 为前端提供统一的字段名：workflowStatus
+     * 不改变原有属性名以保证兼容性
+     */
+    @com.fasterxml.jackson.annotation.JsonProperty("workflowStatus")
+    public String getWorkflowStatus() {
+        return this.trialStatus;
+    }
+
+    /** 审核状态(用于查询筛选) */
+    @TableField(exist = false)
+    private String auditStatus;
 
     /** 创建人ID */
     @TableField("created_by")

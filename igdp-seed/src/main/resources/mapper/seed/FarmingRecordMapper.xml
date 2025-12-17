@@ -41,7 +41,7 @@
                 AND f.activity_type = #{activityType}
             </if>
             <if test="activityDate != null and activityDate != ''">
-                AND f.activity_date = #{activityDate}
+                AND DATE(f.activity_date) = #{activityDate}
             </if>
         </where>
         order by f.activity_date desc, f.create_time desc

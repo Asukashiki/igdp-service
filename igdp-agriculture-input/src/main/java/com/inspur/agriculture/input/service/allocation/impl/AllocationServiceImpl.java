@@ -1,5 +1,6 @@
 package com.inspur.agriculture.input.service.allocation.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -19,8 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Zone Allocation Service Implementation
@@ -73,6 +78,74 @@ public class AllocationServiceImpl extends ServiceImpl<AllocationMapper, Allocat
             for (AllocationQuota quota : quotaList) {
                 quota.setAllocationId(allocation.getId());
                 allocationQuotaMapper.insert(quota);
+            }
+        }
+
+
+        // 计算woreda 每个inputCategory 的需求AllocationDemand和分配AllocationQuota的比例
+        if(allocation.getLevel().equals("woreda")){
+            // 创建一个映射来存储每个inputCategory的需求总量
+            Map<String, BigDecimal> demandTotalByCategory = new HashMap<>();
+
+            // 创建一个映射存储比例
+            Map<String, BigDecimal> ratioByCategory = new HashMap<>();
+
+
+            // 统计每种inputCategory的需求总量
+            for (AllocationDemand demand : demandList) {
+                String inputCategory = demand.getInputCategory();
+                BigDecimal totalQuantity = demand.getTotalQuantity();
+
+                demandTotalByCategory.put(inputCategory,
+                    demandTotalByCategory.getOrDefault(inputCategory, BigDecimal.ZERO)
+                        .add(totalQuantity != null ? totalQuantity : BigDecimal.ZERO));
+            }
+
+            // 计算每种inputCategory的配额与需求的比例
+            for (AllocationQuota quota : quotaList) {
+                String inputCategory = quota.getInputCategory();
+                BigDecimal quotaQuantity = quota.getTotalQuantity();
+                BigDecimal demandQuantity = demandTotalByCategory.get(inputCategory);
+
+                if (demandQuantity != null && demandQuantity.compareTo(BigDecimal.ZERO) > 0) {
+                    // 计算配额与需求的比例
+                    BigDecimal ratio = quotaQuantity.divide(demandQuantity, 6, BigDecimal.ROUND_HALF_UP);
+                    // 这里可以保存或使用ratio变量进行后续处理
+                    ratioByCategory.put(inputCategory, ratio);
+                }
+            }
+
+            // 查询woreda 下的农民 需求
+            List<Map<String, Object>> farmers = allocationMapper.selectByWoredaIdAndYear(allocation.getZone(), allocation.getYear());
+            for (Map<String, Object> farmer : farmers) {
+                AllocationAddDTO farmerDemandDTO = new AllocationAddDTO();
+                farmerDemandDTO.setAllocationName(farmer.get("farmer_name").toString()+"-"+allocation.getYear());
+                farmerDemandDTO.setYear(allocation.getYear());
+                farmerDemandDTO.setZone(farmer.get("farmer_id").toString());
+                farmerDemandDTO.setZoneName(farmer.get("farmer_name").toString());
+                farmerDemandDTO.setLevel("farmer");
+                List<Map<String, Object>> farmerDemandItems = allocationMapper.selectByDemandId(farmer.get("id").toString());
+                List<AllocationDemand> farmerDemandList = new ArrayList<>();
+                List<AllocationQuota> farmerQuotaList = new ArrayList<>();
+                farmerDemandDTO.setDemandList(farmerDemandList);
+                for (Map<String, Object> farmerDemandItemMap : farmerDemandItems) {
+                    AllocationDemand farmerDemand = new AllocationDemand();
+                    AllocationQuota  farmerQuota = new AllocationQuota();
+                    farmerDemand.setInputType(farmerDemandItemMap.get("input_type").toString());
+                    farmerDemand.setInputCategory(farmerDemandItemMap.get("input_category").toString());
+                    farmerDemand.setTotalQuantity(new BigDecimal(farmerDemandItemMap.get("quantity").toString()));
+                    farmerDemandList.add(farmerDemand);
+
+                    farmerQuota.setInputType(farmerDemandItemMap.get("input_type").toString());
+                    farmerQuota.setInputCategory(farmerDemandItemMap.get("input_category").toString());
+                    farmerQuota.setTotalQuantity(new BigDecimal(farmerDemandItemMap.get("quantity").toString()).multiply(ratioByCategory.get(farmerDemandItemMap.get("input_category").toString())));
+                    farmerQuotaList.add(farmerQuota);
+                }
+                farmerDemandDTO.setQuotaList(farmerQuotaList);
+
+                add(farmerDemandDTO);
+
+
             }
         }
 

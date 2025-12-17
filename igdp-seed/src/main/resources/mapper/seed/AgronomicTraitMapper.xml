@@ -22,6 +22,10 @@
         <result property="cropType" column="crop_type"/>
         <result property="varietyName" column="variety_name"/>
         <result property="batchName" column="batch_name"/>
+        <result property="status" column="status"/>
+        <result property="workflowStatus" column="workflow_status"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditTime" column="audit_time"/>
     </resultMap>
 
     <sql id="selectAgronomicTraitVo">
@@ -40,6 +44,21 @@
             <if test="trialId != null and trialId != ''">
                 AND a.trial_id = #{trialId}
             </if>
+            <if test="status != null and status != ''">
+                AND a.status = #{status}
+            </if>
+            <if test="workflowStatus != null and workflowStatus != ''">
+                AND a.workflow_status = #{workflowStatus}
+            </if>
+            <if test="createBy != null and createBy != ''">
+                AND a.create_by like concat('%', #{createBy}, '%')
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                AND a.update_by like concat('%', #{updateBy}, '%')
+            </if>
+            <if test="auditBy != null and auditBy != ''">
+                AND a.audit_by like concat('%', #{auditBy}, '%')
+            </if>
             <if test="cropType != null and cropType != ''">
                 AND b.crop_type = #{cropType}
             </if>
@@ -51,6 +70,24 @@
             </if>
             <if test="queryEndTime != null">
                 AND a.record_time &lt;= #{queryEndTime}
+            </if>
+            <if test="createTimeBegin != null">
+                AND a.create_time &gt;= #{createTimeBegin}
+            </if>
+            <if test="createTimeEnd != null">
+                AND a.create_time &lt;= #{createTimeEnd}
+            </if>
+            <if test="updateTimeBegin != null">
+                AND a.update_time &gt;= #{updateTimeBegin}
+            </if>
+            <if test="updateTimeEnd != null">
+                AND a.update_time &lt;= #{updateTimeEnd}
+            </if>
+            <if test="auditTimeBegin != null">
+                AND a.audit_time &gt;= #{auditTimeBegin}
+            </if>
+            <if test="auditTimeEnd != null">
+                AND a.audit_time &lt;= #{auditTimeEnd}
             </if>
         </where>
         order by a.record_time desc, a.create_time desc

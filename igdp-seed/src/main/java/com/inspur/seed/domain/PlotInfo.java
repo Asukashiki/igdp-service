@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 地块信息实体类
@@ -68,7 +69,7 @@ public class PlotInfo extends BaseEntity {
     /** 播种时间 */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField("sowing_time")
-    private Date sowingTime;
+    private LocalDateTime sowingTime;
 
     /** 地区 */
     @TableField("region")
@@ -97,6 +98,49 @@ public class PlotInfo extends BaseEntity {
     /** GPS经度 */
     @TableField("gps_long")
     private Double gpsLong;
+
+    /** 审核状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废) */
+    @TableField("audit_status")
+    private String auditStatus;
+
+    /** 创建人ID */
+    @TableField("created_by")
+    private String createdBy;
+
+    /** 创建人姓名 */
+    @TableField("created_name")
+    private String createdName;
+
+    /** 创建时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("create_time")
+    private LocalDateTime createTime;
+
+    /** 修改人ID */
+    @TableField("modified_by")
+    private String modifiedBy;
+
+    /** 修改人姓名 */
+    @TableField("modified_name")
+    private String modifiedName;
+
+    /** 修改时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("update_time")
+    private LocalDateTime updateTime;
+
+    /** 审核人ID */
+    @TableField("audited_by")
+    private String auditedBy;
+
+    /** 审核人姓名 */
+    @TableField("audited_name")
+    private String auditedName;
+
+    /** 审核时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("audit_time")
+    private LocalDateTime auditTime;
 
     /** 逻辑删除标识(0=未删除,1=已删除) */
     @TableLogic

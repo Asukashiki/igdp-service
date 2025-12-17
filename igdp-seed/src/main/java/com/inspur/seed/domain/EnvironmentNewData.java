@@ -67,10 +67,27 @@ public class EnvironmentNewData extends BaseEntity {
     @TableField("source")
     private String source;
 
+    /** 观察员ID / Observer ID */
+    @TableField("observer_id")
+    private String observerId;
+
     /** 逻辑删除标识(0=未删除,1=已删除) / Logical Delete Flag */
     @TableLogic
     @TableField("is_deleted")
     private Integer isDeleted;
+
+    /** 流程审核状态（字典 flow_status） */
+    @TableField("workflow_status")
+    private String workflowStatus;
+
+    /** 审核人 */
+    @TableField("audit_by")
+    private String auditBy;
+
+    /** 审核时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("audit_time")
+    private Date auditTime;
 
     /** 查询起始时间（查询参数，非数据库字段） */
     @TableField(exist = false)
