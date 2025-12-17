@@ -129,5 +129,28 @@ public class DemandInputSummaryController {
     public AjaxResult distributeTask(String year){
         return AjaxResult.success(demandInputSummaryService.createAllMainTask(year));
     }
+    @GetMapping("/listOnly12")
+    public AjaxResult listOnly12(
+            DemandInputSummaryQueryDTO queryDTO,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        try {
+            PageHelper.startPage(page, pageSize);
+            // 调用你的专属方法
+            List<DemandInputSummaryVO> list = demandInputSummaryService.getDemandInputSummaryList2(queryDTO);
+            PageInfo<DemandInputSummaryVO> pageInfo = new PageInfo<>(list);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", pageInfo.getList());
+            result.put("total", pageInfo.getTotal()); // 1/2状态的真实总数
+            result.put("page", pageInfo.getPageNum());
+            result.put("pageSize", pageInfo.getPageSize());
+
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
 
 }

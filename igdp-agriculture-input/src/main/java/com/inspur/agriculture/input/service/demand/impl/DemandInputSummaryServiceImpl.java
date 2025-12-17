@@ -55,7 +55,10 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
     public DemandInputSummaryVO getDemandInputSummaryById(String id) {
         return demandInputSummaryMapper.selectDemandInputSummaryById(id);
     }
-
+    @Override
+    public List<DemandInputSummaryVO> getDemandInputSummaryList2(DemandInputSummaryQueryDTO queryDTO) {
+        return demandInputSummaryMapper.selectDemandInputSummaryList2(queryDTO);
+    }
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int addDemandInputSummary(DemandInputSummaryDTO dto) {
