@@ -43,7 +43,11 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
 
         // 设置创建信息
         plotInfo.setCreateTime(LocalDateTime.now());
-        plotInfo.setCreateBy(SecurityUtils.getUsername());
+        // BaseEntity: createBy 存用户ID
+        plotInfo.setCreateBy(SecurityUtils.getUserId().toString());
+        // 业务字段：createdBy/createdName 存ID与姓名，供列表显示
+        plotInfo.setCreatedBy(SecurityUtils.getUserId().toString());
+        plotInfo.setCreatedName(SecurityUtils.getUsername());
 
         // 保存地块信息
         plotInfoMapper.insert(plotInfo);
@@ -56,7 +60,11 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
     public int updatePlotInfo(PlotInfo plotInfo) {
         // 设置更新信息
         plotInfo.setUpdateTime(LocalDateTime.now());
-        plotInfo.setUpdateBy(SecurityUtils.getUsername());
+        // BaseEntity: updateBy 存用户ID
+        plotInfo.setUpdateBy(SecurityUtils.getUserId().toString());
+        // 业务字段：modifiedBy/modifiedName 供列表显示
+        plotInfo.setModifiedBy(SecurityUtils.getUserId().toString());
+        plotInfo.setModifiedName(SecurityUtils.getUsername());
 
         // 更新地块信息
         return plotInfoMapper.updateById(plotInfo);
