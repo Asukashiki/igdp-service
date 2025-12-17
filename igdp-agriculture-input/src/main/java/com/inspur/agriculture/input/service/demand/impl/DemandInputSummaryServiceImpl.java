@@ -5,6 +5,7 @@ import com.inspur.agriculture.input.domain.demand.DemandInputSummary;
 import com.inspur.agriculture.input.domain.oauth.PubRegion;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryQueryDTO;
+import com.inspur.agriculture.input.mapper.demand.DemandFarmersDetailMapper;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryMapper;
 import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +36,9 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
     private DemandInputSummaryMapper demandInputSummaryMapper;
 
     @Autowired
+    private DemandFarmersDetailMapper demandFarmerDetailMapper;
+
+    @Autowired
     private PubRegionMapper regionMapper;
 
     @Autowired
@@ -44,7 +49,29 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
 
     @Override
     public List<DemandInputSummaryVO> getDemandInputSummaryList(DemandInputSummaryQueryDTO queryDTO) {
-        return demandInputSummaryMapper.selectDemandInputSummaryList(queryDTO);
+        List<DemandInputSummaryVO> resList = new ArrayList<>();
+        List<DemandInputSummaryVO> list = demandInputSummaryMapper.selectDemandInputSummaryList(queryDTO);
+        if(queryDTO.getLevel()!=null){
+            for(DemandInputSummaryVO vo: list){
+                String year = vo.getYear();
+                String targetCode = queryDTO.getSourceCode();
+                if(queryDTO.getLevel().equals("0")){
+                    vo.setSubQuantity(demandFarmerDetailMapper.countAllQuantity(year, targetCode));
+                    vo.setAuditQuantity(demandFarmerDetailMapper.countAuditQuantity(year,targetCode));
+                    vo.setSubmitQuantity(demandFarmerDetailMapper.countSubmitQuantity(year, targetCode));
+                    vo.setUnsubmitQuantity(demandFarmerDetailMapper.countUnsubmitQuantity(year, targetCode));
+                }else{
+                    vo.setSubQuantity(demandInputSummaryMapper.countAllQuantity(year, targetCode));
+                    vo.setSubmitQuantity(demandInputSummaryMapper.countSubmitQuantity(year, targetCode));
+                    vo.setAuditQuantity(demandInputSummaryMapper.countAuditQuantity(year, targetCode));
+                    vo.setUnsubmitQuantity(demandInputSummaryMapper.countUnsubmitQuantity(year, targetCode));
+                }
+                resList.add(vo);
+            }
+            return resList;
+        }else{
+            return list;
+        }
     }
 
     @Override

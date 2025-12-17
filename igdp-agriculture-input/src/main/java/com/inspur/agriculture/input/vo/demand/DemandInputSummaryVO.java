@@ -68,4 +68,10 @@ public class DemandInputSummaryVO {
     private Integer subQuantity;
 
     private String level;
+
+    private Integer auditQuantity;
+
+    private Integer submitQuantity;
+
+    private Integer unsubmitQuantity;
 }

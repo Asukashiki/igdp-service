@@ -45,6 +45,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static cn.hutool.core.util.RandomUtil.randomString;
+
 /**
  * Farmer Demand Service Implementation
  *
@@ -97,7 +99,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 根据当前年份自动获取或创建批次
         int currentYear = java.time.Year.now().getValue();
-        DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(currentYear);
+        String batchNo = "BATCH-" + currentYear +"-"+ dto.getKebeleName() +"-" + randomString(6).toUpperCase();
+        DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(batchNo,currentYear);
 
         // 设置批次ID
         dto.setBatchId(batch.getId());
@@ -117,7 +120,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         // Calculate max seed and fertilizer quantities (simplified version)
         detail.setMaxSeedQuantity(calculateMaxSeedQuantity(dto.getLandArea(), dto.getInputItems()));
         detail.setMaxFertilizerQuantity(calculateMaxFertilizerQuantity(dto.getLandArea(), dto.getInputItems()));
-
+        detail.setCurrentAuditLevel(AuditLevelEnum.VILLAGE.getCode());
         // Save farmer demand detail
         if (!this.save(detail)) {
             throw new ServiceException("Failed to save farmer demand");

@@ -33,4 +33,12 @@ public interface DemandInputSummaryMapper extends BaseMapper<DemandInputSummary>
      * @return 农资需求汇总详情
      */
     DemandInputSummaryVO selectDemandInputSummaryById(@Param("id") String id);
+
+    int countSubmitQuantity(@Param("year") String year, @Param("targetCode") String targetCode);
+
+    int countAuditQuantity(@Param("year") String year, @Param("targetCode") String targetCode);
+
+    int countAllQuantity(@Param("year") String year, @Param("targetCode") String targetCode);
+
+    int countUnsubmitQuantity(@Param("year") String year, @Param("targetCode") String targetCode);
 }

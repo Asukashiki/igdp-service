@@ -77,4 +77,9 @@ public class DemandAuditController {
         Page<DemandPendingPageVO> page = demandAuditService.getApprovedAuditPage(dto);
         return AjaxResult.success("Operation successful", page);
     }
+    @PostMapping("/page")
+    public AjaxResult getAuditPage(@RequestBody DemandAuditPendingPageDTO dto) {
+        Page<DemandPendingPageVO> page = demandAuditService.getAuditPage(dto);
+        return AjaxResult.success("Operation successful", page);
+    }
 }

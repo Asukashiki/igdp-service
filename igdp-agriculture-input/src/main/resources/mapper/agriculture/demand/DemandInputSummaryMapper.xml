@@ -17,6 +17,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="year" column="year"/>
         <result property="subQuantity" column="sub_quantity"/>
         <result property="level" column="level"/>
+        <result property="auditQuantity" column="audit_quantity"/>
+        <result property="submitQuantity" column="submit_quantity"/>
     </resultMap>
 
     <sql id="selectDemandInputSummaryVo">
@@ -115,6 +117,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectDemandInputSummaryById" resultMap="DemandInputSummaryVOResult">
         <include refid="selectDemandInputSummaryVo"/>
         where d.id = #{id}
+    </select>
+
+    <select id="countSubmitQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where status = 1
+        and target_code = #{targetCode}
+        and year = #{year}
+    </select>
+
+    <select id="countAuditQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where status in (2, 3)
+        and target_code = #{targetCode}
+        and year = #{year}
+    </select>
+
+    <select id="countAllQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where target_code = #{targetCode}
+        and year = #{year}
+    </select>
+
+    <select id="countUnsubmitQuantity" resultType="int">
+        select count(*) from demand_input_summary
+        where status = 0
+                  and target_code = #{targetCode}
+                  and year = #{year}
     </select>
 
 </mapper>
