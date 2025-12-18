@@ -173,6 +173,24 @@ public class C1SeedPropagation implements Serializable {
     private LocalDateTime updatedTime;
 
     /**
+     * 需求数量
+     */
+    @TableField("demand_quantity")
+    private Integer demandQuantity;
+
+    /**
+     * 从种子类型
+     */
+    @TableField("from_seed_type")
+    private String fromSeedType;
+
+    /**
+     * 到种子类型
+     */
+    @TableField("to_seed_type")
+    private String toSeedType;
+
+    /**
      * 删除标记：0-未删除，1-已删除
      */
     @TableField("deleted")
