@@ -132,4 +132,10 @@ public class BreedingBatchVO {
      * 检测记录数量
      */
     private Integer testCount;
+
+    /**
+     * 待扩繁数量
+     */
+    private BigDecimal toMultiplyQuantity;
+
 }

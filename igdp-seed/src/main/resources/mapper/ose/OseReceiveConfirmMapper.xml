@@ -44,8 +44,10 @@
             d.produce_batch_id AS breedSeedProduceBatchId,
             d.variety_name AS varietyName,
             d.crop_type AS cropType,
+            p.to_seed_level AS seedType,
             d.distribute_quantity AS distributeQuantity
         FROM breed_seed_distribute_detail d
+        LEFT JOIN breed_seed_produce p ON d.produce_batch_id = p.produce_batch_id
         WHERE d.distribute_id = #{distribute_id}
         ORDER BY d.create_time ASC
     </select>
