@@ -78,7 +78,7 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
         BeanUtils.copyProperties(dto, main);
         main.setDistributeId(distributeId);
         main.setTotalDistributeQuantity(totalQuantity);
-        main.setDistributeStatus("已分发");
+        main.setDistributeStatus("distributed");
 
         Date now = new Date();
         main.setCreateTime(now);
