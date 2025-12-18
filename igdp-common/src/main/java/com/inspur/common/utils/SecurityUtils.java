@@ -35,6 +35,15 @@ public class SecurityUtils {
     }
 
     /**
+     * 获取当前登录用户部门名称
+     *
+     * @return 部门名称
+     */
+    public static String getDeptName() {
+        return LoginHelper.getDeptName();
+    }
+
+    /**
      * 获取当前登录用户昵称
      *
      * @return 用户昵称

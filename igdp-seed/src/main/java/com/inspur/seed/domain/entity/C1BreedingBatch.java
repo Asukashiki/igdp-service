@@ -191,6 +191,18 @@ public class C1BreedingBatch implements Serializable {
     private String auditor;
 
     /**
+     * 审核人组织ID
+     */
+    @TableField("auditor_org_id")
+    private String auditorOrgId;
+
+    /**
+     * 审核人组织名称
+     */
+    @TableField("auditor_org_name")
+    private String auditorOrgName;
+
+    /**
      * 审核时间
      */
     @TableField("audit_time")
