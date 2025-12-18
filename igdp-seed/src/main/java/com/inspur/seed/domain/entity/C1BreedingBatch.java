@@ -101,6 +101,12 @@ public class C1BreedingBatch implements Serializable {
     private BigDecimal actualYield;
 
     /**
+     * 待繁殖数量(kg)
+     */
+    @TableField("quantity_to_multiply")
+    private BigDecimal quantityToMultiply;
+
+    /**
      * 种植面积(公顷)
      */
     @TableField("planting_area")
