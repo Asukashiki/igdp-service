@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.domain.BreedingBatch;
 import com.inspur.seed.domain.dto.BreedingDatasetAuditDTO;
 import com.inspur.seed.domain.dto.BreedingDatasetAuditQueryDTO;
 import com.inspur.seed.domain.entity.BreedingDataset;
@@ -17,6 +18,7 @@ import com.inspur.seed.domain.entity.BreedingDatasetAudit;
 import com.inspur.seed.domain.vo.BreedingDatasetAuditVO;
 import com.inspur.seed.mapper.BreedingDatasetAuditMapper;
 import com.inspur.seed.mapper.BreedingDatasetMapper;
+import com.inspur.seed.service.IBreedingBatchService;
 import com.inspur.seed.service.IBreedingDatasetAuditService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,9 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
 
     @Autowired
     private BreedingDatasetMapper datasetMapper;
+
+    @Autowired
+    private IBreedingBatchService breedingBatchService;
 
     @Override
     public AjaxResult getAuditList(BreedingDatasetAuditQueryDTO queryDTO) {
@@ -297,6 +302,9 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
                 dataset.setUpdatedTime(LocalDateTime.now());
                 datasetMapper.updateById(dataset);
 
+                // 更新 Breeding Batch 的状态
+                breedingBatchService.finished(dataset.getBatchId());
+
                 String lockStatus = (audit.getLockedFlag() != null && audit.getLockedFlag() == 1) ? "locked" : "unlocked";
                 log.info("Dataset approved and {}: {}", lockStatus, dataset.getDatasetCode());
 
@@ -305,6 +313,7 @@ public class BreedingDatasetAuditServiceImpl extends ServiceImpl<BreedingDataset
                 } else {
                     return AjaxResult.success("Audit approved (unlocked), dataset code: " + dataset.getDatasetCode());
                 }
+
             } else if ("rejected".equals(auditDTO.getAuditStatus())) {
                 // 审核驳回: 状态变为已驳回
                 dataset.setDatasetStatus("rejected");

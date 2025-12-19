@@ -2,6 +2,8 @@ package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.MessageUtils;
 import com.inspur.common.utils.SecurityUtils;
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -27,7 +28,7 @@ import java.util.List;
  * @author inspur
  */
 @Service
-public class BreedingBatchServiceImpl implements IBreedingBatchService {
+public class BreedingBatchServiceImpl extends ServiceImpl<BreedingBatchMapper, BreedingBatch> implements IBreedingBatchService {
 
     @Autowired
     private BreedingBatchMapper breedingBatchMapper;
@@ -295,5 +296,16 @@ public class BreedingBatchServiceImpl implements IBreedingBatchService {
         batch.setUpdateTime(LocalDateTime.now());
         batch.setUpdateBy(SecurityUtils.getUsername());
         return breedingBatchMapper.updateById(batch);
+    }
+
+
+    @Override
+    public boolean finished(String batchId) {
+        // 更新 Breeding Batch 的状态
+        BreedingBatch breedingBatch = new BreedingBatch();
+        breedingBatch.setStatus("Finished");
+        LambdaQueryWrapper<BreedingBatch> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BreedingBatch::getBatchId, batchId);
+        return this.update(breedingBatch, queryWrapper);
     }
 }

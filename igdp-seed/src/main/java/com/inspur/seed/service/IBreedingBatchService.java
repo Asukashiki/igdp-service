@@ -1,5 +1,6 @@
 package com.inspur.seed.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.inspur.seed.domain.BreedingBatch;
 import com.inspur.seed.domain.dto.BreedingBatchDTO;
 import com.inspur.seed.domain.vo.BreedingBatchDetailVO;
@@ -11,7 +12,7 @@ import java.util.List;
  *
  * @author inspur
  */
-public interface IBreedingBatchService {
+public interface IBreedingBatchService extends IService<BreedingBatch> {
 
     /**
      * 查询育种批次列表
@@ -100,4 +101,6 @@ public interface IBreedingBatchService {
      * @return 影响行数
      */
     int cancel(String dataId);
+
+    boolean finished(String batchId);
 }
