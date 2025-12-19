@@ -26,8 +26,8 @@ public class EnvironmentData extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     /** 环境数据ID(主键) */
-    @TableId(value = "env_id", type = IdType.ASSIGN_UUID)
-    private String envId;
+    @TableId(value = "env_record_id", type = IdType.ASSIGN_UUID)
+    private String envRecordId;
 
     /** 育种批次ID */
     @TableField("batch_id")
@@ -38,8 +38,8 @@ public class EnvironmentData extends BaseEntity {
     private String trialId;
 
     /** 地块ID */
-    @TableField("ground_id")
-    private String groundId;
+    @TableField("plot_id")
+    private String plotId;
 
     /** 数据类型 */
     @TableField("data_type")
@@ -106,4 +106,8 @@ public class EnvironmentData extends BaseEntity {
     /** 数据类型名称（关联字段，非数据库字段） */
     @TableField(exist = false)
     private String dataTypeName;
+
+    @TableField("timestamp")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date timestamp;
 }

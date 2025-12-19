@@ -31,6 +31,11 @@ public class BreedingDatasetDTO implements Serializable {
     private String trialId;
 
     /**
+     * 各模块行级备注（JSON字符串）
+     */
+    private String moduleRowRemarks;
+
+    /**
      * 育种批次ID
      */
     @NotBlank(message = "育种批次ID不能为空")

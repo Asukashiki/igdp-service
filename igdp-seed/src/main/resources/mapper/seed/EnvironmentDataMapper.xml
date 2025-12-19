@@ -3,10 +3,10 @@
 <mapper namespace="com.inspur.seed.mapper.EnvironmentDataMapper">
 
     <resultMap type="com.inspur.seed.domain.EnvironmentData" id="EnvironmentDataResult">
-        <id property="envId" column="env_id"/>
+        <id property="envRecordId" column="env_record_id"/>
         <result property="batchId" column="batch_id"/>
         <result property="trialId" column="trial_id"/>
-        <result property="groundId" column="ground_id"/>
+        <result property="plotId" column="plot_id"/>
         <result property="dataType" column="data_type"/>
         <result property="collectTime" column="collect_time"/>
         <result property="soilPh" column="soil_ph"/>
@@ -18,7 +18,7 @@
         <result property="waterPh" column="water_ph"/>
         <result property="dataSource" column="data_source"/>
         <result property="remark" column="remarks"/>
-        <result property="createTime" column="create_time"/>
+        <result property="timestamp" column="timestamp"/>
         <result property="updateTime" column="update_time"/>
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
@@ -28,15 +28,15 @@
     </resultMap>
 
     <sql id="selectEnvironmentDataVo">
-        select e.env_id, e.batch_id, e.trial_id, e.ground_id, e.data_type, e.collect_time,
+        select e.env_record_id, e.batch_id, e.trial_id, e.plot_id, e.data_type, e.collect_time,
                e.soil_ph, e.soil_temperature, e.soil_moisture, e.air_temperature,
                e.air_humidity, e.rainfall, e.water_ph, e.data_source, e.remarks,
-               e.create_time, e.update_time, e.create_by, e.update_by, e.is_deleted,
+               e.timestamp, e.update_time, e.create_by, e.update_by, e.is_deleted,
                b.batch_name,
-               p.trial_field_name as plot_field_name
+               p.plot_id as plot_field_name
         from environment_data e
         left join breeding_batch b on e.batch_id = b.batch_id and b.is_deleted = 0
-        left join plot_info p on e.ground_id = p.ground_id and p.is_deleted = 0
+        left join plot_info p on e.plot_id = p.plot_id and p.is_deleted = 0
     </sql>
 
     <select id="selectEnvironmentDataList" parameterType="com.inspur.seed.domain.EnvironmentData" resultMap="EnvironmentDataResult">
@@ -49,8 +49,8 @@
             <if test="trialId != null and trialId != ''">
                 AND e.trial_id = #{trialId}
             </if>
-            <if test="groundId != null and groundId != ''">
-                AND e.ground_id = #{groundId}
+            <if test="plotId != null and plotId != ''">
+                AND e.plot_id = #{plotId}
             </if>
             <if test="dataType != null and dataType != ''">
                 AND e.data_type = #{dataType}
@@ -62,12 +62,12 @@
                 AND e.collect_time &lt;= #{queryEndTime}
             </if>
         </where>
-        order by e.collect_time desc, e.create_time desc
+        order by e.collect_time desc, e.timestamp desc
     </select>
 
     <select id="selectEnvironmentDataById" parameterType="String" resultMap="EnvironmentDataResult">
         <include refid="selectEnvironmentDataVo"/>
-        where e.env_id = #{envId} and e.is_deleted = 0
+        where e.env_record_id = #{envRecordId} and e.is_deleted = 0
     </select>
 
 </mapper>

@@ -34,6 +34,10 @@
         <include refid="selectFarmingRecordVo"/>
         <where>
             f.is_deleted = 0
+            <!-- 新增：trialId 筛选条件 -->
+            <if test="trialId != null and trialId != ''">
+                AND f.trial_id = #{trialId}
+            </if>
             <if test="plotId != null and plotId != ''">
                 AND f.plot_id = #{plotId}
             </if>
@@ -43,10 +47,13 @@
             <if test="activityDate != null and activityDate != ''">
                 AND DATE(f.activity_date) = #{activityDate}
             </if>
+            <!-- 可选：补充 batchId 筛选（如果前端需要传批次ID） -->
+            <if test="batchId != null and batchId != ''">
+                AND f.batch_id = #{batchId}
+            </if>
         </where>
         order by f.activity_date desc, f.create_time desc
     </select>
-
     <select id="selectFarmingRecordById" parameterType="String" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
         where f.farming_id = #{farmingId} and f.is_deleted = 0
