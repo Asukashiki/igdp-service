@@ -42,6 +42,8 @@ public class BreedingDataset implements Serializable {
     @TableField("trial_id")
     private String trialId;
 
+    @TableField("module_row_remarks") // 显式指定数据库字段名（关键）
+    private String moduleRowRemarks;
     /**
      * 育种批次ID
      */

@@ -66,6 +66,7 @@ public class BreedingDatasetVO implements Serializable {
      * 编制人姓名
      */
     private String compiledByName;
+    private String moduleRowRemarks;
 
     /**
      * 编制时间

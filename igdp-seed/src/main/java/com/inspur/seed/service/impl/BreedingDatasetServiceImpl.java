@@ -128,18 +128,14 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
     @Transactional(rollbackFor = Exception.class)
     public AjaxResult addDataset(BreedingDatasetDTO dto) {
         try {
-            // 验证必填字段
             if (StrUtil.isBlank(dto.getBatchId())) {
                 return AjaxResult.error("Batch ID cannot be empty");
             }
 
             BreedingDataset dataset = new BreedingDataset();
-            BeanUtil.copyProperties(dto, dataset);
+            BeanUtil.copyProperties(dto, dataset); // 自动拷贝moduleRowRemarks（同名字段）
 
-            // 版本号在提交时生成，新增时不设置
-            dataset.setVersionNo(null);
-
-            // 设置默认值
+            // 原有默认值/创建人逻辑（不变）
             dataset.setId(IdUtil.simpleUUID());
             dataset.setDatasetStatus("draft");
             dataset.setTrialCount(0);
@@ -159,7 +155,6 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             // dataset.setCreatedOrgName(currentUserOrgName);
 
             this.save(dataset);
-
             return AjaxResult.success("Added successfully", dataset.getId());
         } catch (Exception e) {
             log.error("Failed to add breeding dataset", e);
@@ -232,10 +227,14 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
                 dataset.setRemark(dto.getRemark());
             }
 
-            dataset.setUpdatedTime(LocalDateTime.now());
-            // TODO: 设置更新人信息
-            // dataset.setUpdatedBy(currentUserId);
+            // ========== 新增：更新模块行级备注（新字段名） ==========
+            if (StrUtil.isNotBlank(dto.getModuleRowRemarks())) {
+                dataset.setModuleRowRemarks(dto.getModuleRowRemarks());
+            } else {
+                dataset.setModuleRowRemarks(null); // 前端传空时清空
+            }
 
+            dataset.setUpdatedTime(LocalDateTime.now());
             this.updateById(dataset);
 
             return AjaxResult.success("Modified successfully");
