@@ -108,4 +108,19 @@ public class C1SeedPropagationDTO implements Serializable {
      * 审核机构
      */
     private String auditOrg;
+
+    /**
+     * 需求数量
+     */
+    private Integer demandQuantity;
+
+    /**
+     * 从种子类型
+     */
+    private String fromSeedType;
+
+    /**
+     * 到种子类型
+     */
+    private String toSeedType;
 }
