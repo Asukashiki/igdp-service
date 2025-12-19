@@ -89,6 +89,10 @@ public class EnvironmentNewData extends BaseEntity {
     @TableField("audit_time")
     private Date auditTime;
 
+    /** 审核意见 */
+    @TableField("audit_comment")
+    private String auditComment;
+
     /** 查询起始时间（查询参数，非数据库字段） */
     @TableField(exist = false)
     private String queryStartTime;

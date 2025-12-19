@@ -39,6 +39,7 @@ public class EnvironmentNewDataServiceImpl implements IEnvironmentNewDataService
         String envRecordId = IdUtil.simpleUUID();
         environmentNewData.setEnvRecordId(envRecordId);
 
+        environmentNewData.setWorkflowStatus("S0");
         // 设置创建信息
         environmentNewData.setCreateTime(LocalDateTime.now());
         environmentNewData.setCreateBy(SecurityUtils.getUsername());
@@ -67,5 +68,41 @@ public class EnvironmentNewDataServiceImpl implements IEnvironmentNewDataService
             }
         }
         return count;
+    }
+
+    @Override
+    public int submitForAudit(String envRecordId) {
+        EnvironmentNewData environmentNewData = new EnvironmentNewData();
+        environmentNewData.setEnvRecordId(envRecordId);
+        environmentNewData.setWorkflowStatus("S1"); // 设置为待审批状态
+        environmentNewData.setUpdateTime(java.time.LocalDateTime.now());
+        environmentNewData.setUpdateBy(com.inspur.common.utils.SecurityUtils.getUsername());
+        return environmentNewDataMapper.updateById(environmentNewData);
+    }
+
+    @Override
+    public int approve(String envRecordId, String auditComment) {
+        EnvironmentNewData environmentNewData = new EnvironmentNewData();
+        environmentNewData.setEnvRecordId(envRecordId);
+        environmentNewData.setWorkflowStatus("S2"); // 设置为审核通过状态
+        environmentNewData.setAuditBy(com.inspur.common.utils.SecurityUtils.getUsername());
+        environmentNewData.setAuditTime(new java.util.Date());
+        environmentNewData.setAuditComment(auditComment);
+        environmentNewData.setUpdateTime(java.time.LocalDateTime.now());
+        environmentNewData.setUpdateBy(com.inspur.common.utils.SecurityUtils.getUsername());
+        return environmentNewDataMapper.updateById(environmentNewData);
+    }
+
+    @Override
+    public int reject(String envRecordId, String auditComment) {
+        EnvironmentNewData environmentNewData = new EnvironmentNewData();
+        environmentNewData.setEnvRecordId(envRecordId);
+        environmentNewData.setWorkflowStatus("S3"); // 设置为审核驳回状态
+        environmentNewData.setAuditBy(com.inspur.common.utils.SecurityUtils.getUsername());
+        environmentNewData.setAuditTime(new java.util.Date());
+        environmentNewData.setAuditComment(auditComment);
+        environmentNewData.setUpdateTime(java.time.LocalDateTime.now());
+        environmentNewData.setUpdateBy(com.inspur.common.utils.SecurityUtils.getUsername());
+        return environmentNewDataMapper.updateById(environmentNewData);
     }
 }

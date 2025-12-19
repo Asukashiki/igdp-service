@@ -78,7 +78,7 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
         BeanUtils.copyProperties(dto, main);
         main.setDistributeId(distributeId);
         main.setTotalDistributeQuantity(totalQuantity);
-        main.setDistributeStatus("已分发");
+        main.setDistributeStatus("Distributed");
 
         Date now = new Date();
         main.setCreateTime(now);
@@ -100,7 +100,7 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
 
 
             // 计算并记录剩余量
-            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getDistributeId());
+            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getProduceBatchId());
             BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
             item.setProduceBatchRemaining(remaining.subtract(item.getDistributeQuantity()));
 

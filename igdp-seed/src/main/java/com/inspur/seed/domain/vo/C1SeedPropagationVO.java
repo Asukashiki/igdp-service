@@ -131,4 +131,19 @@ public class C1SeedPropagationVO implements Serializable {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdTime;
+
+    /**
+     * 需求数量
+     */
+    private Integer demandQuantity;
+
+    /**
+     * 从种子类型
+     */
+    private String fromSeedType;
+
+    /**
+     * 到种子类型
+     */
+    private String toSeedType;
 }

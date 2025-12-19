@@ -97,6 +97,18 @@ public class LoginHelper {
     }
 
     /**
+     * 获取部门名称
+     *
+     */
+    public static String getDeptName() {
+        LoginUser loginUser = getLoginUser();
+        if (null != loginUser) {
+            return loginUser.getDeptName();
+        }
+        return null;
+    }
+
+    /**
      * 获取用户账户
      */
     public static String getUsername() {

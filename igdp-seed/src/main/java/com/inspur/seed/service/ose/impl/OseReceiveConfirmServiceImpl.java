@@ -6,12 +6,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.domain.breed.BreedSeedDistributeDetail;
 import com.inspur.seed.domain.breed.BreedSeedDistributeMain;
+import com.inspur.seed.domain.breed.BreedSeedProduce;
 import com.inspur.seed.domain.ose.OseBreedSeedReceiveConfirm;
 import com.inspur.seed.domain.ose.OseInfo;
 import com.inspur.seed.dto.ose.OseReceiveConfirmDTO;
 import com.inspur.seed.dto.ose.OseReceiveConfirmQueryDTO;
 import com.inspur.seed.mapper.breed.BreedSeedDistributeDetailMapper;
 import com.inspur.seed.mapper.breed.BreedSeedDistributeMapper;
+import com.inspur.seed.mapper.breed.BreedSeedProduceMapper;
 import com.inspur.seed.mapper.oauth.PubOrganMapper;
 import com.inspur.seed.mapper.ose.OseInfoMapper;
 import com.inspur.seed.mapper.ose.OseReceiveConfirmMapper;
@@ -47,6 +49,9 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
 
     @Autowired
     private BreedSeedDistributeDetailMapper distributeDetailMapper;
+
+    @Autowired
+    private BreedSeedProduceMapper breedSeedProduceMapper;
 
     @Autowired
     private PubOrganMapper pubOrganMapper;
@@ -199,6 +204,17 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
             item.setVarietyName(detail.getVarietyName());
             item.setCropType(detail.getCropType());
             item.setDistributeQuantity(detail.getDistributeQuantity());
+
+            // 获取种子类型 (toSeedLevel)
+            String produceBatchId = detail.getProduceBatchId();
+            if (produceBatchId != null && !produceBatchId.isEmpty()) {
+                BreedSeedProduce produce = breedSeedProduceMapper.selectById(produceBatchId);
+                if (produce != null) {
+                    item.setSeedType(produce.getToSeedLevel());
+                    item.setCropType(produce.getCropType());
+                }
+            }
+
             return item;
         }).collect(Collectors.toList());
 
@@ -232,6 +248,15 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
         updateWrapper.set("update_time", new Date());
 
         receiveConfirmMapper.update(null, updateWrapper);
+
+        // 更新分发主表状态为"已接收"
+        if (confirm.getDistributeId() != null) {
+            UpdateWrapper<BreedSeedDistributeMain> distributeUpdateWrapper = new UpdateWrapper<>();
+            distributeUpdateWrapper.eq("distribute_id", confirm.getDistributeId());
+            distributeUpdateWrapper.set("distribute_status", "Received");
+            distributeUpdateWrapper.set("update_time", new Date());
+            distributeMainMapper.update(null, distributeUpdateWrapper);
+        }
 
         return receiveConfirmMapper.selectReceiveConfirmById(receiveConfirmId);
     }

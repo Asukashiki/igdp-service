@@ -95,7 +95,7 @@ public class OseReceiveConfirmVO implements Serializable {
         private static final long serialVersionUID = 1L;
 
         /**
-         * 生产批次ID
+         * 生产批次ID (种子ID)
          */
         private String breedSeedProduceBatchId;
 
@@ -108,6 +108,11 @@ public class OseReceiveConfirmVO implements Serializable {
          * 作物类型
          */
         private String cropType;
+
+        /**
+         * 种子类型 (如：原原种、原种)
+         */
+        private String seedType;
 
         /**
          * 分发数量

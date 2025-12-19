@@ -2,6 +2,7 @@ package com.inspur.seed.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.dto.C1BreedingBatchDTO;
 import com.inspur.seed.domain.dto.C1BreedingBatchQueryDTO;
 import com.inspur.seed.domain.vo.C1BreedingBatchVO;
@@ -103,9 +104,8 @@ public class C1BreedingBatchController {
         if (dto.getId() == null || dto.getId().isEmpty()) {
             return AjaxResult.error("ID不能为空");
         }
-        // TODO: 从登录用户获取审核人
-        String auditor = "admin";
-        boolean result = c1BreedingBatchService.approveBatch(dto.getId(), auditor, dto.getAuditComment());
+
+        boolean result = c1BreedingBatchService.approveBatch(dto.getId(), dto.getAuditComment());
         return result ? AjaxResult.success("审核通过成功") : AjaxResult.error("审核失败");
     }
 
@@ -117,9 +117,8 @@ public class C1BreedingBatchController {
         if (dto.getId() == null || dto.getId().isEmpty()) {
             return AjaxResult.error("ID不能为空");
         }
-        // TODO: 从登录用户获取审核人
-        String auditor = "admin";
-        boolean result = c1BreedingBatchService.rejectBatch(dto.getId(), auditor, dto.getAuditComment());
+
+        boolean result = c1BreedingBatchService.rejectBatch(dto.getId(), dto.getAuditComment());
         return result ? AjaxResult.success("审核驳回成功") : AjaxResult.error("审核失败");
     }
 
