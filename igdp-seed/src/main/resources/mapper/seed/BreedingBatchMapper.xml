@@ -80,6 +80,7 @@
         select data_id, batch_id, batch_name, crop_type, variety_code, variety_name, germplasm_source, parental_seed_source, objective, year, status,workflow_status
         from breeding_batch
         where is_deleted = 0
+        and workflow_status = 'S2'
         order by create_time desc
     </select>
 
