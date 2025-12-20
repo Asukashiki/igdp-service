@@ -45,6 +45,7 @@
             d.variety_name AS varietyName,
             d.crop_type AS cropType,
             p.to_seed_level AS seedType,
+            p.produce_batch_name AS produceBatchName,
             d.distribute_quantity AS distributeQuantity
         FROM breed_seed_distribute_detail d
         LEFT JOIN breed_seed_produce p ON d.produce_batch_id = p.produce_batch_id

@@ -118,5 +118,10 @@ public class OseReceiveConfirmVO implements Serializable {
          * 分发数量
          */
         private BigDecimal distributeQuantity;
+
+        /**
+         * 生产批次名称
+         */
+        private String produceBatchName;
     }
 }
