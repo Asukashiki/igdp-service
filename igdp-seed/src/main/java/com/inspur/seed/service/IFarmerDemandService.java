@@ -37,6 +37,8 @@ public interface IFarmerDemandService extends IService<DemandFarmerDetail> {
      */
     boolean updateFarmerDemand(FarmerDemandUpdateDTO dto);
 
+    boolean updateAuditFarmerDemand(FarmerDemandUpdateDTO dto);
+
     /**
      * Get farmer demand detail
      *

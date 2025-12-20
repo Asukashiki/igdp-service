@@ -148,6 +148,12 @@ public class FarmerDemandAddDTO {
 
         private String year;
 
+        private String season;
+
+        private BigDecimal cropLand;
+
+        private double fertilizerAmount;
+
 
 
     }

@@ -40,12 +40,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.randomString;
+import static com.inspur.seed.utils.FertilizerDoseMap.CROP_FERTILIZER_DOSE_MAP;
 
 /**
  * Farmer Demand Service Implementation
@@ -137,9 +140,46 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             return inputItem;
         }).collect(Collectors.toList());
 
+
+        List<DemandFarmerInputItem> cropItems = new ArrayList<>();
+        List<DemandFarmerInputItem> fertItems = new ArrayList<>();
+        List<String> seasonList = new ArrayList<>();
         for (DemandFarmerInputItem inputItem : inputItems) {
-            inputItemMapper.insert(inputItem);
+            String season = inputItem.getSeason();
+            if(!seasonList.contains(season)){
+                seasonList.add(season);
+            }
         }
+
+        for (DemandFarmerInputItem inputItem : inputItems) {
+            //判断类型
+            String type = inputItem.getInputType();
+            if(type.equals("IN01")){
+                cropItems.add(inputItem);
+                inputItemMapper.insert(inputItem);
+            }else if(type.equals("IN02")){
+                fertItems.add(inputItem);
+            }
+        }
+        for(DemandFarmerInputItem fertItem : fertItems){
+            for(String season : seasonList){
+                List<DemandFarmerInputItem> cropSeasonItems = new ArrayList<>();
+                for(DemandFarmerInputItem crop:cropItems){
+                    String tmpSeason = crop.getSeason();
+                    if (tmpSeason.equals(season)){
+                        cropSeasonItems.add(crop);
+                    }
+                }
+                if(fertItem.getSeason().equals(season)){
+                    fertItem = setFertilizerAmount(fertItem,cropSeasonItems);
+                    inputItemMapper.insert(fertItem);
+                }
+            }
+        }
+
+//        for (DemandFarmerInputItem inputItem : inputItems) {
+//            inputItemMapper.insert(inputItem);
+//        }
 
         return detail.getId();
     }
@@ -155,17 +195,17 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 2. Validate status is draft or rejected
         // 替换原枚举判断，直接用字符串比较
-        if (!STATUS_DRAFT.equals(demand.getStatus())
-                && !STATUS_REJECTED.equals(demand.getStatus())) {
-            throw new ServiceException("Can only update demand in draft or rejected status");
-        }
-
-        // 3. Validate current user is the DA who created the demand
-        // TODO: Get current user ID from security context
+//        if (!STATUS_DRAFT.equals(demand.getStatus())
+//                && !STATUS_REJECTED.equals(demand.getStatus())) {
+//            throw new ServiceException("Can only update demand in draft or rejected status");
+//        }
+//
+//        // 3. Validate current user is the DA who created the demand
+//        // TODO: Get current user ID from security context
         String currentUserId = "current_user_id";
-        if (!currentUserId.equals(demand.getDaUserId())) {
-            throw new ServiceException("Only the creator can update this demand");
-        }
+//        if (!currentUserId.equals(demand.getDaUserId())) {
+//            throw new ServiceException("Only the creator can update this demand");
+//        }
 
 
         // 5. Update farmer demand detail
@@ -173,7 +213,10 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         updatedDetail.setUpdatedTime(new Date());
         updatedDetail.setUpdatedBy(currentUserId);
         // 直接赋值状态字符串（替代原DemandStatusEnum.DRAFT.getCode()）
-        updatedDetail.setStatus(STATUS_DRAFT); // Reset to draft
+//        if(dto.getStatus()!=null){
+//            updatedDetail.setStatus(dto.getStatus());
+//        }
+//        updatedDetail.setStatus(dto.getStatus()); // Reset to draft
         updatedDetail.setCurrentAuditLevel(null); // Clear audit level
 
         // Recalculate max quantities
@@ -191,6 +234,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         deleteWrapper.set(DemandFarmerInputItem::getIsDeleted, 1);
         inputItemMapper.update(null, deleteWrapper);
 
+
+
+
         // Insert new input items
         List<DemandFarmerInputItem> inputItems = dto.getInputItems().stream().map(item -> {
             DemandFarmerInputItem inputItem = BeanUtil.copyProperties(item, DemandFarmerInputItem.class);
@@ -205,6 +251,80 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         for (DemandFarmerInputItem inputItem : inputItems) {
             inputItemMapper.insert(inputItem);
         }
+
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateAuditFarmerDemand(FarmerDemandUpdateDTO dto) {
+        // 1. Validate demand exists
+        DemandFarmerDetail demand = this.getById(dto.getId());
+        if (demand == null || demand.getIsDeleted() == 1) {
+            throw new ServiceException("Demand not found");
+        }
+
+        // 2. Validate status is draft or rejected
+        // 替换原枚举判断，直接用字符串比较
+//        if (!STATUS_DRAFT.equals(demand.getStatus())
+//                && !STATUS_REJECTED.equals(demand.getStatus())) {
+//            throw new ServiceException("Can only update demand in draft or rejected status");
+//        }
+//
+//        // 3. Validate current user is the DA who created the demand
+//        // TODO: Get current user ID from security context
+        String currentUserId = "current_user_id";
+//        if (!currentUserId.equals(demand.getDaUserId())) {
+//            throw new ServiceException("Only the creator can update this demand");
+//        }
+
+
+        // 5. Update farmer demand detail
+        DemandFarmerDetail updatedDetail = BeanUtil.copyProperties(dto, DemandFarmerDetail.class);
+        updatedDetail.setUpdatedTime(new Date());
+        updatedDetail.setUpdatedBy(currentUserId);
+        // 直接赋值状态字符串（替代原DemandStatusEnum.DRAFT.getCode()）
+//        if(dto.getStatus()!=null){
+//            updatedDetail.setStatus(dto.getStatus());
+//        }
+//        updatedDetail.setStatus(dto.getStatus()); // Reset to draft
+        updatedDetail.setCurrentAuditLevel(null); // Clear audit level
+
+        // Recalculate max quantities
+        updatedDetail.setMaxSeedQuantity(calculateMaxSeedQuantity(dto.getLandArea(), dto.getInputItems()));
+        updatedDetail.setMaxFertilizerQuantity(calculateMaxFertilizerQuantity(dto.getLandArea(), dto.getInputItems()));
+
+        // Use optimistic lock for update
+        if (!this.updateById(updatedDetail)) {
+            throw new ServiceException("Update failed, please retry");
+        }
+
+        // 6. Delete old input items and insert new ones
+//        LambdaUpdateWrapper<DemandFarmerInputItem> deleteWrapper = new LambdaUpdateWrapper<>();
+//        deleteWrapper.eq(DemandFarmerInputItem::getDemandId, dto.getId());
+//        deleteWrapper.set(DemandFarmerInputItem::getIsDeleted, 1);
+//        inputItemMapper.update(null, deleteWrapper);
+
+
+
+
+        // Insert new input items
+        List<DemandFarmerInputItem> inputItems = dto.getInputItems().stream().map(item -> {
+            DemandFarmerInputItem inputItem = BeanUtil.copyProperties(item, DemandFarmerInputItem.class);
+            String inputId = item.getId();
+            BigDecimal quantity = item.getQuantity();
+            LambdaUpdateWrapper<DemandFarmerInputItem> queryWrapper = new LambdaUpdateWrapper<>();
+            queryWrapper.eq(DemandFarmerInputItem::getId,inputId);
+            queryWrapper.set(DemandFarmerInputItem::getQuantity,quantity);
+//            inputItem.setDemandId(dto.getId());
+//            inputItem.setCreatedTime(new Date());
+//            inputItem.setCreatedBy(currentUserId);
+//            // 新增：给variety字段赋值（空字符串，避免无默认值报错）
+//            inputItem.setVariety(StrUtil.blankToDefault(item.getVariety(), ""));
+            inputItemMapper.update(queryWrapper);
+            return inputItem;
+        }).collect(Collectors.toList());
+
 
         return true;
     }
@@ -242,7 +362,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         List<FarmerDemandDetailVO.InputItemVO> inputItemVOs = inputItems.stream().map(item -> {
             FarmerDemandDetailVO.InputItemVO itemVO = new FarmerDemandDetailVO.InputItemVO();
-
+            itemVO.setId(item.getId());
+            itemVO.setSeason(item.getSeason());
+            itemVO.setCropLand(item.getCropLand());
             // ========== 关键修正：字段映射 ==========
             // 表的 input_type（大类）→ VO 的 inputCategory（前端显示的大类）
             itemVO.setInputCategory(item.getInputType());
@@ -254,7 +376,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             itemVO.setUnit(item.getUnit());
             itemVO.setQuantity(item.getQuantity());
             itemVO.setSpecification(item.getSpecification()); // 如有该字段
-
+            itemVO.setCropLand(item.getCropLand());
+            itemVO.setSeason(item.getSeason());
+            itemVO.setFertilizerAmount(item.getFertilizerAmount());
             // 修正：用表的 input_type（大类）匹配 CategoryEnum，获取大类名称
             CategoryEnum categoryEnum = CategoryEnum.getByCode(item.getInputType());
             if (categoryEnum != null) {
@@ -540,5 +664,61 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
                 return vo;
             })
             .collect(Collectors.toList());
+    }
+
+
+
+    /**
+     * 计算指定肥料的最大允许量
+     * @param fertilizerType 肥料类型（如：尿素、NPS）
+     * @param cropProducts 已存在的作物类投入品列表（玉米、小麦、苔麸）
+     * @return 肥料的最大允许量（公斤）
+     */
+    public static Double calculateMaxFertilizerAmount(String fertilizerType, List<DemandFarmerInputItem> cropProducts) {
+        // 空值校验
+        if (fertilizerType == null) {
+            throw new IllegalArgumentException("肥料类型不能为空");
+        }
+        if (cropProducts == null || cropProducts.isEmpty()) {
+            return 0.0;
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        // 遍历所有作物投入品，累加计算
+        for (DemandFarmerInputItem cropProduct : cropProducts) {
+            String cropType = cropProduct.getInputCategory();
+            BigDecimal cropLand = cropProduct.getCropLand();
+
+            // 跳过无效的作物数据（类型不存在/面积为空/面积<=0）
+            if (cropType == null
+                    || cropLand == null) {
+                continue;
+            }
+
+            // 获取该作物对应肥料的特定施肥量
+            Integer dose = Optional.ofNullable(CROP_FERTILIZER_DOSE_MAP.get(cropType))
+                    .map(fertilizerMap -> fertilizerMap.get(fertilizerType))
+                    .orElse(0);
+
+            // 累加：面积 × 特定施肥量
+            BigDecimal contribution = cropLand.multiply(BigDecimal.valueOf(dose));
+            total = total.add(contribution);
+        }
+
+        return  total != null ? total.doubleValue() : 0.0;
+
+    }
+
+    /**
+     * 为肥料类投入品设置最大允许量（直接修改传入的对象）
+     * @param fertilizerProduct 肥料类投入品
+     * @param cropProducts 已存在的作物类投入品列表
+     */
+    public static DemandFarmerInputItem setFertilizerAmount(DemandFarmerInputItem fertilizerProduct, List<DemandFarmerInputItem> cropProducts) {
+        String fertilizerType = fertilizerProduct.getInputCategory();
+        Double maxAmount = calculateMaxFertilizerAmount(fertilizerType, cropProducts);
+        fertilizerProduct.setFertilizerAmount(maxAmount);
+        return fertilizerProduct;
     }
 }
