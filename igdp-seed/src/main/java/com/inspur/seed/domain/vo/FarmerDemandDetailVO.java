@@ -201,6 +201,12 @@ public class FarmerDemandDetailVO {
          * Quantity
          */
         private BigDecimal quantity;
+
+        private String season;
+
+        private BigDecimal cropLand;
+
+        private double fertilizerAmount;
     }
 
     @Data

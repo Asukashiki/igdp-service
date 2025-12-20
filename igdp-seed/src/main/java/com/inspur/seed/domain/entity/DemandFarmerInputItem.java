@@ -91,7 +91,7 @@ public class DemandFarmerInputItem implements Serializable {
 
     private String season;
 
-    private String cropLand;
+    private BigDecimal cropLand;
 
-    private String fertilizerAmount;
+    private double fertilizerAmount;
 }

@@ -53,6 +53,12 @@ public class FarmerDemandController {
         return AjaxResult.success("Operation successful");
     }
 
+    @PostMapping("/updateAudit")
+    public AjaxResult updateAudit(@Validated @RequestBody FarmerDemandUpdateDTO dto) {
+        farmerDemandService.updateAuditFarmerDemand(dto);
+        return AjaxResult.success("Operation successful");
+    }
+
     /**
      * Get farmer demand detail
      */
