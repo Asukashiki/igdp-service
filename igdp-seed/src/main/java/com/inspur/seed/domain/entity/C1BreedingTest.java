@@ -51,6 +51,36 @@ public class C1BreedingTest implements Serializable {
     @TableField("test_org")
     private String testOrg;
 
+    /**
+     * 种子级别(Pre-Basic/Basic/C1等)
+     */
+    @TableField("seed_class")
+    private String seedClass;
+
+    /**
+     * 批次号
+     */
+    @TableField("lot_id")
+    private String lotId;
+
+    /**
+     * 测试类型(GERMINATION/PURITY等)
+     */
+    @TableField("test_type")
+    private String testType;
+
+    /**
+     * 单位
+     */
+    @TableField("unit")
+    private String unit;
+
+    /**
+     * 是否通过(TRUE/FALSE)
+     */
+    @TableField("pass_status")
+    private String passStatus;
+
     @TableField("created_by")
     private String createdBy;
 

@@ -123,6 +123,16 @@ public class BreedingLabTestDTO {
      */
     private String passFailFlag;
 
+    /**
+     * 审核状态（流程状态）
+     */
+    private String workflowStatus;
+
+    /**
+     * 审核人姓名（展示用）
+     */
+    private String approveByName;
+
     // 查询条件字段
     /**
      * 检测日期开始

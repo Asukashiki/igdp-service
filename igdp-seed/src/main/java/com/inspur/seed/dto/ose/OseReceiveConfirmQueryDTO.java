@@ -18,7 +18,7 @@ public class OseReceiveConfirmQueryDTO implements Serializable {
     /**
      * 生产批次ID
      */
-    private String breedSeedProduceBatchId;
+    private String produceBatchId;
 
     /**
      * 作物种类

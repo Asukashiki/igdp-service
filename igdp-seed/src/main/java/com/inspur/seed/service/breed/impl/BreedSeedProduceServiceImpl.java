@@ -71,8 +71,8 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
             BeanUtils.copyProperties(entity, vo);
 
             // 计算剩余数量
-//            BigDecimal remainingQuantity = calculateRemainingQuantity(entity.getProduceBatchId());
-//            vo.setRemainingQuantity(remainingQuantity);
+            BigDecimal remainingQuantity = calculateRemainingQuantity(entity.getProduceBatchId());
+            vo.setRemainingQuantity(remainingQuantity);
 
             return vo;
         }).collect(Collectors.toList());
@@ -89,8 +89,8 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
         BeanUtils.copyProperties(entity, vo);
 
         // 计算剩余数量
-//        BigDecimal remainingQuantity = calculateRemainingQuantity(breedSeedProduceBatchId);
-//        vo.setRemainingQuantity(remainingQuantity);
+        BigDecimal remainingQuantity = calculateRemainingQuantity(breedSeedProduceBatchId);
+        vo.setRemainingQuantity(remainingQuantity);
 
         return vo;
     }
@@ -98,13 +98,13 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
     /**
      * 计算剩余可分发量
      *
-     * @param breedSeedProduceBatchId 生产批次ID
+     * @param produceBatchId 生产批次ID
      * @return 剩余可分发量
      */
-    private BigDecimal calculateRemainingQuantity(String breedSeedProduceBatchId) {
+    private BigDecimal calculateRemainingQuantity(String produceBatchId) {
         // 查询该生产批次的所有分发明细
         LambdaQueryWrapper<BreedSeedDistributeDetail> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(BreedSeedDistributeDetail::getBreedSeedProduceBatchId, breedSeedProduceBatchId);
+        queryWrapper.eq(BreedSeedDistributeDetail::getProduceBatchId, produceBatchId);
 
         List<BreedSeedDistributeDetail> details = distributeDetailMapper.selectList(queryWrapper);
 
@@ -114,13 +114,13 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // 获取生产总量
-        BreedSeedProduce produce = this.getById(breedSeedProduceBatchId);
+        BreedSeedProduce produce = this.getById(produceBatchId);
         if (produce == null) {
             return BigDecimal.ZERO;
         }
 
-        // 返回剩余量 = 生产量 - 已分发量
-        return produce.getProduceSeedQuantrity().subtract(distributedSum != null ? distributedSum : BigDecimal.ZERO);
+        //
+        return produce.getInputSeedQuantity().subtract(distributedSum != null ? distributedSum : BigDecimal.ZERO);
     }
 
     @Override
@@ -154,30 +154,30 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
     }
 
     @Override
-    public void delete(String breedSeedProduceBatchId) {
-        this.baseMapper.deleteById(breedSeedProduceBatchId);
+    public void delete(String produceBatchId) {
+        this.baseMapper.deleteById(produceBatchId);
     }
 
     /**
      * 更新生产批次剩余量(扣减)
      *
-     * @param breedSeedProduceBatchId 生产批次ID
+     * @param produceBatchId 生产批次ID
      * @param distributeQuantity 分发数量
      * @return 是否更新成功
      */
-    public boolean updateRemainingQuantity(String breedSeedProduceBatchId, BigDecimal distributeQuantity) {
+    public boolean updateRemainingQuantity(String produceBatchId, BigDecimal distributeQuantity) {
         // 先检查剩余量是否足够
-//        BigDecimal remainingQuantity = calculateRemainingQuantity(breedSeedProduceBatchId);
-//        if (remainingQuantity.compareTo(distributeQuantity) < 0) {
-//            return false; // 剩余量不足
-//        }
+        BigDecimal remainingQuantity = calculateRemainingQuantity(produceBatchId);
+        if (remainingQuantity.compareTo(distributeQuantity) < 0) {
+            return false; // 剩余量不足
+        }
 
         // 更新时间戳
         BreedSeedProduce produce = new BreedSeedProduce();
         produce.setUpdateTime(new Date());
 
         LambdaQueryWrapper<BreedSeedProduce> updateWrapper = new  LambdaQueryWrapper();
-        updateWrapper.eq(BreedSeedProduce::getProduceBatchId, breedSeedProduceBatchId);
+        updateWrapper.eq(BreedSeedProduce::getProduceBatchId, produceBatchId);
         this.update(updateWrapper);
 
         return this.update(produce, updateWrapper);

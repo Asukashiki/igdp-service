@@ -42,9 +42,6 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
     private BreedSeedDistributeDetailMapper distributeDetailMapper;
 
     @Autowired
-    private BreedSeedProduceMapper produceMapper;
-
-    @Autowired
     private OseReceiveConfirmMapper receiveConfirmMapper;
 
     @Autowired
@@ -66,9 +63,9 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
 
         // 计算明细总数量
         BigDecimal totalQuantity = BigDecimal.ZERO;
-        for (BreedSeedDistributeDTO.DistributeDetailItem item : dto.getDetailList()) {
+        for (BreedSeedDistributeDetail item : dto.getDetailList()) {
             // 验证分发数量不能超过生产批次剩余量
-            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getBreedSeedProduceBatchId());
+            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getProduceBatchId());
             BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
             if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
                 throw new ServiceException("Distribution quantity exceeds the remaining quantity of the production batch");
@@ -81,7 +78,7 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
         BeanUtils.copyProperties(dto, main);
         main.setDistributeId(distributeId);
         main.setTotalDistributeQuantity(totalQuantity);
-        main.setDistributeStatus("已分发");
+        main.setDistributeStatus("Distributed");
 
         Date now = new Date();
         main.setCreateTime(now);
@@ -97,25 +94,23 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
 
         // 插入分发明细
         List<BreedSeedDistributeDetail> detailList = new ArrayList<>();
-        for (BreedSeedDistributeDTO.DistributeDetailItem item : dto.getDetailList()) {
-            BreedSeedDistributeDetail detail = new BreedSeedDistributeDetail();
-            detail.setDistributeDetailId(IdUtils.fastSimpleUUID());
-            detail.setDistributeId(distributeId);
-            detail.setBreedSeedProduceBatchId(item.getBreedSeedProduceBatchId());
-            detail.setDistributeQuantity(item.getDistributeQuantity());
+        for (BreedSeedDistributeDetail item : dto.getDetailList()) {
+            item.setDistributeDetailId(IdUtils.fastSimpleUUID());
+            item.setDistributeId(distributeId);
+
 
             // 计算并记录剩余量
-            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getBreedSeedProduceBatchId());
+            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getProduceBatchId());
             BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
-            detail.setProduceBatchRemaining(remaining.subtract(item.getDistributeQuantity()));
+            item.setProduceBatchRemaining(remaining.subtract(item.getDistributeQuantity()));
 
             // 从breed_seed_produce表自动带出品种名称、作物类型
             if (produceVO != null) {
-                detail.setVarietyName(produceVO.getVarietyName());
-                detail.setCropType(produceVO.getCropType());
+                item.setVarietyName(produceVO.getVarietyName());
+                item.setCropType(produceVO.getCropType());
             }
 
-            detailList.add(detail);
+            detailList.add(item);
         }
 
         distributeDetailMapper.batchInsert(detailList);

@@ -78,4 +78,20 @@ public class BreedingBatchUpdateDTO {
      * 备注
      */
     private String remark;
+
+    /**
+     * 待扩繁数量
+     */
+    private BigDecimal toMultiplyQuantity;
+
+    /**
+     * 组织ID
+     */
+    private String orgId;
+
+
+    /**
+     * 组织名称
+     */
+    private String orgName;
 }

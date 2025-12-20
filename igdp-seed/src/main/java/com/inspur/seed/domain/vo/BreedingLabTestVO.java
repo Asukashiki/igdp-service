@@ -120,6 +120,31 @@ public class BreedingLabTestVO {
     private String passFailFlag;
 
     /**
+     * 审核状态（流程状态）
+     */
+    private String workflowStatus;
+
+    /**
+     * 更新人ID
+     */
+    private String updatedBy;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updatedTime;
+
+    /**
+     * 审核人姓名
+     */
+    private String approveByName;
+
+    /**
+     * 审核时间
+     */
+    private LocalDateTime approveTime;
+
+    /**
      * 备注
      */
     private String remark;

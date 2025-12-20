@@ -42,12 +42,12 @@ public interface IC1BreedingBatchService extends IService<C1BreedingBatch> {
     /**
      * 审核通过
      */
-    boolean approveBatch(String id, String auditor, String auditComment);
+    boolean approveBatch(String id, String auditComment);
 
     /**
      * 审核驳回
      */
-    boolean rejectBatch(String id, String auditor, String auditComment);
+    boolean rejectBatch(String id,  String auditComment);
 
     /**
      * 记录打印次数

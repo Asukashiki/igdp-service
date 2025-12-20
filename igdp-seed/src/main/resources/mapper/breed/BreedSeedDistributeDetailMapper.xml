@@ -4,7 +4,10 @@
 
     <resultMap id="DistributeDetailVOResult" type="com.inspur.seed.vo.breed.BreedSeedDistributeVO$DistributeDetailVO">
         <id property="distributeDetailId" column="distribute_detail_id"/>
-        <result property="breedSeedProduceBatchId" column="breed_seed_produce_batch_id"/>
+        <result property="produceBatchId" column="produce_batch_id"/>
+        <result property="produceBatchName" column="produce_batch_name"/>
+        <result property="breedBatchName" column="breed_batch_name"/>
+        <result property="parentalSeedSource" column="parental_seed_source"/>
         <result property="varietyName" column="variety_name"/>
         <result property="cropType" column="crop_type"/>
         <result property="distributeQuantity" column="distribute_quantity"/>
@@ -15,7 +18,10 @@
     <select id="selectDetailsByDistributeId" resultMap="DistributeDetailVOResult">
         SELECT
             d.distribute_detail_id,
-            d.breed_seed_produce_batch_id,
+            d.produce_batch_id,
+            d.produce_batch_name,
+            d.breed_batch_name,
+            d.parental_seed_source,
             d.variety_name,
             d.crop_type,
             d.distribute_quantity,
@@ -30,7 +36,10 @@
         INSERT INTO breed_seed_distribute_detail (
             distribute_detail_id,
             distribute_id,
-            breed_seed_produce_batch_id,
+            produce_batch_id,
+            produce_batch_name,
+            breed_batch_name,
+            parental_seed_source,
             variety_name,
             crop_type,
             distribute_quantity,
@@ -41,7 +50,10 @@
             (
                 #{item.distributeDetailId},
                 #{item.distributeId},
-                #{item.breedSeedProduceBatchId},
+                #{item.produceBatchId},
+                #{item.produceBatchName},
+                #{item.breedBatchName},
+                #{item.parentalSeedSource},
                 #{item.varietyName},
                 #{item.cropType},
                 #{item.distributeQuantity},

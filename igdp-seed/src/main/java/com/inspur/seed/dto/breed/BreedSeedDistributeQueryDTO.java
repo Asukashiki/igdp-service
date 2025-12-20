@@ -18,7 +18,9 @@ public class BreedSeedDistributeQueryDTO implements Serializable {
     /**
      * 种子生产批次ID
      */
-    private String breedSeedProduceBatchId;
+    private String produceBatchId;
+
+    private String produceBatchName;
 
     /**
      * 作物种类

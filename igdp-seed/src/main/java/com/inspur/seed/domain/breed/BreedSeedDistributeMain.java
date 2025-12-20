@@ -53,6 +53,21 @@ public class BreedSeedDistributeMain implements Serializable {
     private String organ;
 
     /**
+     * 分发名称
+     */
+    private String distributeName;
+
+    /**
+     * 来源种子等级
+     */
+    private String fromSeedLevel;
+
+    /**
+     * 目标种子等级
+     */
+    private String toSeedLevel;
+
+    /**
      * 备注信息
      */
     private String remark;

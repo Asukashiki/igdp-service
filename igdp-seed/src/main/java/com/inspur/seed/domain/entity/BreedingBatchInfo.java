@@ -154,4 +154,11 @@ public class BreedingBatchInfo implements Serializable {
     @TableField("del_flag")
     @TableLogic(value = "0", delval = "2")
     private String delFlag;
+
+
+    /**
+     * 待扩繁数量（kg）
+     */
+    @TableField("to_multiply_quantity")
+    private BigDecimal toMultiplyQuantity;
 }

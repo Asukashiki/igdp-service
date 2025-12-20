@@ -155,6 +155,16 @@ public class C1BreedingBatchVO implements Serializable {
     private String auditor;
 
     /**
+     * 审核人组织ID
+     */
+    private String auditorOrgId;
+
+    /**
+     * 审核人组织名称
+     */
+    private String auditorOrgName;
+
+    /**
      * 审核时间
      */
     private String auditTime;

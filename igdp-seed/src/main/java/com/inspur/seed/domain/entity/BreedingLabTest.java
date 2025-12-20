@@ -107,6 +107,11 @@ public class BreedingLabTest {
     private String status;
 
     /**
+     * 审核状态（流程状态）
+     */
+    private String workflowStatus;
+
+    /**
      * 创建人ID
      */
     private String createdBy;
@@ -140,6 +145,21 @@ public class BreedingLabTest {
      * 更新时间
      */
     private LocalDateTime updatedTime;
+
+    /**
+     * 审核人ID
+     */
+    private String approveBy;
+
+    /**
+     * 审核人姓名
+     */
+    private String approveByName;
+
+    /**
+     * 审核时间
+     */
+    private LocalDateTime approveTime;
 
     /**
      * 备注

@@ -38,9 +38,9 @@ public class BreedSeedProduceController extends BaseController {
     /**
      * 获取生产数据详情
      */
-    @GetMapping("/detail/{breedSeedProduceBatchId}")
-    public AjaxResult getDetail(@PathVariable("breedSeedProduceBatchId") String breedSeedProduceBatchId) {
-        return success(breedSeedProduceService.getProduceById(breedSeedProduceBatchId));
+    @GetMapping("/detail/{produceBatchId}")
+    public AjaxResult getDetail(@PathVariable("produceBatchId") String produceBatchId) {
+        return success(breedSeedProduceService.getProduceById(produceBatchId));
     }
 
     /**
@@ -53,8 +53,8 @@ public class BreedSeedProduceController extends BaseController {
     }
 
     @GetMapping("/delete")
-    public AjaxResult delete(@RequestParam("breedSeedProduceBatchId") String breedSeedProduceBatchId) {
-    	breedSeedProduceService.delete(breedSeedProduceBatchId);
+    public AjaxResult delete(@RequestParam("produceBatchId") String produceBatchId) {
+    	breedSeedProduceService.delete(produceBatchId);
     	return success();
     }
 }

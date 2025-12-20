@@ -6,7 +6,7 @@
         SELECT
             p.produce_seed_quantrity - IFNULL(SUM(d.distribute_quantity), 0) AS remaining_quantity
         FROM breed_seed_produce p
-                 LEFT JOIN breed_seed_distribute_detail d ON p.breed_seed_produce_batch_id = d.breed_seed_produce_batch_id
+                 LEFT JOIN distribute_detail d ON p.produce_batch_id = d.produce_batch_id
         WHERE p.breed_seed_produce_batch_id = #{breedSeedProduceBatchId}
         GROUP BY p.breed_seed_produce_batch_id, p.produce_seed_quantrity
     </select>

@@ -101,6 +101,12 @@ public class C1BreedingBatch implements Serializable {
     private BigDecimal actualYield;
 
     /**
+     * 待繁殖数量(kg)
+     */
+    @TableField("quantity_to_multiply")
+    private BigDecimal quantityToMultiply;
+
+    /**
      * 种植面积(公顷)
      */
     @TableField("planting_area")
@@ -189,6 +195,18 @@ public class C1BreedingBatch implements Serializable {
      */
     @TableField("auditor")
     private String auditor;
+
+    /**
+     * 审核人组织ID
+     */
+    @TableField("auditor_org_id")
+    private String auditorOrgId;
+
+    /**
+     * 审核人组织名称
+     */
+    @TableField("auditor_org_name")
+    private String auditorOrgName;
 
     /**
      * 审核时间

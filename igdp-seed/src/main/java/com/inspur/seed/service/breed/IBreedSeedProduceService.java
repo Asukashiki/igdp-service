@@ -27,10 +27,10 @@ public interface IBreedSeedProduceService extends IService<BreedSeedProduce> {
     /**
      * 查询生产数据详情
      *
-     * @param breedSeedProduceBatchId 生产批次ID
+     * @param produceBatchId 生产批次ID
      * @return 生产数据详情
      */
-    BreedSeedProduceVO getProduceById(String breedSeedProduceBatchId);
+    BreedSeedProduceVO getProduceById(String produceBatchId);
 
     /**
      * 新增生产数据
@@ -43,11 +43,11 @@ public interface IBreedSeedProduceService extends IService<BreedSeedProduce> {
     /**
      * 更新生产批次剩余量(扣减)
      *
-     * @param breedSeedProduceBatchId 生产批次ID
+     * @param produceBatchId 生产批次ID
      * @param distributeQuantity 分发数量
      * @return 是否更新成功
      */
-    boolean updateRemainingQuantity(String breedSeedProduceBatchId, BigDecimal distributeQuantity);
+    boolean updateRemainingQuantity(String produceBatchId, BigDecimal distributeQuantity);
 
-    void delete(String breedSeedProduceBatchId);
+    void delete(String produceBatchId);
 }

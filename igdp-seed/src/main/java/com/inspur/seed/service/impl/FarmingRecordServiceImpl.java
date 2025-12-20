@@ -43,7 +43,7 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
         String farmingRecordId = generateFarmingRecordId(farmingRecord.getPlotId());
         farmingRecord.setFarmingRecordId(farmingRecordId);
 
-        // 设置创建信息
+        // 设置创建信息（写入用户名，便于前端显示 Creator）
         farmingRecord.setCreateTime(LocalDateTime.now());
         farmingRecord.setCreateBy(SecurityUtils.getUsername());
 
@@ -53,7 +53,7 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
 
     @Override
     public int updateFarmingRecord(FarmingRecord farmingRecord) {
-        // 设置更新信息
+        // 设置更新信息（写入用户名，便于前端显示 Modifier）
         farmingRecord.setUpdateTime(LocalDateTime.now());
         farmingRecord.setUpdateBy(SecurityUtils.getUsername());
 

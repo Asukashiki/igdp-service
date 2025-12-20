@@ -112,6 +112,17 @@ public class FarmingRecordDataVO implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date modifiedDatetime;
 
+    // 兼容前端可能使用的首字母大写字段名
+    @com.fasterxml.jackson.annotation.JsonProperty("Creator")
+    public String getCreatorAlias() {
+        return this.creator;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("Modifier")
+    public String getModifierAlias() {
+        return this.modifier;
+    }
+
     /**
      * 审核时间
      */

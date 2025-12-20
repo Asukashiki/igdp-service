@@ -1,6 +1,7 @@
 package com.inspur.seed.dto.breed;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.inspur.seed.domain.breed.BreedSeedDistributeDetail;
 import lombok.Data;
 
 import javax.validation.Valid;
@@ -46,6 +47,21 @@ public class BreedSeedDistributeDTO implements Serializable {
     private String organ;
 
     /**
+     * 分发名称
+     */
+    private String distributeName;
+
+    /**
+     * 来源种子等级
+     */
+    private String fromSeedLevel;
+
+    /**
+     * 目标种子等级
+     */
+    private String toSeedLevel;
+
+    /**
      * 备注信息
      */
     private String remark;
@@ -55,22 +71,6 @@ public class BreedSeedDistributeDTO implements Serializable {
      */
     @NotEmpty(message = "分发明细不能为空")
     @Valid
-    private List<DistributeDetailItem> detailList;
+    private List<BreedSeedDistributeDetail> detailList;
 
-    @Data
-    public static class DistributeDetailItem implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-        /**
-         * 生产批次ID
-         */
-        @NotBlank(message = "生产批次ID不能为空")
-        private String breedSeedProduceBatchId;
-
-        /**
-         * 分发数量
-         */
-        @NotNull(message = "分发数量不能为空")
-        private java.math.BigDecimal distributeQuantity;
-    }
 }

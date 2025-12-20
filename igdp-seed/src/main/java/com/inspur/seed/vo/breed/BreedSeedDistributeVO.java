@@ -21,6 +21,20 @@ public class BreedSeedDistributeVO implements Serializable {
      * 分发ID
      */
     private String distributeId;
+    /**
+     * 分发名称
+     */
+    private String distributeName;
+
+    /**
+     * 来源种子等级
+     */
+    private String fromSeedLevel;
+
+    /**
+     * 目标种子等级
+     */
+    private String toSeedLevel;
 
     /**
      * OSE ID
@@ -92,7 +106,20 @@ public class BreedSeedDistributeVO implements Serializable {
         /**
          * 生产批次ID
          */
-        private String breedSeedProduceBatchId;
+        private String produceBatchId;
+
+        /**
+         * 生产批次名称
+         */
+        private String produceBatchName;
+
+        /**
+         * 品种ID
+         */
+        private String breedBatchName;
+
+
+        private String parentalSeedSource;
 
         /**
          * 品种名称
