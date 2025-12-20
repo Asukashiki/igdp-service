@@ -23,7 +23,7 @@ public class BreedSeedProduce implements Serializable {
     /**
      * 主键(UUID)
      */
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.INPUT)
     private String produceBatchId;
 
     /**

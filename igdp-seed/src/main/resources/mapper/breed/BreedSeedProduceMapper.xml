@@ -10,4 +10,11 @@
         WHERE p.breed_seed_produce_batch_id = #{breedSeedProduceBatchId}
         GROUP BY p.breed_seed_produce_batch_id, p.produce_seed_quantrity
     </select>
+
+    <!-- 根据前缀查询当前最大ID，用于生成6位序列号 -->
+    <select id="selectMaxIdByPrefix" resultType="java.lang.String">
+        SELECT MAX(produce_batch_id)
+        FROM breed_seed_produce
+        WHERE produce_batch_id LIKE CONCAT(#{prefix}, '%')
+    </select>
 </mapper>
