@@ -65,4 +65,12 @@ public class FarmingRecordController extends BaseController {
         String[] ids = farmingIds.split(",");
         return toAjax(farmingRecordService.deleteFarmingRecordByIds(ids));
     }
+
+    /**
+     * 统计每个地块的灌溉次数
+     */
+    @GetMapping("/irrigationCount")
+    public AjaxResult getIrrigationCountByPlot() {
+        return AjaxResult.success(farmingRecordService.getIrrigationCountByPlot());
+    }
 }
