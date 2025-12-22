@@ -50,4 +50,11 @@ public interface IFarmingRecordService {
      * @return 影响行数
      */
     int deleteFarmingRecordByIds(String[] farmingIds);
+
+    /**
+     * 统计每个地块的灌溉次数
+     *
+     * @return Map<plotId, count>
+     */
+    java.util.Map<String, Integer> getIrrigationCountByPlot();
 }

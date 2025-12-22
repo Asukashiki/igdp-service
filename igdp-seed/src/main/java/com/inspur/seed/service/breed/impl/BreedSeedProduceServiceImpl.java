@@ -130,8 +130,21 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
         BreedSeedProduce produce = new BreedSeedProduce();
         BeanUtils.copyProperties(dto, produce);
 
-        // 生成UUID作为主键
-        produce.setProduceBatchId(IdUtils.fastSimpleUUID());
+        // 校验必要字段以生成主键
+        if (!StringUtils.hasText(produce.getCropType())) {
+            throw new ServiceException("作物类型不能为空(cropType)");
+        }
+        if (!StringUtils.hasText(produce.getFromSeedLevel())) {
+            throw new ServiceException("来源种子等级不能为空(fromSeedLevel)");
+        }
+        if (!StringUtils.hasText(produce.getToSeedLevel())) {
+            throw new ServiceException("去向种子等级不能为空(toSeedLevel)");
+        }
+
+        // 自定义主键规则：P_{cropType}_{From}_{To}_{6位序列}
+        String prefix = String.format("P_%s_%s_%s_", sanitize(produce.getCropType()), sanitize(produce.getFromSeedLevel()), sanitize(produce.getToSeedLevel()));
+        String nextId = generateNextIdByPrefix(prefix);
+        produce.setProduceBatchId(nextId);
 
         // 自动获取当前操作人信息
         String userId = SecurityUtils.getUserId();
@@ -181,5 +194,37 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
         this.update(updateWrapper);
 
         return this.update(produce, updateWrapper);
+    }
+
+    /**
+     * 生成带前缀的下一个ID，序列为6位，不足补零
+     */
+    private String generateNextIdByPrefix(String prefix) {
+        String maxId = this.baseMapper.selectMaxIdByPrefix(prefix);
+        int nextSeq = 1;
+        if (StringUtils.hasText(maxId)) {
+            // 取最后6位序列
+            String[] parts = maxId.split("_");
+            String last = parts[parts.length - 1];
+            try {
+                nextSeq = Integer.parseInt(last) + 1;
+            } catch (NumberFormatException e) {
+                // 回退为1
+                nextSeq = 1;
+            }
+        }
+        return prefix + String.format("%06d", nextSeq);
+    }
+
+    /**
+     * 清理前缀中的空白与特殊空格，替换空白为无或中划线，避免ID异常
+     */
+    private String sanitize(String val) {
+        if (val == null) return "";
+        // 去除首尾空白，内部空白替换为无
+        String v = val.trim();
+        // 统一用连字符替换空格，避免与下划线冲突
+        v = v.replaceAll("\\s+", "-");
+        return v;
     }
 }

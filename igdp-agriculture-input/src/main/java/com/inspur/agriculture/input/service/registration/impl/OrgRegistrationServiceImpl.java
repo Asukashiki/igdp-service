@@ -81,7 +81,7 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
     /**
      * 用户中心注册接口地址
      */
-    @Value("${user.center.register.url:http://10.110.149.140:30012/auth/rbac/user/register}")
+    @Value("${user.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
     private String userCenterRegisterUrl;
 
     private RestTemplate restTemplate;
@@ -335,6 +335,9 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
             requestBody.put("email", registration.getContactEmail() != null ? registration.getContactEmail() : "");
             requestBody.put("regionCode", registration.getRegionCode());
             requestBody.put("regionName", registration.getRegionName() != null ? registration.getRegionName() : "");
+            // 添加 orgCode 和 orgName，值与 regionCode 和 regionName 相同
+            requestBody.put("orgCode", registration.getRegionCode());
+            requestBody.put("orgName", registration.getRegionName() != null ? registration.getRegionName() : "");
 
             // 设置请求头
             HttpHeaders headers = new HttpHeaders();

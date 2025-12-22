@@ -32,4 +32,5 @@ public interface EnvironmentNewDataMapper extends BaseMapper<EnvironmentNewData>
      * @return 环境数据
      */
     EnvironmentNewData selectEnvironmentNewDataById(String envRecordId);
+
 }

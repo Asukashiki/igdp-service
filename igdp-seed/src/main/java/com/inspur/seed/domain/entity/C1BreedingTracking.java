@@ -42,6 +42,36 @@ public class C1BreedingTracking implements Serializable {
     @TableField("tracking_desc")
     private String trackingDesc;
 
+    /**
+     * 种子级别(Basic/C1/C2)
+     */
+    @TableField("seed_class")
+    private String seedClass;
+
+    /**
+     * 批次号
+     */
+    @TableField("lot_id")
+    private String lotId;
+
+    /**
+     * 检测阶段(Purity/Germination等)
+     */
+    @TableField("stage")
+    private String stage;
+
+    /**
+     * 评分项
+     */
+    @TableField("score")
+    private String score;
+
+    /**
+     * 检测值
+     */
+    @TableField("inspection_value")
+    private String inspectionValue;
+
     @TableField("test_count")
     private Integer testCount;
 
