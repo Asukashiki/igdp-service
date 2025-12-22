@@ -88,4 +88,26 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
 
         return String.format("%s-F%d", plotId, nextRecordNo);
     }
+
+    @Override
+    public java.util.Map<String, Integer> getIrrigationCountByPlot() {
+        List<java.util.Map<String, Object>> resultList = farmingRecordMapper.getIrrigationCountByPlot();
+        java.util.Map<String, Integer> countMap = new java.util.HashMap<>();
+        
+        for (java.util.Map<String, Object> row : resultList) {
+            String plotId = (String) row.get("plotId");
+            Object countObj = row.get("count");
+            Integer count = 0;
+            
+            if (countObj instanceof Long) {
+                count = ((Long) countObj).intValue();
+            } else if (countObj instanceof Integer) {
+                count = (Integer) countObj;
+            }
+            
+            countMap.put(plotId, count);
+        }
+        
+        return countMap;
+    }
 }

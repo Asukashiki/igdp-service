@@ -38,4 +38,11 @@ public interface FarmingRecordMapper extends BaseMapper<FarmingRecord> {
      * @return 最大记录编号
      */
     int getMaxRecordNoByPlotId(@Param("plotId") String plotId);
+
+    /**
+     * 统计每个地块的灌溉次数
+     *
+     * @return Map<plotId, count>
+     */
+    List<java.util.Map<String, Object>> getIrrigationCountByPlot();
 }

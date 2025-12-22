@@ -69,4 +69,14 @@
         and farming_record_id like CONCAT(#{plotId}, '-F%')
     </select>
 
+    <select id="getIrrigationCountByPlot" resultType="map">
+        SELECT 
+            plot_id as plotId,
+            COUNT(*) as count
+        FROM farming_record
+        WHERE activity_type = 'irrigation'
+          AND is_deleted = 0
+        GROUP BY plot_id
+    </select>
+
 </mapper>
