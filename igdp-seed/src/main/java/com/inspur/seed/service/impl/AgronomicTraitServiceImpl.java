@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -70,5 +69,21 @@ public class AgronomicTraitServiceImpl implements IAgronomicTraitService {
             }
         }
         return count;
+    }
+
+    /**
+     * 农艺性状提交审核
+     * 参考 BreedingBatchServiceImpl 的 submitAudit 方法实现
+     * @param traitId 农艺性状主键ID
+     * @return 受影响的数据库行数
+     */
+    @Override
+    public int submitAgronomicTraitAudit(String traitId) {
+        AgronomicTrait agronomicTrait = new AgronomicTrait();
+        agronomicTrait.setTraitId(traitId);
+        agronomicTrait.setWorkflowStatus("S1");
+        agronomicTrait.setUpdateTime(LocalDateTime.now());
+        agronomicTrait.setUpdateBy(SecurityUtils.getUsername());
+        return agronomicTraitMapper.updateById(agronomicTrait);
     }
 }
