@@ -88,6 +88,10 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
         if (StrUtil.isBlank(entity.getStatus())) {
             entity.setStatus("submit");
         }
+        // 默认流程审核状态为待审批
+        if (StrUtil.isBlank(entity.getWorkflowStatus())) {
+            entity.setWorkflowStatus("S1");
+        }
         entity.setDeleted("0");
         entity.setCreatedTime(LocalDateTime.now());
         entity.setCreatedBy(SecurityUtils.getUsername());
@@ -102,6 +106,20 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
 
         entity.setUpdatedTime(LocalDateTime.now());
         entity.setUpdatedBy(SecurityUtils.getUsername());
+        
+        // 如果DTO中有审核相关信息，则更新审核字段
+        if (dto.getAuditBy() != null) {
+            entity.setAuditBy(dto.getAuditBy());
+        }
+        if (dto.getAuditTime() != null) {
+            entity.setAuditTime(dto.getAuditTime());
+        }
+        if (dto.getWorkflowStatus() != null) {
+            entity.setWorkflowStatus(dto.getWorkflowStatus());
+        }
+        if (dto.getRemark() != null) {
+            entity.setRemark(dto.getRemark());
+        }
 
         return breedingYieldDataMapper.updateById(entity);
     }
