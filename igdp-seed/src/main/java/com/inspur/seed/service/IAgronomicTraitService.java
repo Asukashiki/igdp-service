@@ -50,4 +50,12 @@ public interface IAgronomicTraitService {
      * @return 影响行数
      */
     int deleteAgronomicTraitByIds(String[] traitIds);
+
+    /**
+     * 提交审核
+     *
+     * @param id 数据集ID
+     * @return 操作结果
+     */
+    int submitAgronomicTraitAudit(String id);
 }
