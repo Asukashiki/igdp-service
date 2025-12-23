@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 产量数据DTO
@@ -99,6 +100,22 @@ public class BreedingYieldDataDTO {
      */
     private String workflowStatus;
 
+    /**
+     * 审核人
+     */
+    private String auditBy;
+
+    /**
+     * 审核时间
+     */
+    private LocalDateTime auditTime;
+
+    /**
+     * 审核意见
+     */
+    private String auditRemark;
+
+
     // 查询条件字段
     /**
      * 收获日期开始
@@ -109,5 +126,16 @@ public class BreedingYieldDataDTO {
      * 收获日期结束
      */
     private LocalDate harvestDateEnd;
+
+    // 分页参数
+    /**
+     * 当前页码
+     */
+    private Integer pageNum;
+
+    /**
+     * 每页记录数
+     */
+    private Integer pageSize;
 
 }
