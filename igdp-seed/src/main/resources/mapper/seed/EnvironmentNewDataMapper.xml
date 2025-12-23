@@ -65,7 +65,7 @@
                 AND e.timestamp &lt;= #{queryEndTime}
             </if>
         </where>
-        order by e.timestamp desc, e.create_time desc
+        order by  e.create_time desc
     </select>
 
     <select id="selectEnvironmentNewDataById" parameterType="String" resultMap="EnvironmentNewDataResult">
