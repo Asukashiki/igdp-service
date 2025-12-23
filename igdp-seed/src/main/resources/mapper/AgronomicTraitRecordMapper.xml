@@ -29,9 +29,9 @@
     </resultMap>
 
     <!-- 查询主记录列表（含性状数量统计） -->
-    <select id="selectRecordList" parameterType="com.inspur.seed.domain.entity.AgronomicTraitRecord" 
+    <select id="selectRecordList" parameterType="com.inspur.seed.domain.entity.AgronomicTraitRecord"
             resultType="com.inspur.seed.domain.entity.AgronomicTraitRecord">
-        SELECT 
+        SELECT
             r.record_id,
             r.plot_id,
             r.trial_id,
@@ -124,7 +124,7 @@
     <select id="generateRecordSequence" resultType="java.lang.Integer">
         SELECT IFNULL(MAX(CAST(SUBSTRING_INDEX(record_id, '-TR', -1) AS UNSIGNED)), 0) + 1
         FROM agronomic_trait_record
-        WHERE plot_id = #{plotId} AND is_deleted = 0
+        WHERE plot_id = #{plotId}
     </select>
 
 </mapper>
