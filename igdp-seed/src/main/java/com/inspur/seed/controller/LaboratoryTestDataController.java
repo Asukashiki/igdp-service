@@ -63,4 +63,61 @@ public class LaboratoryTestDataController {
     public AjaxResult remove(@RequestBody String[] dataIds) {
         return AjaxResult.success(laboratoryTestDataService.deleteLaboratoryTestDataByIds(dataIds));
     }
+
+    /**
+     * 提交审核
+     */
+    @PostMapping("/submit")
+    public AjaxResult submit(@RequestBody LaboratoryTestDataDTO dto) {
+        return AjaxResult.success(laboratoryTestDataService.submitForApproval(dto.getDataId()));
+    }
+
+    /**
+     * 审核通过
+     */
+    @PostMapping("/approve")
+    public AjaxResult approve(@RequestBody LaboratoryTestDataDTO dto) {
+        return AjaxResult.success(laboratoryTestDataService.approveLaboratoryTestData(dto.getDataId(), dto.getAuditOpinion()));
+    }
+
+    /**
+     * 审核退回
+     */
+    @PostMapping("/reject")
+    public AjaxResult reject(@RequestBody LaboratoryTestDataDTO dto) {
+        return AjaxResult.success(laboratoryTestDataService.rejectLaboratoryTestData(dto.getDataId(), dto.getAuditOpinion()));
+    }
+
+    /**
+     * 归档
+     */
+    @PostMapping("/archive")
+    public AjaxResult archive(@RequestBody LaboratoryTestDataDTO dto) {
+        return AjaxResult.success(laboratoryTestDataService.archiveLaboratoryTestData(dto.getDataId()));
+    }
+
+    /**
+     * 作废数据
+     */
+    @PostMapping("/cancel")
+    public AjaxResult cancel(@RequestBody LaboratoryTestDataDTO dto) {
+        return AjaxResult.success(laboratoryTestDataService.cancelLaboratoryTestData(dto.getDataId()));
+    }
+
+    /**
+     * 作废审核记录
+     */
+    @PostMapping("/audit/cancel")
+    public AjaxResult cancelAudit(@RequestBody LaboratoryTestDataDTO dto) {
+        return AjaxResult.success(laboratoryTestDataService.cancelAuditRecord(dto.getDataId()));
+    }
+
+    /**
+     * 查询审核列表
+     */
+    @PostMapping("/audit/list")
+    public AjaxResult auditList(@RequestBody LaboratoryTestDataDTO dto) {
+        List<LaboratoryTestDataVO> list = laboratoryTestDataService.selectLaboratoryTestDataList(dto);
+        return AjaxResult.success(list);
+    }
 }

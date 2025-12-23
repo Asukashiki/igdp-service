@@ -54,4 +54,54 @@ public interface ILaboratoryTestDataService extends IService<LaboratoryTestData>
      * @return 结果
      */
     int deleteLaboratoryTestDataByIds(String[] dataIds);
+
+    /**
+     * 提交审核
+     *
+     * @param dataId 数据ID
+     * @return 结果
+     */
+    int submitForApproval(String dataId);
+
+    /**
+     * 审核通过
+     *
+     * @param dataId 数据ID
+     * @param auditOpinion 审核意见
+     * @return 结果
+     */
+    int approveLaboratoryTestData(String dataId, String auditOpinion);
+
+    /**
+     * 审核退回
+     *
+     * @param dataId 数据ID
+     * @param auditOpinion 审核意见
+     * @return 结果
+     */
+    int rejectLaboratoryTestData(String dataId, String auditOpinion);
+
+    /**
+     * 归档
+     *
+     * @param dataId 数据ID
+     * @return 结果
+     */
+    int archiveLaboratoryTestData(String dataId);
+
+    /**
+     * 作废数据
+     *
+     * @param dataId 数据ID
+     * @return 结果
+     */
+    int cancelLaboratoryTestData(String dataId);
+
+    /**
+     * 作废审核记录
+     *
+     * @param dataId 数据ID
+     * @return 结果
+     */
+    int cancelAuditRecord(String dataId);
 }

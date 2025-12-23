@@ -87,4 +87,74 @@ public class LaboratoryTestData extends BaseEntity {
      * 删除标志(0正常 2删除)
      */
     private String delFlag;
+
+    /**
+     * 工作流状态(S0草稿 S1待审批 S2已审批 S3已退回 S9已归档 S10作废)
+     */
+    private String workflowStatus;
+
+    /**
+     * 审核记录作废标记(0正常 1审核记录已作废)
+     */
+    private Integer auditCanceled;
+
+    /**
+     * 批次ID
+     */
+    private String batchId;
+
+    /**
+     * 试验ID
+     */
+    private String trialId;
+
+    /**
+     * 测试日期
+     */
+    private String testDate;
+
+    /**
+     * 样本类型
+     */
+    private String sampleType;
+
+    /**
+     * 实验室参数
+     */
+    private String labParameter;
+
+    /**
+     * 结果值
+     */
+    private String resultValue;
+
+    /**
+     * 通过/失败标志(true/false)
+     */
+    private String passFailFlag;
+
+    /**
+     * 检测机构
+     */
+    private String testOrganization;
+
+    /**
+     * 检测人员
+     */
+    private String testerName;
+
+    /**
+     * 审批人
+     */
+    private String approveBy;
+
+    /**
+     * 审批时间
+     */
+    private String approveTime;
+
+    /**
+     * 审核意见
+     */
+    private String auditOpinion;
 }
