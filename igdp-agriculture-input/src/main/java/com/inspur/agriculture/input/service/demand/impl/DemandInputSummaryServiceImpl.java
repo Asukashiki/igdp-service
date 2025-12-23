@@ -54,7 +54,8 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
         if(queryDTO.getLevel()!=null){
             for(DemandInputSummaryVO vo: list){
                 String year = vo.getYear();
-                String targetCode = queryDTO.getSourceCode();
+//                String targetCode = queryDTO.getSourceCode();
+                String targetCode = vo.getSourceCode();
                 if(queryDTO.getLevel().equals("0")){
                     vo.setSubQuantity(demandFarmerDetailMapper.countAllQuantity(year, targetCode));
                     vo.setAuditQuantity(demandFarmerDetailMapper.countAuditQuantity(year,targetCode));
