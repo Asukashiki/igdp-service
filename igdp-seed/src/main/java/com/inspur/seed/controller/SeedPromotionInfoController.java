@@ -110,4 +110,39 @@ public class SeedPromotionInfoController extends BaseController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    /**
+     * 查询推广内容详情
+     *
+     * @param promotionId 推广ID
+     * @return 推广详情
+     */
+    @GetMapping("/{promotionId}")
+    public AjaxResult getDetail(@PathVariable String promotionId) {
+        try {
+            SeedPromotionInfo detail = seedPromotionInfoService.queryByPromotionId(promotionId);
+            if (detail == null) {
+                return AjaxResult.error("推广内容不存在");
+            }
+            return AjaxResult.success(detail);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 根据品种名称查询关联的推广内容
+     *
+     * @param varietyName 品种名称
+     * @return 推广内容列表
+     */
+    @GetMapping("/by-variety")
+    public AjaxResult getByVariety(@RequestParam String varietyName) {
+        try {
+            List<SeedPromotionInfo> list = seedPromotionInfoService.queryByVarietyName(varietyName);
+            return AjaxResult.success(list);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
 }

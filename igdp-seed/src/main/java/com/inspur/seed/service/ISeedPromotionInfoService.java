@@ -53,5 +53,18 @@ public interface ISeedPromotionInfoService extends IService<SeedPromotionInfo> {
      */
     SeedPromotionInfo queryByPromotionId(String promotionId);
 
+    /**
+     * 删除推广内容
+     *
+     * @param promotionId 推广ID
+     */
     void deletePromotion(String promotionId);
+
+    /**
+     * 根据品种名称查询关联的推广内容
+     *
+     * @param varietyName 品种名称
+     * @return 推广内容列表
+     */
+    List<SeedPromotionInfo> queryByVarietyName(String varietyName);
 }

@@ -135,4 +135,19 @@ public class SeedPromotionInfoServiceImpl extends ServiceImpl<SeedPromotionInfoM
         // 删除推广信息
         removeById(promotionId);
     }
+
+    @Override
+    public List<SeedPromotionInfo> queryByVarietyName(String varietyName) {
+        LambdaQueryWrapper<SeedPromotionInfo> wrapper = new LambdaQueryWrapper<>();
+
+        if (StringUtils.isNotEmpty(varietyName)) {
+            // 推荐品种字段中模糊匹配品种名称（支持逗号分隔的多个品种）
+            wrapper.like(SeedPromotionInfo::getRecommendedVarieties, varietyName);
+        }
+
+        // 按发布时间倒序排列
+        wrapper.orderByDesc(SeedPromotionInfo::getPublishTime);
+
+        return list(wrapper);
+    }
 }
