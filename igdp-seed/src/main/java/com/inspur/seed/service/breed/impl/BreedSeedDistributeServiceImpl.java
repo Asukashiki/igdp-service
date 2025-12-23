@@ -60,7 +60,7 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
     public BreedSeedDistributeVO addDistribute(BreedSeedDistributeDTO dto) {
         // 生成分发主表 D_当前时间戳_序列号【6位】
         String distributeId =
-                "D_" + System.currentTimeMillis() + "_" + IdUtils.fastSimpleUUID().substring(0, 6);
+                "D_" + dto.getOrgan() + "_" + dto.getFromSeedLevel() + "_" + dto.getToSeedLevel() + "_" + IdUtils.fastSimpleUUID().substring(0, 6);
         // 计算明细总数量
         BigDecimal totalQuantity = BigDecimal.ZERO;
         for (BreedSeedDistributeDetail item : dto.getDetailList()) {
