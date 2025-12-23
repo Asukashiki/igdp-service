@@ -21,7 +21,8 @@
         <result property="plotAreaM2" column="plot_area_m2"/>
         <result property="gpsLat" column="gps_lat"/>
         <result property="gpsLong" column="gps_long"/>
-        <result property="auditStatus" column="audit_status"/>
+        <result property="auditStatus" column="workflow_status"/>
+        <result property="auditOpinion" column="audit_opinion"/>
         <result property="createdBy" column="created_by"/>
         <result property="createdName" column="created_name"/>
         <result property="createTime" column="create_time"/>
@@ -35,6 +36,7 @@
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
         <result property="varietyName" column="variety_name"/>
+        <result property="auditCanceled" column="audit_canceled"/>
     </resultMap>
 
     <sql id="selectPlotInfoVo">
@@ -42,10 +44,15 @@
                p.variety_code, p.sowing_date, p.seed_quantity, p.sowing_method, p.sowing_time,
                p.region, p.zone, p.woreda, p.kebele,
                p.plot_area_m2, p.gps_lat, p.gps_long,
-               p.audit_status, p.created_by, p.created_name, p.create_time, 
+               p.workflow_status, p.audit_opinion, p.created_by, p.created_name, p.create_time,
                p.modified_by, p.modified_name, p.update_time,
                p.audited_by, p.audited_name, p.audit_time,
-               p.create_by, p.update_by, p.is_deleted
+               p.create_by, p.update_by, p.is_deleted,
+               -- 检查是否有作废审核记录的标记
+               (SELECT COUNT(*) FROM plot_audit_record par 
+                WHERE par.plot_id = p.plot_id 
+                AND par.audit_type = 'CANCEL_AUDIT' 
+                AND par.audit_time > p.audit_time) as audit_canceled
         from plot_info p
 
     </sql>
@@ -54,6 +61,9 @@
         <include refid="selectPlotInfoVo"/>
         <where>
             p.is_deleted = 0
+            <if test="auditStatus != null and auditStatus != ''">
+                AND p.workflow_status = #{auditStatus}
+            </if>
             <if test="batchId != null and batchId != ''">
                 AND p.batch_id = #{batchId}
             </if>
