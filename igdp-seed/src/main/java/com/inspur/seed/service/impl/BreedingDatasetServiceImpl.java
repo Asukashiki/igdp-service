@@ -369,11 +369,26 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
             // 设置提交人信息(从当前登录用户获取)
             String submitBy = null;
             String submitByName = null;
+            String submitOrgCode = null;
+            String submitOrgName = null;
             try {
                 submitBy = SecurityUtils.getUsername();
-                submitByName = submitBy; // 如果没有用户名,使用用户ID
+                submitByName = SecurityUtils.getNickname();
+                submitOrgCode = SecurityUtils.getDeptId();
+                submitOrgName = SecurityUtils.getDeptName();
+                
+                // 如果昵称为空，使用用户名
+                if (StrUtil.isBlank(submitByName)) {
+                    submitByName = submitBy;
+                }
+                
                 dataset.setSubmitBy(submitBy);
                 dataset.setSubmitByName(submitByName);
+                dataset.setSubmitOrgCode(submitOrgCode);
+                dataset.setSubmitOrgName(submitOrgName);
+                
+                log.info("设置提交人信息: submitBy={}, submitByName={}, submitOrgCode={}, submitOrgName={}", 
+                    submitBy, submitByName, submitOrgCode, submitOrgName);
             } catch (Exception ex) {
                 log.warn("获取当前用户信息失败,使用创建人信息", ex);
                 // 使用创建人信息作为提交人
@@ -381,6 +396,7 @@ public class BreedingDatasetServiceImpl extends ServiceImpl<BreedingDatasetMappe
                 submitByName = dataset.getCreatedByName() != null ? dataset.getCreatedByName() : dataset.getCreatedBy();
                 dataset.setSubmitBy(submitBy);
                 dataset.setSubmitByName(submitByName);
+                // 机构信息无法获取时保持为空
             }
 
             dataset.setUpdatedTime(LocalDateTime.now());
