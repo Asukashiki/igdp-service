@@ -49,4 +49,6 @@ public interface DemandInputSummaryItemMapper extends BaseMapper<DemandInputSumm
 
     List<InputAggregationSummaryVO> getInputAggregation(@Param("query") DemandOrganDTO demandOrganDTO);
 
+    List<InputAggregationSummaryVO> getInputAggregationZone(@Param("query") DemandOrganDTO demandOrganDTO);
+
 }

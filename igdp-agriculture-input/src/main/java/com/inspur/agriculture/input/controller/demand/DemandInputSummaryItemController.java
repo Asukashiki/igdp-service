@@ -140,7 +140,15 @@ public class DemandInputSummaryItemController {
             return AjaxResult.error(e.getMessage());
         }
     }
-
+    @PostMapping("/getAggregateZone")
+    public AjaxResult getAggregateZone(@RequestBody DemandOrganDTO demandOrganDTO) {
+        try {
+            List<InputAggregationSummaryVO> result = demandInputSummaryItemService.getInputAggregationZone(demandOrganDTO);
+            return AjaxResult.success("获取成功", result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
     /**
      * 删除农资汇聚统计
      */

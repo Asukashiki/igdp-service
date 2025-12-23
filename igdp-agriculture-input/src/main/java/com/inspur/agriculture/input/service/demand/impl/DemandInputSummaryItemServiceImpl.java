@@ -191,17 +191,10 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
 
     @Override
     public List<InputAggregationSummaryVO> getInputAggregation(DemandOrganDTO demandOrganDTO) {
-        // 1. 获取当前日期，提取年份
-//        int currentYear = Integer.parseInt(demandOrganDTO.getYear());
-//
-//        // 2. 构造开始日期（当年1月1日）和结束日期（下一年1月1日）
-//        String startDate = currentYear + "-01-01";
-//        String endDate = (currentYear + 1) + "-01-01";
-//
-//        // 3. 将日期设置到DTO中，传递给Mapper
-//        demandOrganDTO.setStartDate(Date.valueOf(startDate));
-//        demandOrganDTO.setEndDate(Date.valueOf(endDate));
-
         return demandInputSummaryItemMapper.getInputAggregation(demandOrganDTO);
+    }
+    @Override
+    public List<InputAggregationSummaryVO> getInputAggregationZone(DemandOrganDTO demandOrganDTO) {
+        return demandInputSummaryItemMapper.getInputAggregationZone(demandOrganDTO);
     }
 }
