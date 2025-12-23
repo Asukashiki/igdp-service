@@ -3,8 +3,10 @@ package com.inspur.seed.service.impl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.PlotInfo;
+import com.inspur.seed.domain.PlotAuditRecord;
 import com.inspur.seed.mapper.PlotInfoMapper;
 import com.inspur.seed.service.IPlotInfoService;
+import com.inspur.seed.service.IPlotAuditRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +25,35 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
     @Autowired
     private PlotInfoMapper plotInfoMapper;
 
+    @Autowired
+    private IPlotAuditRecordService plotAuditRecordService;
+
     @Override
     public List<PlotInfo> selectPlotInfoList(PlotInfo plotInfo) {
-        return plotInfoMapper.selectPlotInfoList(plotInfo);
+        List<PlotInfo> list = plotInfoMapper.selectPlotInfoList(plotInfo);
+        
+        // 如果查询的是已审核状态(S2)，需要过滤掉已作废的审核记录
+        if ("S2".equals(plotInfo.getAuditStatus())) {
+            list = list.stream()
+                    .filter(item -> item.getAuditCanceled() == null || item.getAuditCanceled() == 0)
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        // 如果查询的是已作废状态(S10)，只返回审核记录被作废的数据
+        // 注意：主表状态为S10的记录（通过cancel方法作废的）不应该在审核页面显示
+        else if ("S10".equals(plotInfo.getAuditStatus())) {
+            // 只查询主表状态为S2但审核记录被作废的记录（通过cancelAuditRecord方法作废的）
+            PlotInfo s2Query = new PlotInfo();
+            s2Query.setAuditStatus("S2");
+            s2Query.setBatchId(plotInfo.getBatchId());
+            s2Query.setTrialId(plotInfo.getTrialId());
+            s2Query.setVarietyCode(plotInfo.getVarietyCode());
+            
+            list = plotInfoMapper.selectPlotInfoList(s2Query).stream()
+                    .filter(item -> item.getAuditCanceled() != null && item.getAuditCanceled() > 0)
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        
+        return list;
     }
 
     @Override
@@ -48,6 +76,9 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
         // 业务字段：createdBy/createdName 存ID与姓名，供列表显示
         plotInfo.setCreatedBy(SecurityUtils.getUserId().toString());
         plotInfo.setCreatedName(SecurityUtils.getUsername());
+
+        // 设置默认审核状态为草稿
+        plotInfo.setAuditStatus("S0");
 
         // 保存地块信息
         plotInfoMapper.insert(plotInfo);
@@ -113,5 +144,185 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
         }
 
         return String.format("%s-P%d%d%d", trialId, replicationNo, rowNo, columnNo);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int submitAudit(String plotId) {
+        PlotInfo plotInfo = plotInfoMapper.selectPlotInfoById(plotId);
+        if (plotInfo == null) {
+            throw new ServiceException("地块不存在");
+        }
+        if (!"S0".equals(plotInfo.getAuditStatus()) && !"S3".equals(plotInfo.getAuditStatus())) {
+            throw new ServiceException("只有草稿或已退回状态才能提交审核");
+        }
+
+        String beforeStatus = plotInfo.getAuditStatus();
+        plotInfo.setAuditStatus("S1");
+        plotInfoMapper.updateById(plotInfo);
+
+        PlotAuditRecord record = new PlotAuditRecord();
+        record.setPlotId(plotId);
+        record.setAuditType("SUBMIT");
+        record.setBeforeStatus(beforeStatus);
+        record.setAfterStatus("S1");
+        record.setAuditor(SecurityUtils.getUserId().toString());
+        record.setAuditorName(SecurityUtils.getUsername());
+        record.setAuditTime(LocalDateTime.now());
+        plotAuditRecordService.insertAuditRecord(record);
+
+        return 1;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int approve(String plotId, String auditOpinion) {
+        PlotInfo plotInfo = plotInfoMapper.selectPlotInfoById(plotId);
+        if (plotInfo == null) {
+            throw new ServiceException("地块不存在");
+        }
+        if (!"S1".equals(plotInfo.getAuditStatus())) {
+            throw new ServiceException("只有待审批状态才能审核通过");
+        }
+
+        plotInfo.setAuditStatus("S2");
+        plotInfo.setAuditOpinion(auditOpinion);
+        plotInfo.setAuditedBy(SecurityUtils.getUserId().toString());
+        plotInfo.setAuditedName(SecurityUtils.getUsername());
+        plotInfo.setAuditTime(LocalDateTime.now());
+        plotInfoMapper.updateById(plotInfo);
+
+        PlotAuditRecord record = new PlotAuditRecord();
+        record.setPlotId(plotId);
+        record.setAuditType("APPROVE");
+        record.setBeforeStatus("S1");
+        record.setAfterStatus("S2");
+        record.setAuditOpinion(auditOpinion);
+        record.setAuditor(SecurityUtils.getUserId().toString());
+        record.setAuditorName(SecurityUtils.getUsername());
+        record.setAuditTime(LocalDateTime.now());
+        plotAuditRecordService.insertAuditRecord(record);
+
+        return 1;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int reject(String plotId, String auditOpinion) {
+        PlotInfo plotInfo = plotInfoMapper.selectPlotInfoById(plotId);
+        if (plotInfo == null) {
+            throw new ServiceException("地块不存在");
+        }
+        if (!"S1".equals(plotInfo.getAuditStatus())) {
+            throw new ServiceException("只有待审批状态才能退回");
+        }
+        if (auditOpinion == null || auditOpinion.trim().isEmpty()) {
+            throw new ServiceException("退回必须填写审核意见");
+        }
+
+        plotInfo.setAuditStatus("S3");
+        plotInfo.setAuditOpinion(auditOpinion);
+        plotInfo.setAuditedBy(SecurityUtils.getUserId().toString());
+        plotInfo.setAuditedName(SecurityUtils.getUsername());
+        plotInfo.setAuditTime(LocalDateTime.now());
+        plotInfoMapper.updateById(plotInfo);
+
+        PlotAuditRecord record = new PlotAuditRecord();
+        record.setPlotId(plotId);
+        record.setAuditType("REJECT");
+        record.setBeforeStatus("S1");
+        record.setAfterStatus("S3");
+        record.setAuditOpinion(auditOpinion);
+        record.setAuditor(SecurityUtils.getUserId().toString());
+        record.setAuditorName(SecurityUtils.getUsername());
+        record.setAuditTime(LocalDateTime.now());
+        plotAuditRecordService.insertAuditRecord(record);
+
+        return 1;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int archive(String plotId) {
+        PlotInfo plotInfo = plotInfoMapper.selectPlotInfoById(plotId);
+        if (plotInfo == null) {
+            throw new ServiceException("地块不存在");
+        }
+        if (!"S2".equals(plotInfo.getAuditStatus())) {
+            throw new ServiceException("只有已审批状态才能归档");
+        }
+
+        plotInfo.setAuditStatus("S9");
+        plotInfoMapper.updateById(plotInfo);
+
+        PlotAuditRecord record = new PlotAuditRecord();
+        record.setPlotId(plotId);
+        record.setAuditType("ARCHIVE");
+        record.setBeforeStatus("S2");
+        record.setAfterStatus("S9");
+        record.setAuditor(SecurityUtils.getUserId().toString());
+        record.setAuditorName(SecurityUtils.getUsername());
+        record.setAuditTime(LocalDateTime.now());
+        plotAuditRecordService.insertAuditRecord(record);
+
+        return 1;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int cancel(String plotId) {
+        PlotInfo plotInfo = plotInfoMapper.selectPlotInfoById(plotId);
+        if (plotInfo == null) {
+            throw new ServiceException("地块不存在");
+        }
+        if (!"S0".equals(plotInfo.getAuditStatus()) && !"S3".equals(plotInfo.getAuditStatus())) {
+            throw new ServiceException("只有草稿或已退回状态才能作废");
+        }
+
+        String beforeStatus = plotInfo.getAuditStatus();
+        plotInfo.setAuditStatus("S10");
+        plotInfoMapper.updateById(plotInfo);
+
+        PlotAuditRecord record = new PlotAuditRecord();
+        record.setPlotId(plotId);
+        record.setAuditType("CANCEL");
+        record.setBeforeStatus(beforeStatus);
+        record.setAfterStatus("S10");
+        record.setAuditor(SecurityUtils.getUserId().toString());
+        record.setAuditorName(SecurityUtils.getUsername());
+        record.setAuditTime(LocalDateTime.now());
+        plotAuditRecordService.insertAuditRecord(record);
+
+        return 1;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int cancelAuditRecord(String plotId) {
+        PlotInfo plotInfo = plotInfoMapper.selectPlotInfoById(plotId);
+        if (plotInfo == null) {
+            throw new ServiceException("地块不存在");
+        }
+        if (!"S2".equals(plotInfo.getAuditStatus())) {
+            throw new ServiceException("只有已审批状态才能作废");
+        }
+
+        // 注意：作废审核记录时，只在审核记录表中记录作废操作
+        // 不修改主表（plot_info）的状态，保持主表数据不受影响
+        String beforeStatus = plotInfo.getAuditStatus();
+
+        // 写入审核记录 - 记录作废操作，但主表状态保持为 S2
+        PlotAuditRecord record = new PlotAuditRecord();
+        record.setPlotId(plotId);
+        record.setAuditType("CANCEL_AUDIT");
+        record.setBeforeStatus(beforeStatus);
+        record.setAfterStatus(beforeStatus); // 主表状态不变，仍为 S2
+        record.setAuditOpinion("作废审核记录");
+        record.setAuditor(SecurityUtils.getUserId().toString());
+        record.setAuditorName(SecurityUtils.getUsername());
+        record.setAuditTime(LocalDateTime.now());
+        plotAuditRecordService.insertAuditRecord(record);
+
+        return 1;
     }
 }
