@@ -1,4 +1,4 @@
-package com.inspur.seed.domain.entity;
+package com.inspur.seed.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

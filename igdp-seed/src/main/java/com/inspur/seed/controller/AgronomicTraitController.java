@@ -66,18 +66,5 @@ public class AgronomicTraitController extends BaseController {
         return toAjax(agronomicTraitService.deleteAgronomicTraitByIds(ids));
     }
 
-    /**
-     * 提交审核
-     */
-    @PostMapping("/submit/{id}")
-    public AjaxResult submit(@PathVariable String id) {
-        int affectedRows = agronomicTraitService.submitAgronomicTraitAudit(id);
-        if (affectedRows > 0) {
-            // 提交审核成功
-            return AjaxResult.success("农艺性状提交审核成功");
-        } else {
-            // 提交审核失败（如id不存在、状态异常等）
-            return AjaxResult.error("农艺性状提交审核失败");
-        }
-    }
+
 }
