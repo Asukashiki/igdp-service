@@ -33,7 +33,32 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
         QueryWrapper<LaboratoryTestData> wrapper = new QueryWrapper<>();
 
         if (StrUtil.isNotBlank(dto.getSampleId())) {
-            wrapper.eq("sample_id", dto.getSampleId());
+            wrapper.like("sample_id", dto.getSampleId());
+        }
+
+        if (StrUtil.isNotBlank(dto.getBatchId())) {
+            wrapper.eq("batch_id", dto.getBatchId());
+        }
+
+        if (StrUtil.isNotBlank(dto.getTrialId())) {
+            wrapper.eq("trial_id", dto.getTrialId());
+        }
+
+        if (StrUtil.isNotBlank(dto.getWorkflowStatus())) {
+            wrapper.eq("workflow_status", dto.getWorkflowStatus());
+        }
+
+        if (StrUtil.isNotBlank(dto.getSampleType())) {
+            wrapper.like("sample_type", dto.getSampleType());
+        }
+
+        if (StrUtil.isNotBlank(dto.getPassFailFlag())) {
+            wrapper.eq("pass_fail_flag", dto.getPassFailFlag());
+        }
+
+        // 审核列表查询时，需要过滤 audit_canceled
+        if (dto.getAuditCanceled() != null) {
+            wrapper.eq("audit_canceled", dto.getAuditCanceled());
         }
 
         wrapper.eq("del_flag", "0");
@@ -41,7 +66,21 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
 
         List<LaboratoryTestData> list = this.list(wrapper);
         return list.stream()
-                .map(entity -> BeanUtil.copyProperties(entity, LaboratoryTestDataVO.class))
+                .map(entity -> {
+                    LaboratoryTestDataVO vo = BeanUtil.copyProperties(entity, LaboratoryTestDataVO.class);
+                    // 映射创建人和创建时间字段
+                    vo.setCreatedByName(entity.getCreateBy());
+                    if (entity.getCreateTime() != null) {
+                        vo.setCreatedTime(entity.getCreateTime().toString());
+                    }
+                    // 映射更新时间字段
+                    if (entity.getUpdateTime() != null) {
+                        vo.setUpdatedTime(entity.getUpdateTime().toString());
+                    }
+                    // 映射审批人字段
+                    vo.setApproveByName(entity.getApproveBy());
+                    return vo;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -51,7 +90,19 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
         if (entity == null) {
             return null;
         }
-        return BeanUtil.copyProperties(entity, LaboratoryTestDataVO.class);
+        LaboratoryTestDataVO vo = BeanUtil.copyProperties(entity, LaboratoryTestDataVO.class);
+        // 映射创建人和创建时间字段
+        vo.setCreatedByName(entity.getCreateBy());
+        if (entity.getCreateTime() != null) {
+            vo.setCreatedTime(entity.getCreateTime().toString());
+        }
+        // 映射更新时间字段
+        if (entity.getUpdateTime() != null) {
+            vo.setUpdatedTime(entity.getUpdateTime().toString());
+        }
+        // 映射审批人字段
+        vo.setApproveByName(entity.getApproveBy());
+        return vo;
     }
 
     @Override
@@ -94,6 +145,9 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
 
         LaboratoryTestData entity = BeanUtil.copyProperties(dto, LaboratoryTestData.class);
         entity.setDelFlag("0");
+        // 新增数据默认为草稿状态
+        entity.setWorkflowStatus("S0");
+        entity.setAuditCanceled(0);
 
         // 设置创建信息
         String username = SecurityUtils.getUsername();
@@ -134,5 +188,121 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
                 })
                 .collect(Collectors.toList());
         return this.updateBatchById(list) ? list.size() : 0;
+    }
+
+    @Override
+    public int submitForApproval(String dataId) {
+        LaboratoryTestData entity = this.getById(dataId);
+        if (entity == null) {
+            throw new RuntimeException("Data not found");
+        }
+
+        // 只有草稿(S0)和已退回(S3)状态可以提交审核
+        if (!"S0".equals(entity.getWorkflowStatus()) && !"S3".equals(entity.getWorkflowStatus())) {
+            throw new RuntimeException("Only draft or rejected data can be submitted for approval");
+        }
+
+        entity.setWorkflowStatus("S1");
+        entity.setUpdateBy(SecurityUtils.getUsername());
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    public int approveLaboratoryTestData(String dataId, String auditOpinion) {
+        LaboratoryTestData entity = this.getById(dataId);
+        if (entity == null) {
+            throw new RuntimeException("Data not found");
+        }
+
+        // 只有待审批(S1)状态可以审核通过
+        if (!"S1".equals(entity.getWorkflowStatus())) {
+            throw new RuntimeException("Only pending approval data can be approved");
+        }
+
+        String username = SecurityUtils.getUsername();
+        entity.setWorkflowStatus("S2");
+        entity.setApproveBy(username);
+        entity.setApproveTime(LocalDateTime.now().toString());
+        entity.setAuditOpinion(auditOpinion);
+        entity.setUpdateBy(username);
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    public int rejectLaboratoryTestData(String dataId, String auditOpinion) {
+        LaboratoryTestData entity = this.getById(dataId);
+        if (entity == null) {
+            throw new RuntimeException("Data not found");
+        }
+
+        // 只有待审批(S1)状态可以退回
+        if (!"S1".equals(entity.getWorkflowStatus())) {
+            throw new RuntimeException("Only pending approval data can be rejected");
+        }
+
+        String username = SecurityUtils.getUsername();
+        entity.setWorkflowStatus("S3");
+        entity.setAuditOpinion(auditOpinion);
+        entity.setUpdateBy(username);
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    public int archiveLaboratoryTestData(String dataId) {
+        LaboratoryTestData entity = this.getById(dataId);
+        if (entity == null) {
+            throw new RuntimeException("Data not found");
+        }
+
+        // 只有已审批(S2)状态可以归档
+        if (!"S2".equals(entity.getWorkflowStatus())) {
+            throw new RuntimeException("Only approved data can be archived");
+        }
+
+        entity.setWorkflowStatus("S9");
+        entity.setUpdateBy(SecurityUtils.getUsername());
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    public int cancelLaboratoryTestData(String dataId) {
+        LaboratoryTestData entity = this.getById(dataId);
+        if (entity == null) {
+            throw new RuntimeException("Data not found");
+        }
+
+        entity.setWorkflowStatus("S10");
+        entity.setUpdateBy(SecurityUtils.getUsername());
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(entity) ? 1 : 0;
+    }
+
+    @Override
+    public int cancelAuditRecord(String dataId) {
+        LaboratoryTestData entity = this.getById(dataId);
+        if (entity == null) {
+            throw new RuntimeException("Data not found");
+        }
+
+        // 只有已审批(S2)状态可以作废审核记录
+        if (!"S2".equals(entity.getWorkflowStatus())) {
+            throw new RuntimeException("Only approved data audit record can be canceled");
+        }
+
+        // 保持S2状态，但标记审核记录已作废
+        entity.setAuditCanceled(1);
+        entity.setUpdateBy(SecurityUtils.getUsername());
+        entity.setUpdateTime(LocalDateTime.now());
+
+        return this.updateById(entity) ? 1 : 0;
     }
 }

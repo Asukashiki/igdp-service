@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.PlotAuditRecordMapper">
+
+    <resultMap type="com.inspur.seed.domain.PlotAuditRecord" id="PlotAuditRecordResult">
+        <id     property="id"             column="id"             />
+        <result property="plotId"         column="plot_id"        />
+        <result property="auditType"      column="audit_type"     />
+        <result property="beforeStatus"   column="before_status"  />
+        <result property="afterStatus"    column="after_status"   />
+        <result property="auditOpinion"   column="audit_opinion"  />
+        <result property="auditor"        column="auditor"        />
+        <result property="auditorName"    column="auditor_name"   />
+        <result property="auditTime"      column="audit_time"     />
+    </resultMap>
+
+    <select id="selectAuditHistory" parameterType="String" resultMap="PlotAuditRecordResult">
+        SELECT * FROM plot_audit_record
+        WHERE plot_id = #{plotId}
+        ORDER BY audit_time DESC
+    </select>
+
+</mapper>

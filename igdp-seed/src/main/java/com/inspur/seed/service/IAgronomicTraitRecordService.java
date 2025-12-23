@@ -1,5 +1,6 @@
 package com.inspur.seed.service;
 
+import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.seed.domain.dto.AgronomicTraitRecordDTO;
 import com.inspur.seed.domain.entity.AgronomicTraitRecord;
 import com.inspur.seed.domain.vo.AgronomicTraitRecordVO;
@@ -60,4 +61,12 @@ public interface IAgronomicTraitRecordService {
      * @return 记录ID
      */
     String generateRecordId(String plotId);
+
+    /**
+     * 提交审核
+     *
+     * @param id 数据集ID
+     * @return 操作结果
+     */
+    AjaxResult submitAgronomicTraitAudit(String id);
 }

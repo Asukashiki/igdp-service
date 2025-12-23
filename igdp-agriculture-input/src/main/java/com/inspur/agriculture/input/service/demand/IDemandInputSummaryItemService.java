@@ -71,4 +71,6 @@ public interface IDemandInputSummaryItemService {
     int updateDemandItemStatus(String summaryId);
 
     List<InputAggregationSummaryVO> getInputAggregation(DemandOrganDTO demandOrganDTO);
+
+    List<InputAggregationSummaryVO> getInputAggregationZone(DemandOrganDTO demandOrganDTO);
 }

@@ -99,4 +99,95 @@ public class LaboratoryTestDataVO implements Serializable {
      * 更新人
      */
     private String updateBy;
+
+    /**
+     * 工作流状态
+     */
+    private String workflowStatus;
+
+    /**
+     * 审核记录作废标记
+     */
+    private Integer auditCanceled;
+
+    /**
+     * 批次ID
+     */
+    private String batchId;
+
+    /**
+     * 试验ID
+     */
+    private String trialId;
+
+    /**
+     * 测试日期
+     */
+    private String testDate;
+
+    /**
+     * 样本类型
+     */
+    private String sampleType;
+
+    /**
+     * 实验室参数
+     */
+    private String labParameter;
+
+    /**
+     * 结果值
+     */
+    private String resultValue;
+
+    /**
+     * 通过/失败标志
+     */
+    private String passFailFlag;
+
+    /**
+     * 检测机构
+     */
+    private String testOrganization;
+
+    /**
+     * 检测人员
+     */
+    private String testerName;
+
+    /**
+     * 审批人
+     */
+    private String approveBy;
+
+    /**
+     * 审批人姓名
+     */
+    private String approveByName;
+
+    /**
+     * 审批时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date approveTime;
+
+    /**
+     * 审核意见
+     */
+    private String auditOpinion;
+
+    /**
+     * 创建人姓名
+     */
+    private String createdByName;
+
+    /**
+     * 创建时间（格式化）
+     */
+    private String createdTime;
+
+    /**
+     * 更新时间（格式化）
+     */
+    private String updatedTime;
 }
