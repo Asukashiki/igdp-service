@@ -100,8 +100,12 @@ public class PlotInfo extends BaseEntity {
     private Double gpsLong;
 
     /** 审核状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废) */
-    @TableField("audit_status")
+    @TableField("workflow_status")
     private String auditStatus;
+
+    /** 审核意见 */
+    @TableField("audit_opinion")
+    private String auditOpinion;
 
     /** 创建人ID */
     @TableField("created_by")
@@ -150,4 +154,8 @@ public class PlotInfo extends BaseEntity {
     /** 品种名称（关联字段，非数据库字段） */
     @TableField(exist = false)
     private String varietyName;
+
+    /** 审核记录是否被作废（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private Integer auditCanceled;
 }
