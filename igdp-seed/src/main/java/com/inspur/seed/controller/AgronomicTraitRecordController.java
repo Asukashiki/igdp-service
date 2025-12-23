@@ -77,4 +77,12 @@ public class AgronomicTraitRecordController extends BaseController {
         String recordId = recordService.generateRecordId(plotId);
         return AjaxResult.success(recordId);
     }
+
+    /**
+     * 提交审核
+     */
+    @PostMapping("/submit/{id}")
+    public AjaxResult submit(@PathVariable String id) {
+        return recordService.submitAgronomicTraitAudit(id);
+    }
 }
