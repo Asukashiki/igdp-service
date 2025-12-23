@@ -20,13 +20,18 @@
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditRemark" column="audit_remark"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="workflowStatus" column="workflow_status"/>
     </resultMap>
 
     <sql id="selectFarmingRecordVo">
         select f.farming_id, f.farming_record_id, f.plot_id, f.trial_id, f.batch_id,
                f.activity_date, f.activity_type, f.input_name, f.quantity, f.unit,
                f.operator_id, f.operation_desc,
-               f.create_time, f.update_time, f.create_by, f.update_by, f.is_deleted
+               f.create_time, f.update_time, f.create_by, f.update_by, f.is_deleted,
+               f.audit_by, f.audit_remark, f.audit_time, f.workflow_status
         from farming_record f
     </sql>
 
