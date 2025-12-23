@@ -76,6 +76,23 @@ public class FarmingRecord extends BaseEntity {
     @TableField("operation_desc")
     private String operationDesc;
 
+    /** 工作流状态 */
+    @TableField("workflow_status")
+    private String workflowStatus;
+
+    /** 审核人 */
+    @TableField("audit_by")
+    private String auditBy;
+
+    /** 审核意见 */
+    @TableField("audit_remark")
+    private String auditRemark;
+
+    /** 审核时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @TableField("audit_time")
+    private Date auditTime;
+
     /** 逻辑删除标识(0=未删除,1=已删除) */
     @TableLogic
     @TableField("is_deleted")

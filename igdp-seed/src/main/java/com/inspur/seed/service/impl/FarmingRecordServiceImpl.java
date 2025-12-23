@@ -46,6 +46,7 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
         // 设置创建信息（写入用户名，便于前端显示 Creator）
         farmingRecord.setCreateTime(LocalDateTime.now());
         farmingRecord.setCreateBy(SecurityUtils.getUsername());
+        farmingRecord.setWorkflowStatus("S1");
 
         farmingRecordMapper.insert(farmingRecord);
         return farmingId;
