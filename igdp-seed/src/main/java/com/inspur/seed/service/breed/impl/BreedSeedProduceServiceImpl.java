@@ -57,6 +57,9 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
             if (queryDTO.getEndTime() != null) {
                 queryWrapper.le(BreedSeedProduce::getTime, queryDTO.getEndTime());
             }
+            if (StringUtils.hasText(queryDTO.getProduceStatus())) {
+                queryWrapper.eq(BreedSeedProduce::getProduceStatus, queryDTO.getProduceStatus());
+            }
         }
 
         // 添加排序

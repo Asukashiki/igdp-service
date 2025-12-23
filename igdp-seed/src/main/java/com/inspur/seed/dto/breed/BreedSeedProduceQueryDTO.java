@@ -41,4 +41,9 @@ public class BreedSeedProduceQueryDTO implements Serializable {
      */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date endTime;
+
+    /**
+     * 生产状态
+     */
+    private String produceStatus;
 }

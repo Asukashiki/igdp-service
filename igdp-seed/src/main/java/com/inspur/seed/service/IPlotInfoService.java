@@ -68,4 +68,54 @@ public interface IPlotInfoService {
      * @return 地块选项列表
      */
     List<PlotInfo> selectPlotOptions(String batchId, String trialId);
+
+    /**
+     * 提交审核
+     *
+     * @param plotId 地块ID
+     * @return 结果
+     */
+    int submitAudit(String plotId);
+
+    /**
+     * 审核通过
+     *
+     * @param plotId 地块ID
+     * @param auditOpinion 审核意见
+     * @return 结果
+     */
+    int approve(String plotId, String auditOpinion);
+
+    /**
+     * 审核退回
+     *
+     * @param plotId 地块ID
+     * @param auditOpinion 审核意见
+     * @return 结果
+     */
+    int reject(String plotId, String auditOpinion);
+
+    /**
+     * 归档
+     *
+     * @param plotId 地块ID
+     * @return 结果
+     */
+    int archive(String plotId);
+
+    /**
+     * 作废
+     *
+     * @param plotId 地块ID
+     * @return 结果
+     */
+    int cancel(String plotId);
+
+    /**
+     * 作废审核记录（只作废审核记录，不修改地块数据）
+     *
+     * @param plotId 地块ID
+     * @return 结果
+     */
+    int cancelAuditRecord(String plotId);
 }
