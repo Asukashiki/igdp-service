@@ -6,6 +6,7 @@ import com.inspur.seed.domain.breed.BreedSeedProduceResult;
 import com.inspur.seed.mapper.breed.BreedSeedProduceResultMapper;
 import com.inspur.seed.service.breed.IBreedSeedProduceResultService;
 import com.inspur.seed.service.breed.IBreedSeedProduceService;
+import com.inspur.seed.vo.breed.BreedSeedProduceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.inspur.seed.dto.breed.BreedSeedProduceResultQueryDTO;
 import com.inspur.seed.vo.breed.BreedSeedProduceResultVO;
 import java.util.List;
-import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -45,7 +45,7 @@ public class BreedSeedProduceResultServiceImpl extends ServiceImpl<BreedSeedProd
         produce.setProduceStatus("Finished");
         produce.setProduceSeedQuantrity(result.getProducedAmount());
         produce.setUpdateTime(new Date());
-        
+
         // If operator is available in result, update it in main table too (optional, but good for tracking who finished it)
         if (result.getOperator() != null) {
             // Mapping operator name to operatorName (Note: operatorId might be missing if not passed)
@@ -62,6 +62,24 @@ public class BreedSeedProduceResultServiceImpl extends ServiceImpl<BreedSeedProd
 
     @Override
     public BreedSeedProduceResultVO getResultById(String resultId) {
-        return baseMapper.getResultById(resultId);
+        BreedSeedProduceResultVO breedSeedProduceResultVO = baseMapper.getResultById(resultId);
+        BreedSeedProduceVO breedSeedProduceVO = breedSeedProduceService.getProduceById(breedSeedProduceResultVO.getProduceBatchId());
+        breedSeedProduceResultVO.setProduceBatchName(breedSeedProduceVO.getProduceBatchName());
+        breedSeedProduceResultVO.setVarietyName(breedSeedProduceVO.getVarietyName());
+        breedSeedProduceResultVO.setBreedBatchName(breedSeedProduceVO.getBreedBatchName());
+        breedSeedProduceResultVO.setTrialName(breedSeedProduceVO.getTrialName());
+        breedSeedProduceResultVO.setCropType(breedSeedProduceVO.getCropType());
+        breedSeedProduceResultVO.setLandName(breedSeedProduceVO.getLandName());
+        breedSeedProduceResultVO.setInputSeedQuantity(breedSeedProduceVO.getInputSeedQuantity());
+        breedSeedProduceResultVO.setFromSeedLevel(breedSeedProduceVO.getFromSeedLevel());
+        breedSeedProduceResultVO.setToSeedLevel(breedSeedProduceVO.getToSeedLevel());
+        breedSeedProduceResultVO.setProduceSeedQuantrity(breedSeedProduceVO.getProduceSeedQuantrity());
+        breedSeedProduceResultVO.setLandId(breedSeedProduceVO.getLandId());
+        breedSeedProduceResultVO.setVarietyId(breedSeedProduceVO.getVarietyId());
+        breedSeedProduceResultVO.setTrialId(breedSeedProduceVO.getTrialId());
+        breedSeedProduceResultVO.setBreedBatchId(breedSeedProduceVO.getBreedBatchId());
+        breedSeedProduceResultVO.setProduceBatchId(breedSeedProduceVO.getProduceBatchId());
+
+        return breedSeedProduceResultVO;
     }
 }
