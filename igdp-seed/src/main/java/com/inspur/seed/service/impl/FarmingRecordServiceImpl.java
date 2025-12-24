@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,7 +46,11 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
 
         // 设置创建信息（写入用户名，便于前端显示 Creator）
         farmingRecord.setCreateTime(LocalDateTime.now());
+        farmingRecord.setUpdateTime(LocalDateTime.now());
+        farmingRecord.setAuditTime(new Date());
         farmingRecord.setCreateBy(SecurityUtils.getUsername());
+        farmingRecord.setUpdateBy(SecurityUtils.getUsername());
+        farmingRecord.setAuditBy(SecurityUtils.getUsername());
         farmingRecord.setWorkflowStatus("S0");
 
         farmingRecordMapper.insert(farmingRecord);
