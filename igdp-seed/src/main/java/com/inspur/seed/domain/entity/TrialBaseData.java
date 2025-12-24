@@ -112,4 +112,24 @@ public class TrialBaseData extends BaseEntity {
      * 删除标志(0正常 2删除)
      */
     private String delFlag;
+
+    /**
+     * 工作流状态/审核状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废)
+     */
+    private String workflowStatus;
+
+    /**
+     * 退回人姓名
+     */
+    private String rejectedName;
+
+    /**
+     * 退回时间
+     */
+    private Date rejectedTime;
+
+    /**
+     * 退回原因 / Reject Reason
+     */
+    private String rejectReason;
 }

@@ -103,6 +103,10 @@ public class AgronomicTraitRecordServiceImpl implements IAgronomicTraitRecordSer
         if (record.getStatus() == null) {
             record.setStatus("draft");
         }
+        // 同步设置 workflowStatus（用于前端显示和搜索）
+        if (record.getWorkflowStatus() == null) {
+            record.setWorkflowStatus("draft");
+        }
 
         // 插入主记录
         recordMapper.insert(record);
@@ -247,6 +251,8 @@ public class AgronomicTraitRecordServiceImpl implements IAgronomicTraitRecordSer
             String loginUser = SecurityUtils.getUsername();
             // 关键修改：将S1改为 submitted（你的已提交状态）
             agronomicTraitRecord.setStatus("submitted");
+            // 同步设置 workflowStatus
+            agronomicTraitRecord.setWorkflowStatus("submitted");
             agronomicTraitRecord.setUpdateBy(loginUser);
             agronomicTraitRecord.setUpdateTime(submitTime);
 
