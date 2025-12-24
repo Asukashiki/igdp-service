@@ -84,7 +84,13 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
             // 许可状态
             if (StrUtil.isNotBlank(queryDTO.getLicenseStatus())) {
-                wrapper.eq(BreedingLicense::getLicenseStatus, queryDTO.getLicenseStatus());
+                // 如果查询状态为"expired"（已过期），需要筛选有效期结束日期小于当前日期的数据
+                if ("expired".equals(queryDTO.getLicenseStatus())) {
+                    wrapper.lt(BreedingLicense::getValidEndDate, LocalDate.now());
+                }
+               /* else {
+                    wrapper.eq(BreedingLicense::getLicenseStatus, queryDTO.getLicenseStatus());
+                }*/
             }
 
             // 批次ID
