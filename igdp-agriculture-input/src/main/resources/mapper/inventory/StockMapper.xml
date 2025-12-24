@@ -190,30 +190,36 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectStockSummary" resultType="map">
         SELECT
-            s.material_type as material_type,
-            s.agricultural_input_type as agricultural_input_type,
+            iod.material_type as material_type,
+            iod.agricultural_input_type as agricultural_input_type,
             SUM(s.quantity) as total_quantity,
             CASE
-            WHEN s.material_type = 'seed' THEN 'kg'
-            WHEN s.material_type = 'fertilizer' THEN 'kg'
-            WHEN s.material_type = 'pesticide' THEN 'L'
+            WHEN iod.material_type = 'seed' THEN 'kg'
+            WHEN iod.material_type = 'fertilizer' THEN 'kg'
+            WHEN iod.material_type = 'pesticide' THEN 'L'
             ELSE 'unit'
             END as unit
         FROM stock s
+        LEFT JOIN inv_warehouse w ON s.warehouse_id = w.warehouse_id AND w.del_flag = '0'
+        LEFT JOIN inbound_order_detail iod ON s.material_batch_id = iod.batch_no
         <where>
             <if test="params.warehouseId != null and params.warehouseId != ''">
                 AND s.warehouse_id = #{params.warehouseId}
             </if>
             <if test="params.materialType != null and params.materialType != ''">
-                AND s.material_type = #{params.materialType}
+                AND iod.material_type = #{params.materialType}
             </if>
             <if test="params.agriculturalInputType != null and params.agriculturalInputType != ''">
-                AND s.agricultural_input_type = #{params.agriculturalInputType}
+                AND iod.agricultural_input_type = #{params.agriculturalInputType}
             </if>
-            AND s.quantity > 0
+            <if test="params.organCode != null and params.organCode != ''">
+                AND w.organ_code = #{params.organCode}
+            </if>
+            <if test="params.minQuantity != null">
+                AND s.quantity &gt;= #{params.minQuantity}
+            </if>
         </where>
-        GROUP BY s.material_type, s.agricultural_input_type
-
+        GROUP BY iod.material_type, iod.agricultural_input_type
     </select>
     
     <select id="selectAvailableStockByTypeAndCategory" resultMap="StockResult">
