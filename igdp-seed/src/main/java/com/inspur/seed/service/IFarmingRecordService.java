@@ -52,6 +52,14 @@ public interface IFarmingRecordService {
     int deleteFarmingRecordByIds(String[] farmingIds);
 
     /**
+     * 提交审核
+     *
+     * @param farmingId 农事记录ID
+     * @return 影响行数
+     */
+    int submitForReview(String farmingId);
+
+    /**
      * 统计每个地块的灌溉次数
      *
      * @return Map<plotId, count>
