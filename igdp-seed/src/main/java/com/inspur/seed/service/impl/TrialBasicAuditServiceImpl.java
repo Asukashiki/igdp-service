@@ -60,6 +60,7 @@ public class TrialBasicAuditServiceImpl extends ServiceImpl<TrialBasicAuditMappe
         STATUS_DESC_MAP.put("S1", "Pending Approval");
         STATUS_DESC_MAP.put("S2", "Approved");
         STATUS_DESC_MAP.put("S3", "Rejected");
+        STATUS_DESC_MAP.put("S4", "Voided");
         STATUS_DESC_MAP.put("S9", "Archived");
         STATUS_DESC_MAP.put("S10", "Cancelled");
     }
@@ -79,6 +80,9 @@ public class TrialBasicAuditServiceImpl extends ServiceImpl<TrialBasicAuditMappe
         } else if (dto.getAuditStatus() != null && dto.getAuditStatus().isEmpty()) {
             // auditStatus为空字符串时,查询S2和S3
             queryWrapper.in(TrialBasicAudit::getAuditStatus, "S2", "S3");
+        } else if ("S4".equals(dto.getAuditStatus())) {
+            // 查询已作废的状态
+            queryWrapper.eq(TrialBasicAudit::getAuditStatus, "S4");
         }
 
         queryWrapper.eq(StringUtils.hasText(dto.getTrialId()), TrialBasicAudit::getTrialId, dto.getTrialId())
@@ -268,5 +272,57 @@ public class TrialBasicAuditServiceImpl extends ServiceImpl<TrialBasicAuditMappe
         }
 
         return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean voidAudit(String auditId, String voidReason) {
+        // 1. 获取审核记录
+        TrialBasicAudit audit = trialBasicAuditMapper.selectById(auditId);
+        if (audit == null) {
+            throw new ServiceException("Audit record not found");
+        }
+
+        // 2. 检查审核状态 - 只有已审批(S2)的记录才能作废
+        if (!"S2".equals(audit.getAuditStatus())) {
+            throw new ServiceException("Only approved audits can be voided");
+        }
+
+        // 3. 检查作废原因
+        if (!StringUtils.hasText(voidReason)) {
+            throw new ServiceException("Void reason is required");
+        }
+
+        // 4. 获取当前用户信息
+        String currentUserId = SecurityUtils.getUserId().toString();
+        String currentUserName = SecurityUtils.getUsername();
+
+        // 5. 更新审核记录状态为已作废(S4)
+        String beforeStatus = audit.getAuditStatus();
+        audit.setAuditStatus("S4");
+        audit.setRejectReason(voidReason); // 使用rejectReason字段存储作废原因
+        audit.setUpdateTime(LocalDateTime.now());
+        audit.setUpdateBy(currentUserId);
+        trialBasicAuditMapper.updateById(audit);
+
+        // 6. 记录审核历史
+        TrialBasicAuditHistory history = new TrialBasicAuditHistory();
+        history.setHistoryId(IdUtil.simpleUUID());
+        history.setAuditId(audit.getAuditId());
+        history.setTrialId(audit.getTrialId());
+        history.setOperationType("VOID");
+        history.setOperationDesc(voidReason);
+        history.setOperatorId(currentUserId);
+        history.setOperatorName(currentUserName);
+        history.setOperationTime(LocalDateTime.now());
+        history.setBeforeStatus(beforeStatus);
+        history.setAfterStatus("S4");
+        history.setCreateTime(LocalDateTime.now());
+        history.setDeleted("0");
+        trialBasicAuditHistoryMapper.insert(history);
+
+        log.info("Audit record voided: auditId={}, trialId={}, voidBy={}", auditId, audit.getTrialId(), currentUserName);
+
+        return true;
     }
 }

@@ -45,7 +45,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
     /**
      * 用户中心注册接口地址
      */
-    @Value("${user.center.register.url:http://172.26.100.103:9403/rbac/user/registerDA}")
+    @Value("${bsp.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
     private String userCenterRegisterUrl;
 
     private RestTemplate restTemplate;
@@ -274,7 +274,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
 
     /**
      * 同步DA用户到用户中心
-     * 
+     *
      * @param daInfo DA信息
      */
     private void syncToUserCenter(DaInfo daInfo) {
@@ -289,10 +289,10 @@ public class DaInfoServiceImpl implements IDaInfoService {
             requestBody.put("identityNum", daInfo.getIdCard() != null ? daInfo.getIdCard() : "");
             requestBody.put("mobile", daInfo.getPhone() != null ? daInfo.getPhone() : "");
             requestBody.put("email", daInfo.getEmail() != null ? daInfo.getEmail() : "");
-            
+
             // 区域/组织信息映射
             requestBody.put("regionCode", daInfo.getWoredaCode());
-            requestBody.put("regionName", ""); 
+            requestBody.put("regionName", "");
             requestBody.put("orgCode", daInfo.getWoredaCode());
             requestBody.put("orgName", "");
 

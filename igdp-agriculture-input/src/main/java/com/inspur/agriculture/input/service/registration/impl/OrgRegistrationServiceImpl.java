@@ -81,7 +81,7 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
     /**
      * 用户中心注册接口地址
      */
-    @Value("${user.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
+    @Value("${bsp.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
     private String userCenterRegisterUrl;
 
     private RestTemplate restTemplate;

@@ -46,7 +46,7 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
         // 设置创建信息（写入用户名，便于前端显示 Creator）
         farmingRecord.setCreateTime(LocalDateTime.now());
         farmingRecord.setCreateBy(SecurityUtils.getUsername());
-        farmingRecord.setWorkflowStatus("S1");
+        farmingRecord.setWorkflowStatus("S0");
 
         farmingRecordMapper.insert(farmingRecord);
         return farmingId;
@@ -110,5 +110,16 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
         }
         
         return countMap;
+    }
+
+    @Override
+    public int submitForReview(String farmingId) {
+        FarmingRecord farmingRecord = new FarmingRecord();
+        farmingRecord.setFarmingId(farmingId);
+        farmingRecord.setWorkflowStatus("S1"); // 将状态更新为S1（待审核）
+        farmingRecord.setUpdateTime(LocalDateTime.now());
+        farmingRecord.setUpdateBy(SecurityUtils.getUsername());
+        
+        return farmingRecordMapper.updateById(farmingRecord);
     }
 }

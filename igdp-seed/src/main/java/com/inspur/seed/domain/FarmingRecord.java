@@ -98,6 +98,10 @@ public class FarmingRecord extends BaseEntity {
     @TableField("is_deleted")
     private Integer isDeleted;
 
+    /** 排除的状态列表（用于查询时排除特定状态，非数据库字段） */
+    @TableField(exist = false)
+    private String excludeStatuses;
+
 
     /**
      * 兼容前端字段：Creator/Modifier（首字母大写）
