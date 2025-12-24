@@ -2,6 +2,7 @@ package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -68,7 +69,9 @@ public class TrialBasicAuditServiceImpl extends ServiceImpl<TrialBasicAuditMappe
         Page<TrialBasicAudit> page = new Page<>(dto.getPageNum(), dto.getPageSize());
 
         LambdaQueryWrapper<TrialBasicAudit> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(TrialBasicAudit::getDeleted, "0");
+        queryWrapper.eq(TrialBasicAudit::getDeleted, "0")
+                .like(ObjectUtil.isNotEmpty(dto.getTrialName()), TrialBasicAudit::getTrialName, dto.getTrialName());
+
 
         // 如果auditStatus为空字符串,则查询已审核的状态(S2和S3)
         if (StringUtils.hasText(dto.getAuditStatus())) {
