@@ -1,5 +1,6 @@
 package com.inspur.seed.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.PlotInfo;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 地块信息Service实现类
@@ -28,10 +30,13 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
     @Autowired
     private IPlotAuditRecordService plotAuditRecordService;
 
+    // 单机自增序列（6位数字，最大值999999，分布式场景可替换为数据库序列）
+    private static final AtomicInteger SEQ = new AtomicInteger(2);
+
     @Override
     public List<PlotInfo> selectPlotInfoList(PlotInfo plotInfo) {
         List<PlotInfo> list = plotInfoMapper.selectPlotInfoList(plotInfo);
-        
+
         // 如果查询的是已审核状态(S2)，需要过滤掉已作废的审核记录
         if ("S2".equals(plotInfo.getAuditStatus())) {
             list = list.stream()
@@ -47,12 +52,12 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
             s2Query.setBatchId(plotInfo.getBatchId());
             s2Query.setTrialId(plotInfo.getTrialId());
             s2Query.setVarietyCode(plotInfo.getVarietyCode());
-            
+
             list = plotInfoMapper.selectPlotInfoList(s2Query).stream()
                     .filter(item -> item.getAuditCanceled() != null && item.getAuditCanceled() > 0)
                     .collect(java.util.stream.Collectors.toList());
         }
-        
+
         return list;
     }
 
@@ -142,8 +147,14 @@ public class PlotInfoServiceImpl implements IPlotInfoService {
         if (columnNo == null) {
             throw new ServiceException("列号不能为空");
         }
+        // 最后添加一个雪花，保证地块ID唯一
+        int seq = SEQ.getAndIncrement();
+        String seqStr = String.format("%06d", seq);
+        if (seq > 999999) {
+            SEQ.set(1);
+        }
 
-        return String.format("%s-P%d%d%d", trialId, replicationNo, rowNo, columnNo);
+        return String.format("%s-P%d-%d-%d-%s", trialId, replicationNo, rowNo, columnNo, seqStr);
     }
 
     @Override
