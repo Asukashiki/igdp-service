@@ -52,4 +52,21 @@ public interface IBreedingYieldDataService {
      * @return 结果
      */
     int deleteBreedingYieldDataByIds(String[] ids);
+
+    /**
+     * 提交审核
+     *
+     * @param id 主键ID
+     * @return 结果
+     */
+    int submitForReview(String id);
+
+    /**
+     * 作废产量数据
+     *
+     * @param id 主键ID
+     * @param remark 作废原因
+     * @return 结果
+     */
+    int voidYieldData(String id, String remark);
 }

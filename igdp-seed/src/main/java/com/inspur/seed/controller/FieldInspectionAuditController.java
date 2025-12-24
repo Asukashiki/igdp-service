@@ -110,6 +110,7 @@ public class FieldInspectionAuditController  extends BaseController {
         breedingYieldDataDTO.setAuditBy(SecurityUtils.getUsername());
         breedingYieldDataDTO.setAuditTime(LocalDateTime.now());
         breedingYieldDataDTO.setWorkflowStatus("S3"); // S3: 审核驳回
+        breedingYieldDataDTO.setStatus("0");
 
         // 更新数据
         return toAjax(breedingYieldDataService.updateBreedingYieldData(breedingYieldDataDTO));

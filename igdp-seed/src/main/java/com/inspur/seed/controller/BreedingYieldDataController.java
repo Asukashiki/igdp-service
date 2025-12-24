@@ -65,6 +65,22 @@ public class BreedingYieldDataController {
         return AjaxResult.success(breedingYieldDataService.deleteBreedingYieldDataByIds(ids));
     }
 
+    /**
+     * 提交审核
+     */
+    @PostMapping("/submitForReview")
+    public AjaxResult submitForReview(@RequestBody BreedingYieldDataDTO dto) {
+        return AjaxResult.success(breedingYieldDataService.submitForReview(dto.getId()));
+    }
+
+    /**
+     * 作废产量数据
+     */
+    @PostMapping("/void")
+    public AjaxResult voidData(@RequestBody BreedingYieldDataDTO dto) {
+        return AjaxResult.success(breedingYieldDataService.voidYieldData(dto.getId(), dto.getRemark()));
+    }
+
 //    /**
 //     * 审核通过（支持批量）
 //     */
