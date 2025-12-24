@@ -112,4 +112,8 @@ public class EnvironmentNewData extends BaseEntity {
     /** 地块名称（关联字段，非数据库字段） */
     @TableField(exist = false)
     private String plotName;
+
+    /** 备注 / Remark */
+    @TableField("remark")
+    private String remark;
 }

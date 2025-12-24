@@ -49,8 +49,8 @@
             <if test="activityType != null and activityType != ''">
                 AND f.activity_type = #{activityType}
             </if>
-            <if test="activityDate != null and activityDate != ''">
-                AND DATE(f.activity_date) = #{activityDate}
+            <if test="activityDate != null">
+                AND DATE(f.activity_date) = DATE(#{activityDate})
             </if>
             <!-- 可选：补充 batchId 筛选（如果前端需要传批次ID） -->
             <if test="batchId != null and batchId != ''">

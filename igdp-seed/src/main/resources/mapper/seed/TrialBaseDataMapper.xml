@@ -23,6 +23,10 @@
         <result property="kpiCode" column="kpi_code"/>
         <result property="season" column="season"/>
         <result property="delFlag" column="del_flag"/>
+        <result property="workflowStatus" column="workflow_status"/>
+        <result property="rejectedName" column="rejected_name"/>
+        <result property="rejectedTime" column="rejected_time"/>
+        <result property="rejectReason" column="reject_reason"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>

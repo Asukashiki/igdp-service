@@ -192,6 +192,7 @@ public class TrialBasicAuditServiceImpl extends ServiceImpl<TrialBasicAuditMappe
             trial.setRejectedBy(currentUserId);
             trial.setRejectedName(currentUserName);
             trial.setRejectedTime(LocalDateTime.now());
+            trial.setRejectReason(dto.getRejectReason()); // 添加退回原因
 
         } else {
             throw new ServiceException("Invalid audit status");

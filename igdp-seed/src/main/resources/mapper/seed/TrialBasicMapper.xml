@@ -25,6 +25,7 @@
         <result property="rejectedBy" column="rejected_by"/>
         <result property="rejectedName" column="rejected_name"/>
         <result property="rejectedTime" column="rejected_time"/>
+        <result property="rejectReason" column="reject_reason"/>
         <result property="cancelledBy" column="cancelled_by"/>
         <result property="cancelledName" column="cancelled_name"/>
         <result property="cancelledTime" column="cancelled_time"/>
@@ -46,7 +47,7 @@
                t.season, t.year, t.design_type, t.replications, t.crop_type, t.variety_code, t.variety_name,
                t.workflow_status, t.submitted_by, t.submitted_name, t.submitted_time,
                t.approved_by, t.approved_name, t.approved_time,
-               t.rejected_by, t.rejected_name, t.rejected_time,
+               t.rejected_by, t.rejected_name, t.rejected_time, t.reject_reason,
                t.cancelled_by, t.cancelled_name, t.cancelled_time, t.cancel_reason,
                t.archived_by, t.archived_name, t.archived_time,
                t.created_name, t.modified_name,
