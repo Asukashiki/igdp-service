@@ -66,4 +66,14 @@ public class TrialBasicAuditController extends BaseController {
         IPage<TrialBasicAuditVO> page = trialBasicAuditService.getAuditHistory(trialId, pageNum, pageSize);
         return AjaxResult.success(page);
     }
+
+    /**
+     * 作废审核记录
+     */
+    @PostMapping("/void/{auditId}")
+    public AjaxResult voidAudit(
+            @PathVariable("auditId") String auditId,
+            @RequestParam("voidReason") String voidReason) {
+        return toAjax(trialBasicAuditService.voidAudit(auditId, voidReason));
+    }
 }

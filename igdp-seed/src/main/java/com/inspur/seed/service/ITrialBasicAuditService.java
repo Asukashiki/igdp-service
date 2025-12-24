@@ -53,4 +53,13 @@ public interface ITrialBasicAuditService extends IService<TrialBasicAudit> {
      * @return 审核历史列表
      */
     IPage<TrialBasicAuditVO> getAuditHistory(String trialId, Integer pageNum, Integer pageSize);
+
+    /**
+     * 作废审核记录
+     *
+     * @param auditId 审核ID
+     * @param voidReason 作废原因
+     * @return 作废结果
+     */
+    boolean voidAudit(String auditId, String voidReason);
 }
