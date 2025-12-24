@@ -462,7 +462,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         }
 
         // Order by created time desc
-        wrapper.orderByDesc(DemandFarmerDetail::getCreatedTime);
+        wrapper.orderByDesc(DemandFarmerDetail::getYear);
 
         // 2. Query page
         Page<DemandFarmerDetail> page = new Page<>(dto.getPageNum(), dto.getPageSize());
