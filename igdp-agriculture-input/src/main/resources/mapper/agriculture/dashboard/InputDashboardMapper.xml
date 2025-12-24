@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.dashboard.InputDashboardMapper">
+
+    <!-- 获取概览统计数据 - 使用已确认存在的表 -->
+    <select id="getOverviewData" resultType="com.inspur.agriculture.input.vo.dashboard.DashboardOverviewVO">
+        SELECT
+            -- 需求统计（demand_input_summary确认存在）
+            (SELECT COUNT(*) FROM demand_input_summary WHERE 1=1
+                AND (#{year} IS NULL OR year = #{year})) as total_demands,
+
+            (SELECT COUNT(*) FROM demand_input_summary WHERE status IN ('1','2')
+                AND (#{year} IS NULL OR year = #{year})) as allocated_demands,
+
+            -- 需求满足率
+            CASE
+                WHEN (SELECT COUNT(*) FROM demand_input_summary WHERE 1=1
+                    AND (#{year} IS NULL OR year = #{year})) > 0
+                THEN ROUND(
+                    (SELECT COUNT(*) FROM demand_input_summary WHERE status IN ('1','2')
+                        AND (#{year} IS NULL OR year = #{year})) * 100.0 /
+                    (SELECT COUNT(*) FROM demand_input_summary WHERE 1=1
+                        AND (#{year} IS NULL OR year = #{year})), 2)
+                ELSE 0
+            END as demand_satisfaction_rate,
+
+            -- 分配完成率 (使用t_zone_allocation)
+            CASE
+                WHEN (SELECT COUNT(*) FROM t_zone_allocation WHERE 1=1
+                    AND (#{year} IS NULL OR year = #{year})) > 0
+                THEN ROUND(
+                    (SELECT COUNT(*) FROM t_zone_allocation WHERE 1=1
+                        AND (#{year} IS NULL OR year = #{year})) * 100.0 /
+                    (SELECT COUNT(*) FROM t_zone_allocation WHERE 1=1
+                        AND (#{year} IS NULL OR year = #{year})), 2)
+                ELSE 0
+            END as allocation_completion_rate,
+
+            -- 总分发量/农民领用量暂用默认值（表可能不存在）
+            0 as total_distributed,
+            0 as farmer_received,
+            0 as circulation_arrival_rate,
+
+            -- 认证供应商数
+            (SELECT COUNT(DISTINCT user_id) FROM supplier_cert WHERE status = 2 AND del_flag = '0') as certified_suppliers,
+
+            -- 待审核供应商数
+            (SELECT COUNT(DISTINCT user_id) FROM supplier_cert WHERE status = 1 AND del_flag = '0') as pending_suppliers,
+
+            -- 活跃仓库数
+            (SELECT COUNT(*) FROM inv_warehouse WHERE status = '1' AND del_flag = '0') as active_warehouses,
+
+            -- 本年度需求总量
+            (SELECT COALESCE(SUM(sub_quantity), 0) FROM demand_input_summary WHERE 1=1
+                AND (#{year} IS NULL OR year = #{year})) as yearly_demand_quantity,
+
+            -- 本年度分配总量
+            (SELECT COUNT(*) FROM t_zone_allocation WHERE 1=1
+                AND (#{year} IS NULL OR year = #{year})) as yearly_allocation_quantity
+    </select>
+
+    <!-- 获取需求汇聚统计(按类型) - 使用正确的字段名 total_quantity, units -->
+    <select id="getDemandSummaryByType" resultType="com.inspur.agriculture.input.vo.dashboard.DemandSummaryVO">
+        SELECT
+            i.input_type,
+            i.input_type as input_type_desc,
+            i.input_category,
+            i.input_category as input_category_desc,
+            COALESCE(SUM(i.total_quantity), 0) as demand_quantity,
+            MAX(i.units) as unit,
+            COUNT(DISTINCT s.id) as demand_count,
+            COALESCE(SUM(
+                CASE WHEN s.status IN ('1','2') THEN i.total_quantity ELSE 0 END
+            ), 0) as allocated_quantity,
+            CASE
+                WHEN SUM(i.total_quantity) > 0
+                THEN ROUND(SUM(CASE WHEN s.status IN ('1','2') THEN i.total_quantity ELSE 0 END) * 100.0 / SUM(i.total_quantity), 2)
+                ELSE 0
+            END as allocation_rate
+        FROM demand_input_summary_item i
+        INNER JOIN demand_input_summary s ON i.summary_id = s.id COLLATE utf8mb4_unicode_ci
+        WHERE 1=1
+            AND (#{year} IS NULL OR s.year = #{year})
+        GROUP BY i.input_type, i.input_category
+        ORDER BY demand_quantity DESC
+    </select>
+
+    <!-- 获取需求汇聚统计(按地区) -->
+    <select id="getDemandSummaryByRegion" resultType="com.inspur.agriculture.input.vo.dashboard.DemandSummaryVO">
+        SELECT
+            s.source_code as region_code,
+            s.source_name as region_name,
+            COALESCE(SUM(i.total_quantity), 0) as demand_quantity,
+            MAX(i.units) as unit,
+            COUNT(DISTINCT s.id) as demand_count,
+            COALESCE(SUM(
+                CASE WHEN s.status IN ('1','2') THEN i.total_quantity ELSE 0 END
+            ), 0) as allocated_quantity,
+            CASE
+                WHEN SUM(i.total_quantity) > 0
+                THEN ROUND(SUM(CASE WHEN s.status IN ('1','2') THEN i.total_quantity ELSE 0 END) * 100.0 / SUM(i.total_quantity), 2)
+                ELSE 0
+            END as allocation_rate
+        FROM demand_input_summary s
+        LEFT JOIN demand_input_summary_item i ON s.id = i.summary_id COLLATE utf8mb4_unicode_ci
+        WHERE 1=1
+            AND (#{year} IS NULL OR s.year = #{year})
+        GROUP BY s.source_code, s.source_name
+        ORDER BY demand_quantity DESC
+        LIMIT 10
+    </select>
+
+    <!-- 获取分配进度数据 - 使用t_zone_allocation等 -->
+    <select id="getAllocationProgress" resultType="com.inspur.agriculture.input.vo.dashboard.AllocationProgressVO">
+        SELECT
+            -- Zone级分配
+            (SELECT COUNT(*) FROM t_zone_allocation WHERE 1=1
+                AND (#{year} IS NULL OR year = #{year})) as zone_allocation_count,
+            (SELECT COUNT(*) FROM t_zone_allocation WHERE 1=1
+                AND (#{year} IS NULL OR year = #{year})) as zone_completed_count,
+            100 as zone_completion_rate,
+
+            -- Woreda/Kebele/Farmer暂用默认值
+            0 as woreda_allocation_count,
+            0 as woreda_completed_count,
+            0 as woreda_completion_rate,
+
+            0 as kebele_allocation_count,
+            0 as kebele_completed_count,
+            0 as kebele_completion_rate,
+
+            0 as farmer_allocation_count,
+            0 as farmer_completed_count,
+            0 as farmer_completion_rate,
+
+            -- 总体完成率
+            CASE
+                WHEN (SELECT COUNT(*) FROM t_zone_allocation WHERE 1=1 AND (#{year} IS NULL OR year = #{year})) > 0
+                THEN 100
+                ELSE 0
+            END as overall_completion_rate
+    </select>
+
+    <!-- 获取流通状态数据 - 暂用默认值 -->
+    <select id="getCirculationStatus" resultType="com.inspur.agriculture.input.vo.dashboard.CirculationStatusVO">
+        SELECT
+            0 as ose_distributed_quantity,
+            0 as ose_distributed_count,
+            0 as union_received_quantity,
+            0 as union_receive_rate,
+            0 as woreda_received_quantity,
+            0 as woreda_receive_rate,
+            0 as farmer_received_quantity,
+            0 as farmer_receive_rate,
+            0 as pending_union_receive,
+            0 as pending_woreda_receive,
+            0 as pending_farmer_receive
+    </select>
+
+    <!-- 获取供应商排行 -->
+    <select id="getTopSuppliers" resultType="com.inspur.agriculture.input.vo.dashboard.SupplierRankVO">
+        SELECT
+            sc.user_id,
+            sc.org_name,
+            sc.status,
+            CASE sc.status
+                WHEN 0 THEN 'Rejected'
+                WHEN 1 THEN 'Pending'
+                WHEN 2 THEN 'Certified'
+                ELSE 'Unknown'
+            END as status_desc,
+            0 as total_distributed,
+            0 as distributed_count,
+            COALESCE(prod.product_count, 0) as product_count,
+            sc.contact_name,
+            sc.contact_phone
+        FROM (
+            SELECT sc1.*
+            FROM supplier_cert sc1
+            INNER JOIN (
+                SELECT user_id, MAX(create_time) as max_create_time
+                FROM supplier_cert WHERE del_flag = '0'
+                GROUP BY user_id
+            ) sc2 ON sc1.user_id = sc2.user_id AND sc1.create_time = sc2.max_create_time
+            WHERE sc1.del_flag = '0' AND sc1.status = 2
+        ) sc
+        LEFT JOIN (
+            SELECT supplier_id, COUNT(DISTINCT input_id) as product_count
+            FROM supplier_product WHERE del_flag = '0'
+            GROUP BY supplier_id
+        ) prod ON sc.user_id = prod.supplier_id
+        ORDER BY product_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 获取最新动态 - 使用需求记录 -->
+    <select id="getRecentActivities" resultType="com.inspur.agriculture.input.vo.dashboard.RecentActivityVO">
+        SELECT
+            CAST(s.id AS CHAR) as id,
+            'demand' as activity_type,
+            CASE s.status
+                WHEN '0' THEN 'Demand Pending'
+                WHEN '1' THEN 'Demand Approved'
+                WHEN '2' THEN 'Demand Rejected'
+                ELSE 'Demand'
+            END as activity_type_desc,
+            '' as input_type,
+            CONCAT(s.source_name, ' -> ', s.target_name) as input_name,
+            CAST(s.sub_quantity AS CHAR) as quantity,
+            '' as unit,
+            s.source_name as source,
+            s.target_name as target,
+            s.status,
+            CASE s.status
+                WHEN '0' THEN 'Pending'
+                WHEN '1' THEN 'Approved'
+                WHEN '2' THEN 'Rejected'
+                ELSE 'Unknown'
+            END as status_desc,
+            s.create_time as activity_time
+        FROM demand_input_summary s
+        ORDER BY s.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
