@@ -23,6 +23,16 @@ public interface BreedingBatchMapper extends BaseMapper<BreedingBatch> {
      */
     List<BreedingBatch> selectBreedingBatchList(BreedingBatch breedingBatch);
 
+
+
+    /**
+     * 获取育种批次Voided列表
+     *
+     * @param breedingBatch 筛选条件
+     * @return 育种批次列表
+     */
+    List<BreedingBatch> selectBreedingBatchVoidedList(BreedingBatch breedingBatch);
+
     /**
      * 根据批次ID查询育种批次
      *

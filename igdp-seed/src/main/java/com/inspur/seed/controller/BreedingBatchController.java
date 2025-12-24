@@ -34,6 +34,16 @@ public class BreedingBatchController extends BaseController {
     }
 
     /**
+     * 分页查询育种批次列表
+     */
+    @GetMapping("/voidedList")
+    public TableDataInfo voidedList(BreedingBatch breedingBatch) {
+        startPage();
+        List<BreedingBatch> list = breedingBatchService.selectBreedingBatchVoidedList(breedingBatch);
+        return getDataTable(list);
+    }
+
+    /**
      * 获取育种批次详细信息
      */
     @GetMapping(value = "/getInfo")
