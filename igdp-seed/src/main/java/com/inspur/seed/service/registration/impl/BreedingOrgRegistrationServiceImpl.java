@@ -58,7 +58,7 @@ public class BreedingOrgRegistrationServiceImpl extends ServiceImpl<BreedingOrgR
     @Autowired
     private BreedingAuditLogMapper breedingAuditLogMapper;
 
-    @Value("${user.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
+    @Value("${bsp.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
     private String userCenterRegisterUrl;
 
     private RestTemplate restTemplate;
