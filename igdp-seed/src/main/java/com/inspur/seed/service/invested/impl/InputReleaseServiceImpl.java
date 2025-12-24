@@ -11,6 +11,7 @@ import com.inspur.agriculture.input.mapper.inventory.WarehouseMapper;
 import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.common.utils.LoginHelper;
 import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.common.utils.uuid.IdUtils;
 import com.inspur.seed.domain.invested.InputReceiveUnion;
@@ -109,6 +110,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         main.setAuditDate(LocalDateTime.now());
         main.setStatus("distributed");
         main.setReleaseType(releaseType);
+        main.setAuditBy(SecurityUtils.getUsername());
         main.setReleaseYear(String.valueOf(dto.getReleaseYear()));
         save(main);
 
