@@ -147,5 +147,20 @@ public class FarmerDemandUpdateDTO {
          */
 
         private BigDecimal quantity;
+
+        /**
+         * Season
+         */
+        private String season;
+
+        /**
+         * Crop Land (hectare)
+         */
+        private BigDecimal cropLand;
+
+        /**
+         * Fertilizer Amount
+         */
+        private double fertilizerAmount;
     }
 }
