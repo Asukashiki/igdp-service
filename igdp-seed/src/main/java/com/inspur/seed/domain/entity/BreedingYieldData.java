@@ -153,6 +153,12 @@ public class BreedingYieldData {
     private String scoreValue;
 
     /**
+     * 审核意见
+     */
+    @TableField("audit_remark")
+    private String auditRemark;
+
+    /**
      * 删除标记:0未删除1已删除
      */
     private String deleted;

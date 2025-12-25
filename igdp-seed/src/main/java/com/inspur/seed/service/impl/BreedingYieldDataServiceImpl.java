@@ -118,7 +118,7 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
             entity.setWorkflowStatus(dto.getWorkflowStatus());
         }
         if (dto.getRemark() != null) {
-            entity.setRemark(dto.getRemark());
+            entity.setAuditRemark(dto.getRemark());
         }
 
         return breedingYieldDataMapper.updateById(entity);
