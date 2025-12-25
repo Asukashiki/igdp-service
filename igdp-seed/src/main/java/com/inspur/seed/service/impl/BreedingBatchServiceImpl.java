@@ -2,6 +2,7 @@ package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +46,11 @@ public class BreedingBatchServiceImpl extends ServiceImpl<BreedingBatchMapper, B
         return list;
     }
 
+    @Override
+    public List<BreedingBatch> selectBreedingBatchVoidedList(BreedingBatch breedingBatch) {
+        List<BreedingBatch> breedingBatches = breedingBatchMapper.selectBreedingBatchVoidedList(breedingBatch);
+        return breedingBatches;
+    }
 
     @Override
     public BreedingBatchDetailVO selectBreedingBatchById(String dataId) {
@@ -290,12 +297,21 @@ public class BreedingBatchServiceImpl extends ServiceImpl<BreedingBatchMapper, B
 
     @Override
     public int cancel(String dataId) {
-        BreedingBatch batch = new BreedingBatch();
-        batch.setDataId(dataId);
-        batch.setWorkflowStatus("S10"); // 设置为已作废状态
-        batch.setUpdateTime(LocalDateTime.now());
-        batch.setUpdateBy(SecurityUtils.getUsername());
-        return breedingBatchMapper.updateById(batch);
+//        BreedingBatch batch = new BreedingBatch();
+//        batch.setDataId(dataId);
+//        batch.setIsDeleted(1);
+//        batch.setUpdateTime(LocalDateTime.now());
+//        batch.setUpdateBy(SecurityUtils.getUsername());
+        // 已审批的状态不能删除
+        LambdaQueryWrapper<BreedingBatch> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BreedingBatch::getDataId, dataId);
+        queryWrapper.eq(BreedingBatch::getWorkflowStatus, "S2");
+        long count = this.count(queryWrapper);
+
+        if (count > 0) {
+            throw new ServiceException("Approved breeding batches cannot be deleted.");
+        }
+        return breedingBatchMapper.deleteById(dataId);
     }
 
 

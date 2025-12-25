@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
-import com.inspur.common.utils.uuid.IdUtils;
 import com.inspur.seed.domain.breed.BreedSeedDistributeDetail;
 import com.inspur.seed.domain.breed.BreedSeedProduce;
 import com.inspur.seed.dto.breed.BreedSeedProduceDTO;

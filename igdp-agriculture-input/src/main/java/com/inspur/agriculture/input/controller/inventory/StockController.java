@@ -348,9 +348,13 @@ public class StockController {
             if (queryDTO.getAgriculturalInputType() != null && !queryDTO.getAgriculturalInputType().isEmpty()) {
                 params.put("agriculturalInputType", queryDTO.getAgriculturalInputType());
             }
-           /* if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
                 params.put("organCode", queryDTO.getOrganCode());
-            }*/
+            }
+            // 添加最小数量过滤，与列表查询保持一致
+            if (queryDTO.getMinQuantity() != null) {
+                params.put("minQuantity", queryDTO.getMinQuantity());
+            }
 
             List<Map<String, Object>> list = stockService.selectStockSummary(params);
             return AjaxResult.success(list);
