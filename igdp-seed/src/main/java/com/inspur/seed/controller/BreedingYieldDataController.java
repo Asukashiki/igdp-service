@@ -70,7 +70,7 @@ public class BreedingYieldDataController {
      */
     @PostMapping("/submitForReview")
     public AjaxResult submitForReview(@RequestBody BreedingYieldDataDTO dto) {
-        return AjaxResult.success(breedingYieldDataService.submitForReview(dto.getId()));
+        return AjaxResult.success(breedingYieldDataService.submitForReview(dto.getId(), dto.getWorkflowStatus()));
     }
 
     /**

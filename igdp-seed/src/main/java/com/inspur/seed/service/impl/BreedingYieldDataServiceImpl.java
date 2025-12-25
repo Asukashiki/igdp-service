@@ -137,13 +137,19 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
     }
 
     @Override
-    public int submitForReview(String id) {
+    public int submitForReview(String id, String workflowStatus) {
         BreedingYieldData entity = new BreedingYieldData();
         entity.setId(id);
         entity.setStatus("1"); // 将status字段更新为'1'
         entity.setUpdatedTime(LocalDateTime.now());
         entity.setUpdatedBy(SecurityUtils.getUsername());
-        
+        if(StrUtil.isNotBlank(workflowStatus)){
+            // 更新流程审核状态
+            entity.setWorkflowStatus(workflowStatus);
+        }else{
+            entity.setWorkflowStatus("S1");
+        }
+
         return breedingYieldDataMapper.updateById(entity);
     }
 

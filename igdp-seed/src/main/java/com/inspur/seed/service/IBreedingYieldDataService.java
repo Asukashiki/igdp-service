@@ -59,7 +59,7 @@ public interface IBreedingYieldDataService {
      * @param id 主键ID
      * @return 结果
      */
-    int submitForReview(String id);
+    int submitForReview(String id, String workflowStatus);
 
     /**
      * 作废产量数据
