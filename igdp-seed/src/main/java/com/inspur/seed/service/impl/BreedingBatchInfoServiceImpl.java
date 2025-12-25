@@ -67,6 +67,12 @@ public class BreedingBatchInfoServiceImpl extends ServiceImpl<BreedingBatchInfoM
         // 自动生成批次编号
         batchInfo.setBatchId(BreedingCodeUtil.generateBatchId());
 
+        // 自动生成品种编码：作物类型_品种名称
+        if (batchInfo.getCropType() != null && batchInfo.getVarietyName() != null) {
+            String varietyCode = batchInfo.getCropType() + "_" + batchInfo.getVarietyName();
+            batchInfo.setVarietyCode(varietyCode);
+        }
+
         // 设置默认状态为"进行中"
         batchInfo.setBatchStatus("01");
 
@@ -84,6 +90,12 @@ public class BreedingBatchInfoServiceImpl extends ServiceImpl<BreedingBatchInfoM
         // 创建实体对象
         BreedingBatchInfo batchInfo = new BreedingBatchInfo();
         BeanUtils.copyProperties(updateDTO, batchInfo);
+
+        // 自动生成品种编码：作物类型_品种名称
+        if (batchInfo.getCropType() != null && batchInfo.getVarietyName() != null) {
+            String varietyCode = batchInfo.getCropType() + "_" + batchInfo.getVarietyName();
+            batchInfo.setVarietyCode(varietyCode);
+        }
 
         // 设置更新时间
         batchInfo.setUpdateTime(new Date());

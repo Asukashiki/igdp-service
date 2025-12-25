@@ -74,7 +74,11 @@ public class TrialBasic extends BaseEntity {
     @TableField("is_deleted")
     private Integer isDeleted;
 
-    /** 流程状态/审核状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废) */
+    /** 试验状态(01=Ongoing进行中,02=Finished已完成) */
+    @TableField("status")
+    private String status;
+
+    /** 审核状态(S0=草稿,S1=待审批,S2=已审批,S3=已退回,S9=已归档,S10=作废) */
     @TableField("workflow_status")
     private String trialStatus;
 
