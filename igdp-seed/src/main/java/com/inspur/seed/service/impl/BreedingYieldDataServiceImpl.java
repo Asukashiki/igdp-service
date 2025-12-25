@@ -90,7 +90,7 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
         }
         // 默认流程审核状态为待审批
         if (StrUtil.isBlank(entity.getWorkflowStatus())) {
-            entity.setWorkflowStatus("S1");
+            entity.setWorkflowStatus("S0");
         }
         entity.setDeleted("0");
         entity.setCreatedTime(LocalDateTime.now());
