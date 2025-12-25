@@ -25,6 +25,12 @@ public class TrialBasicAuditDTO implements Serializable {
      */
     private String trialId;
 
+
+    /**
+     * 试验名称
+     */
+    private String trialName;
+
     /**
      * 审核状态(S1=待审核,S2=已通过,S3=已退回)
      */

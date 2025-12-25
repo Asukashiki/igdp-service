@@ -86,7 +86,7 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
 
         // 默认业务状态
         if (StrUtil.isBlank(entity.getStatus())) {
-            entity.setStatus("submit");
+            entity.setStatus("0");
         }
         // 默认流程审核状态为待审批
         if (StrUtil.isBlank(entity.getWorkflowStatus())) {
@@ -134,6 +134,30 @@ public class BreedingYieldDataServiceImpl implements IBreedingYieldDataService {
             entity.setUpdatedTime(LocalDateTime.now());
             return breedingYieldDataMapper.updateById(entity);
         }).sum();
+    }
+
+    @Override
+    public int submitForReview(String id) {
+        BreedingYieldData entity = new BreedingYieldData();
+        entity.setId(id);
+        entity.setStatus("1"); // 将status字段更新为'1'
+        entity.setUpdatedTime(LocalDateTime.now());
+        entity.setUpdatedBy(SecurityUtils.getUsername());
+        
+        return breedingYieldDataMapper.updateById(entity);
+    }
+
+    @Override
+    public int voidYieldData(String id, String remark) {
+        BreedingYieldData entity = new BreedingYieldData();
+        entity.setId(id);
+        entity.setWorkflowStatus("S10"); // 设置为作废状态
+        entity.setRemark(remark); // 记录作废原因
+        entity.setUpdatedTime(LocalDateTime.now());
+        entity.setStatus("0"); // 将status字段更新为'1'
+        entity.setUpdatedBy(SecurityUtils.getUsername());
+        
+        return breedingYieldDataMapper.updateById(entity);
     }
 
     /**

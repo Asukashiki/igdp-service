@@ -461,8 +461,27 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             wrapper.le(DemandFarmerDetail::getCreatedTime, dto.getCreatedTimeEnd() + " 23:59:59");
         }
 
-        // Order by created time desc
-        wrapper.orderByDesc(DemandFarmerDetail::getYear);
+        // 动态排序：根据前端传入的 orderByColumn 和 isAsc 参数
+        String orderColumn = StrUtil.blankToDefault(dto.getOrderByColumn(), "createdTime");
+        boolean isDescOrder = !"asc".equalsIgnoreCase(dto.getIsAsc());
+
+        // 根据排序字段选择对应的数据库列
+        if ("createdTime".equals(orderColumn)) {
+            if (isDescOrder) {
+                wrapper.orderByDesc(DemandFarmerDetail::getCreatedTime);
+            } else {
+                wrapper.orderByAsc(DemandFarmerDetail::getCreatedTime);
+            }
+        } else if ("year".equals(orderColumn)) {
+            if (isDescOrder) {
+                wrapper.orderByDesc(DemandFarmerDetail::getYear);
+            } else {
+                wrapper.orderByAsc(DemandFarmerDetail::getYear);
+            }
+        } else {
+            // 默认按创建时间倒序
+            wrapper.orderByDesc(DemandFarmerDetail::getCreatedTime);
+        }
 
         // 2. Query page
         Page<DemandFarmerDetail> page = new Page<>(dto.getPageNum(), dto.getPageSize());

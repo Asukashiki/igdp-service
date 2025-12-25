@@ -49,12 +49,23 @@
             <if test="activityType != null and activityType != ''">
                 AND f.activity_type = #{activityType}
             </if>
-            <if test="activityDate != null and activityDate != ''">
-                AND DATE(f.activity_date) = #{activityDate}
+            <if test="activityDate != null">
+                AND DATE(f.activity_date) = DATE(#{activityDate})
             </if>
             <!-- 可选：补充 batchId 筛选（如果前端需要传批次ID） -->
             <if test="batchId != null and batchId != ''">
                 AND f.batch_id = #{batchId}
+            </if>
+            <!-- 新增：workflowStatus 筛选条件 -->
+            <if test="workflowStatus != null and workflowStatus != ''">
+                AND f.workflow_status = #{workflowStatus}
+            </if>
+            <!-- 新增：排除指定状态（用于审核列表页面，不显示S0和S3） -->
+            <if test="excludeStatuses != null and excludeStatuses != ''">
+                AND f.workflow_status NOT IN
+                <foreach collection="excludeStatuses.split(',')" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
             </if>
         </where>
         order by f.activity_date desc, f.create_time desc

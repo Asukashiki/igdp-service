@@ -67,6 +67,14 @@ public class FarmingRecordController extends BaseController {
     }
 
     /**
+     * 提交审核
+     */
+    @PostMapping("/submitForReview")
+    public AjaxResult submitForReview(@RequestBody FarmingRecord farmingRecord) {
+        return toAjax(farmingRecordService.submitForReview(farmingRecord.getFarmingId()));
+    }
+
+    /**
      * 统计每个地块的灌溉次数
      */
     @GetMapping("/irrigationCount")

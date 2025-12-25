@@ -170,4 +170,8 @@ public class TrialBasic extends BaseEntity {
     /** 作废原因 */
     @TableField("cancel_reason")
     private String cancelReason;
+
+    /** 退回原因 / Reject Reason */
+    @TableField("reject_reason")
+    private String rejectReason;
 }

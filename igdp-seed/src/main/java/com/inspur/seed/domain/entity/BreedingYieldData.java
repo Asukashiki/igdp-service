@@ -123,6 +123,7 @@ public class BreedingYieldData {
 
     /**
      * 流程审核状态（字典 flow_status）
+     * 工作流状态(S1:待审批, S2:已审批, S3:已退回, S10:作废)
      */
     private String workflowStatus;
 

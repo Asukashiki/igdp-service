@@ -104,6 +104,27 @@ public class TrialBaseDataVO implements Serializable {
     private String season;
 
     /**
+     * 工作流状态
+     */
+    private String workflowStatus;
+
+    /**
+     * 退回人姓名
+     */
+    private String rejectedName;
+
+    /**
+     * 退回时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date rejectedTime;
+
+    /**
+     * 退回原因
+     */
+    private String rejectReason;
+
+    /**
      * 创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

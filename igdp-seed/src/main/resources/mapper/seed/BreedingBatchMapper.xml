@@ -57,6 +57,33 @@
         order by create_time desc
     </select>
 
+
+    <select id="selectBreedingBatchVoidedList" parameterType="com.inspur.seed.domain.BreedingBatch" resultMap="BreedingBatchResult">
+        <include refid="selectBreedingBatchVo"/>
+        <where>
+            is_deleted = 1
+            <if test="batchId != null and batchId != ''">
+                AND batch_id like concat('%', #{batchId}, '%')
+            </if>
+            <if test="batchName != null and batchName != ''">
+                AND batch_name like concat('%', #{batchName}, '%')
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND crop_type = #{cropType}
+            </if>
+            <if test="varietyName != null and varietyName != ''">
+                AND variety_name like concat('%', #{varietyName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="workflowStatus != null and workflowStatus != ''">
+                AND workflow_status = #{workflowStatus}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
     <select id="selectByBatchId" parameterType="String" resultMap="BreedingBatchResult">
         <include refid="selectBreedingBatchVo"/>
         where batch_id = #{batchId} and is_deleted = 0

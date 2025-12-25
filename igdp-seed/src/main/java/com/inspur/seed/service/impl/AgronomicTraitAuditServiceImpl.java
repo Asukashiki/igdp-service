@@ -277,6 +277,8 @@ public class AgronomicTraitAuditServiceImpl extends ServiceImpl<AgronomicTraitAu
 
             // 8. 更新主表（AgronomicTraitRecord）状态及审核信息
             traitRecord.setStatus(auditDTO.getAuditStatus());
+            // 同步设置 workflowStatus
+            traitRecord.setWorkflowStatus(auditDTO.getAuditStatus());
             traitRecord.setAuditBy(auditorId);
             // 审核表auditTime是LocalDateTime，主表是Date，转换赋值
             traitRecord.setAuditTime(new Date());

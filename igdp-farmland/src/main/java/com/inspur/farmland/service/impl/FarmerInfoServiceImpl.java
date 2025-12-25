@@ -14,7 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 农民信息Service实现类
@@ -88,6 +92,8 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         try {
             String username = SecurityUtils.getUsername();
             farmerInfo.setCreateBy(username);
+            farmerInfo.setUpdateBy(username);
+            farmerInfo.setUpdateTime(LocalDateTime.now());
         } catch (Exception e) {
             farmerInfo.setCreateBy("system");
         }

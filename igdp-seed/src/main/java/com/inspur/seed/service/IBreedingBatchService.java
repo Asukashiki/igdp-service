@@ -24,6 +24,14 @@ public interface IBreedingBatchService extends IService<BreedingBatch> {
 
 
     /**
+     * 查询作废育种批次列表
+     *
+     * @param breedingBatch 查询条件
+     * @return 育种批次列表
+     */
+    List<BreedingBatch> selectBreedingBatchVoidedList(BreedingBatch breedingBatch);
+
+    /**
      * 根据数据ID查询育种批次详细信息（包含审批意见）
      *
      * @param dataId 数据ID
