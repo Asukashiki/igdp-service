@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/seed" +
-        "/dataset")
+@RequestMapping("/seed/dataset")
 public class BreedingDatasetController {
 
     @Autowired
