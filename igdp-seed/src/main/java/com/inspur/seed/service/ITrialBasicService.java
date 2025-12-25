@@ -83,4 +83,13 @@ public interface ITrialBasicService {
      * @return 是否成功
      */
     boolean archiveTrial(String trialId);
+
+    /**
+     * 检查并更新试验完成状态
+     * 当试验的所有实验室测试数据都审核通过后，将试验状态更新为已完成(02)
+     *
+     * @param trialId 试验ID
+     * @return 是否更新成功
+     */
+    boolean checkAndUpdateTrialCompletionStatus(String trialId);
 }

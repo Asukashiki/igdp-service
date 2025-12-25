@@ -9,6 +9,7 @@ import com.inspur.seed.domain.TrialPlotRelation;
 import com.inspur.seed.mapper.TrialBasicMapper;
 import com.inspur.seed.mapper.TrialPlotRelationMapper;
 import com.inspur.seed.service.ITrialBasicService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import java.util.List;
  *
  * @author inspur
  */
+@Slf4j
 @Service
 public class TrialBasicServiceImpl implements ITrialBasicService {
 
@@ -67,7 +69,8 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         trialBasic.setCreateTime(LocalDateTime.now());
         trialBasic.setCreateBy(SecurityUtils.getUserId().toString());
         trialBasic.setCreatedName(SecurityUtils.getUsername());
-        trialBasic.setTrialStatus("S0"); // 默认草稿状态
+        trialBasic.setTrialStatus("S0"); // 默认草稿审核状态
+        trialBasic.setStatus("01"); // 默认Ongoing进行中业务状态
 
         // 保存试验信息
         trialBasicMapper.insert(trialBasic);
@@ -340,9 +343,9 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
             throw new ServiceException("Trial information not found");
         }
 
-        // 2. 检查试验状态（只有已审批状态可以归档）
-        if (!"S2".equals(trial.getTrialStatus())) {
-            throw new ServiceException("Only approved trials can be archived");
+        // 2. 检查试验业务状态（只有已完成状态可以归档）
+        if (!"02".equals(trial.getStatus())) {
+            throw new ServiceException("Only finished trials can be archived");
         }
 
         // 3. 获取当前用户信息
@@ -386,5 +389,65 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         }
 
         return true;
+    }
+
+    /**
+     * 检查并更新试验完成状态
+     * 当试验的所有实验室测试数据都审核通过后，将试验状态更新为已完成(02=Finished)
+     *
+     * @param trialId 试验ID
+     * @return 是否更新成功
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean checkAndUpdateTrialCompletionStatus(String trialId) {
+        // 1. 获取试验信息
+        TrialBasic trial = trialBasicMapper.selectById(trialId);
+        if (trial == null) {
+            throw new ServiceException("Trial information not found");
+        }
+
+        // 2. 如果试验业务状态已经是已完成(02)，无需重复更新
+        if ("02".equals(trial.getStatus())) {
+            return false;
+        }
+
+        // 3. 查询该试验下的所有实验室测试数据
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.LaboratoryTestData> queryWrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        queryWrapper.eq(com.inspur.seed.domain.entity.LaboratoryTestData::getTrialId, trialId)
+                .eq(com.inspur.seed.domain.entity.LaboratoryTestData::getDelFlag, "0")
+                .eq(com.inspur.seed.domain.entity.LaboratoryTestData::getAuditCanceled, 0);
+
+        com.inspur.seed.mapper.LaboratoryTestDataMapper laboratoryTestDataMapper = 
+            com.inspur.common.utils.spring.SpringUtils.getBean(com.inspur.seed.mapper.LaboratoryTestDataMapper.class);
+        
+        java.util.List<com.inspur.seed.domain.entity.LaboratoryTestData> labDataList = laboratoryTestDataMapper.selectList(queryWrapper);
+
+        // 4. 如果没有实验室测试数据，不更新状态
+        if (labDataList == null || labDataList.isEmpty()) {
+            return false;
+        }
+
+        // 5. 检查是否所有实验室测试数据都已审核通过(S2)
+        boolean allApproved = labDataList.stream()
+                .allMatch(data -> "S2".equals(data.getWorkflowStatus()));
+
+        // 6. 如果全部审核通过，更新试验业务状态为已完成(02=Finished)
+        if (allApproved) {
+            String currentUserId = SecurityUtils.getUserId().toString();
+            String currentUserName = SecurityUtils.getUsername();
+
+            trial.setStatus("02"); // 更新业务状态为已完成
+            trial.setUpdateTime(java.time.LocalDateTime.now());
+            trial.setUpdateBy(currentUserId);
+            trialBasicMapper.updateById(trial);
+
+            log.info("试验业务状态已更新为Finished(02), trialId: {}, 所有实验室测试数据已审核通过", trialId);
+
+            return true;
+        }
+
+        return false;
     }
 }

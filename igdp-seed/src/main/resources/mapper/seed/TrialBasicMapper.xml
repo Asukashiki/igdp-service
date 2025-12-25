@@ -15,6 +15,7 @@
         <result property="cropType" column="crop_type"/>
         <result property="varietyCode" column="variety_code"/>
         <result property="varietyName" column="variety_name"/>
+        <result property="status" column="status"/>
         <result property="trialStatus" column="workflow_status"/>
         <result property="submittedBy" column="submitted_by"/>
         <result property="submittedName" column="submitted_name"/>
@@ -45,7 +46,7 @@
     <sql id="selectTrialBasicVo">
         select t.trial_id, t.batch_id, t.trial_name, t.location_id, t.gps_location,
                t.season, t.year, t.design_type, t.replications, t.crop_type, t.variety_code, t.variety_name,
-               t.workflow_status, t.submitted_by, t.submitted_name, t.submitted_time,
+               t.status, t.workflow_status, t.submitted_by, t.submitted_name, t.submitted_time,
                t.approved_by, t.approved_name, t.approved_time,
                t.rejected_by, t.rejected_name, t.rejected_time, t.reject_reason,
                t.cancelled_by, t.cancelled_name, t.cancelled_time, t.cancel_reason,
@@ -112,7 +113,7 @@
     </select>
 
     <select id="selectTrialOptions" resultMap="TrialBasicResult">
-        select trial_id, batch_id, trial_name, location_id, season, year, design_type, replications, crop_type, variety_code, variety_name, workflow_status
+        select trial_id, batch_id, trial_name, location_id, season, year, design_type, replications, crop_type, variety_code, variety_name, status, workflow_status
         from trial_basic
         where is_deleted = 0
         <if test="batchId != null and batchId != ''">

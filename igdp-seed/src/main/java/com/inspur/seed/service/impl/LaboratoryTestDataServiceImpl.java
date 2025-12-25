@@ -110,38 +110,38 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
         log.info("开始插入实验室测试数据, sampleId: {}", dto.getSampleId());
 
         // 验证必填字段
-        if (StrUtil.isBlank(dto.getSampleId())) {
-            log.error("样本ID不能为空");
-            throw new IllegalArgumentException("样本ID不能为空");
-        }
-        if (StrUtil.isBlank(dto.getSampleCondition())) {
-            log.error("样本状态不能为空");
-            throw new IllegalArgumentException("样本状态不能为空");
-        }
-        if (dto.getGerminationRate() == null) {
-            log.error("发芽率不能为空");
-            throw new IllegalArgumentException("发芽率不能为空");
-        }
-        if (dto.getPurityPercent() == null) {
-            log.error("纯度不能为空");
-            throw new IllegalArgumentException("纯度不能为空");
-        }
-        if (dto.getMoistureContentPercent() == null) {
-            log.error("含水量不能为空");
-            throw new IllegalArgumentException("含水量不能为空");
-        }
-        if (dto.getProteinPercent() == null) {
-            log.error("蛋白质不能为空");
-            throw new IllegalArgumentException("蛋白质不能为空");
-        }
-        if (StrUtil.isBlank(dto.getSeedHealthFindings())) {
-            log.error("种子健康发现不能为空");
-            throw new IllegalArgumentException("种子健康发现不能为空");
-        }
-        if (StrUtil.isBlank(dto.getTraceabilityLink())) {
-            log.error("链路责任不能为空");
-            throw new IllegalArgumentException("链路责任不能为空");
-        }
+//        if (StrUtil.isBlank(dto.getSampleId())) {
+//            log.error("样本ID不能为空");
+//            throw new IllegalArgumentException("样本ID不能为空");
+//        }
+//        if (StrUtil.isBlank(dto.getSampleCondition())) {
+//            log.error("样本状态不能为空");
+//            throw new IllegalArgumentException("样本状态不能为空");
+//        }
+//        if (dto.getGerminationRate() == null) {
+//            log.error("发芽率不能为空");
+//            throw new IllegalArgumentException("发芽率不能为空");
+//        }
+//        if (dto.getPurityPercent() == null) {
+//            log.error("纯度不能为空");
+//            throw new IllegalArgumentException("纯度不能为空");
+//        }
+//        if (dto.getMoistureContentPercent() == null) {
+//            log.error("含水量不能为空");
+//            throw new IllegalArgumentException("含水量不能为空");
+//        }
+//        if (dto.getProteinPercent() == null) {
+//            log.error("蛋白质不能为空");
+//            throw new IllegalArgumentException("蛋白质不能为空");
+//        }
+//        if (StrUtil.isBlank(dto.getSeedHealthFindings())) {
+//            log.error("种子健康发现不能为空");
+//            throw new IllegalArgumentException("种子健康发现不能为空");
+//        }
+//        if (StrUtil.isBlank(dto.getTraceabilityLink())) {
+//            log.error("链路责任不能为空");
+//            throw new IllegalArgumentException("链路责任不能为空");
+//        }
 
         LaboratoryTestData entity = BeanUtil.copyProperties(dto, LaboratoryTestData.class);
         entity.setDelFlag("0");
@@ -229,7 +229,23 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
         entity.setUpdateBy(username);
         entity.setUpdateTime(LocalDateTime.now());
 
-        return this.updateById(entity) ? 1 : 0;
+        boolean updateSuccess = this.updateById(entity);
+        
+        // 审核通过后，检查该试验是否所有实验室测试数据都已审核通过
+        // 如果是，则将试验状态更新为已完成(02)
+        if (updateSuccess && cn.hutool.core.util.StrUtil.isNotBlank(entity.getTrialId())) {
+            try {
+                com.inspur.seed.service.ITrialBasicService trialBasicService = 
+                    com.inspur.common.utils.spring.SpringUtils.getBean(com.inspur.seed.service.ITrialBasicService.class);
+                trialBasicService.checkAndUpdateTrialCompletionStatus(entity.getTrialId());
+                log.info("实验室测试数据审核通过后，已检查试验完成状态, trialId: {}", entity.getTrialId());
+            } catch (Exception e) {
+                log.error("检查试验完成状态失败, trialId: {}, error: {}", entity.getTrialId(), e.getMessage());
+                // 不影响主流程，继续执行
+            }
+        }
+
+        return updateSuccess ? 1 : 0;
     }
 
     @Override
