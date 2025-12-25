@@ -114,34 +114,7 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
             log.error("样本ID不能为空");
             throw new IllegalArgumentException("样本ID不能为空");
         }
-        if (StrUtil.isBlank(dto.getSampleCondition())) {
-            log.error("样本状态不能为空");
-            throw new IllegalArgumentException("样本状态不能为空");
-        }
-        if (dto.getGerminationRate() == null) {
-            log.error("发芽率不能为空");
-            throw new IllegalArgumentException("发芽率不能为空");
-        }
-        if (dto.getPurityPercent() == null) {
-            log.error("纯度不能为空");
-            throw new IllegalArgumentException("纯度不能为空");
-        }
-        if (dto.getMoistureContentPercent() == null) {
-            log.error("含水量不能为空");
-            throw new IllegalArgumentException("含水量不能为空");
-        }
-        if (dto.getProteinPercent() == null) {
-            log.error("蛋白质不能为空");
-            throw new IllegalArgumentException("蛋白质不能为空");
-        }
-        if (StrUtil.isBlank(dto.getSeedHealthFindings())) {
-            log.error("种子健康发现不能为空");
-            throw new IllegalArgumentException("种子健康发现不能为空");
-        }
-        if (StrUtil.isBlank(dto.getTraceabilityLink())) {
-            log.error("链路责任不能为空");
-            throw new IllegalArgumentException("链路责任不能为空");
-        }
+        // sampleCondition, germinationRate, purityPercent, moistureContentPercent, proteinPercent, seedHealthFindings, traceabilityLink 均为非必填
 
         LaboratoryTestData entity = BeanUtil.copyProperties(dto, LaboratoryTestData.class);
         entity.setDelFlag("0");
@@ -247,6 +220,8 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
         String username = SecurityUtils.getUsername();
         entity.setWorkflowStatus("S3");
         entity.setAuditOpinion(auditOpinion);
+        entity.setApproveBy(username);  // 记录退回人
+        entity.setApproveTime(LocalDateTime.now().toString());  // 记录退回时间
         entity.setUpdateBy(username);
         entity.setUpdateTime(LocalDateTime.now());
 

@@ -190,4 +190,9 @@ public class LaboratoryTestDataVO implements Serializable {
      * 更新时间（格式化）
      */
     private String updatedTime;
+
+    /**
+     * 退回人机构名称
+     */
+    private String rejectOrgName;
 }
