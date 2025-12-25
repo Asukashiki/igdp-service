@@ -100,7 +100,6 @@
                LPAD(IFNULL(MAX(CAST(SUBSTRING_INDEX(batch_id, '_', -1) AS UNSIGNED)), 0) + 1, 6, '0'))
         FROM breeding_batch
         WHERE batch_id LIKE CONCAT('B_', #{cropType}, '_', #{year}, '_%')
-        AND is_deleted = 0
     </select>
 
     <select id="selectBatchOptions" resultMap="BreedingBatchResult">
