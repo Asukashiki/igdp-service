@@ -1,6 +1,8 @@
 package com.inspur.seed.controller;
 
+import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.core.page.TableDataInfo;
 import com.inspur.seed.domain.dto.LaboratoryTestDataDTO;
 import com.inspur.seed.domain.vo.LaboratoryTestDataVO;
 import com.inspur.seed.service.ILaboratoryTestDataService;
@@ -17,7 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/seed/laboratory/test")
-public class LaboratoryTestDataController {
+public class LaboratoryTestDataController extends BaseController {
 
     @Autowired
     private ILaboratoryTestDataService laboratoryTestDataService;
@@ -26,9 +28,10 @@ public class LaboratoryTestDataController {
      * 查询实验室测试数据列表
      */
     @PostMapping("/list")
-    public AjaxResult list(@RequestBody LaboratoryTestDataDTO dto) {
+    public TableDataInfo list(@RequestBody LaboratoryTestDataDTO dto) {
+        startPage();
         List<LaboratoryTestDataVO> list = laboratoryTestDataService.selectLaboratoryTestDataList(dto);
-        return AjaxResult.success(list);
+        return getDataTable(list);
     }
 
     /**
@@ -116,8 +119,9 @@ public class LaboratoryTestDataController {
      * 查询审核列表
      */
     @PostMapping("/audit/list")
-    public AjaxResult auditList(@RequestBody LaboratoryTestDataDTO dto) {
+    public TableDataInfo auditList(@RequestBody LaboratoryTestDataDTO dto) {
+        startPage();
         List<LaboratoryTestDataVO> list = laboratoryTestDataService.selectLaboratoryTestDataList(dto);
-        return AjaxResult.success(list);
+        return getDataTable(list);
     }
 }
