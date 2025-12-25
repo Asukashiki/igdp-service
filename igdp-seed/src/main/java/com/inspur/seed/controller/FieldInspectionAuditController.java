@@ -84,7 +84,7 @@ public class FieldInspectionAuditController  extends BaseController {
     public AjaxResult approve(@RequestBody BreedingYieldDataDTO breedingYieldDataDTO) {
         // 验证审核意见是否填写
         if (breedingYieldDataDTO.getRemark() == null || breedingYieldDataDTO.getRemark().trim().isEmpty()) {
-            return AjaxResult.error("审核意见为必填项");
+            return AjaxResult.error("The review opinions are mandatory fields");
         }
 
         // 设置审核相关信息
@@ -103,7 +103,7 @@ public class FieldInspectionAuditController  extends BaseController {
     public AjaxResult reject(@RequestBody BreedingYieldDataDTO breedingYieldDataDTO) {
         // 验证审核意见是否填写
         if (breedingYieldDataDTO.getRemark() == null || breedingYieldDataDTO.getRemark().trim().isEmpty()) {
-            return AjaxResult.error("审核意见为必填项");
+            return AjaxResult.error("The review opinions are mandatory fields");
         }
 
         // 设置审核相关信息
@@ -123,7 +123,7 @@ public class FieldInspectionAuditController  extends BaseController {
     public AjaxResult voidAudit(@RequestBody BreedingYieldDataDTO breedingYieldDataDTO) {
         // 验证审核意见是否填写
         if (breedingYieldDataDTO.getRemark() == null || breedingYieldDataDTO.getRemark().trim().isEmpty()) {
-            return AjaxResult.error("作废原因为必填项");
+            return AjaxResult.error("The reason for invalidation is a required field");
         }
 
         // 设置审核相关信息

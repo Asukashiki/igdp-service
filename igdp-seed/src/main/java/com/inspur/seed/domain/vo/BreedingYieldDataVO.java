@@ -129,4 +129,9 @@ public class BreedingYieldDataVO {
      * 审核时间
      */
     private LocalDateTime auditTime;
+
+    /**
+     * 审核意见
+     */
+    private String auditRemark;
 }
