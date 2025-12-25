@@ -113,6 +113,10 @@ public class EnvironmentNewData extends BaseEntity {
     @TableField(exist = false)
     private String plotName;
 
+    /** 观察员名称（关联字段，非数据库字段） */
+    @TableField(exist = false)
+    private String observerName;
+
     /** 备注 / Remark */
     @TableField("remark")
     private String remark;
