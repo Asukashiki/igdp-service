@@ -55,6 +55,12 @@ public class BreedingBatchInfo implements Serializable {
     private String cropType;
 
     /**
+     * 品种编码（自动生成，格式：作物类型_品种名称）
+     */
+    @TableField("variety_code")
+    private String varietyCode;
+
+    /**
      * 品种名称
      */
     @TableField("variety_name")

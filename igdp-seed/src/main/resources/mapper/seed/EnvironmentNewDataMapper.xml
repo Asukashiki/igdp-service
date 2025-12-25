@@ -26,14 +26,17 @@
         <result property="batchName" column="batch_name"/>
         <result property="trialName" column="trial_name"/>
         <result property="plotName" column="plot_name"/>
+        <result property="observerName" column="observer_name"/>
     </resultMap>
 
     <sql id="selectEnvironmentNewDataVo">
         select e.env_record_id, e.trial_id, e.batch_id, e.plot_id, e.station_id,
                e.timestamp, e.parameter_code, e.value, e.unit, e.source, e.observer_id, e.remark,
                e.create_time, e.update_time, e.create_by, e.update_by,
-               e.workflow_status, e.audit_by, e.audit_time, e.is_deleted
+               e.workflow_status, e.audit_by, e.audit_time, e.is_deleted,
+               u.nick_name as observer_name
         from environment_new_data e
+        left join sys_user u on e.observer_id = u.user_id
     </sql>
 
     <select id="selectEnvironmentNewDataList" parameterType="com.inspur.seed.domain.EnvironmentNewData" resultMap="EnvironmentNewDataResult">
