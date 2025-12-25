@@ -126,5 +126,9 @@ public class Feedback implements Serializable {
     @TableField(exist = false)
     private Long processingHours;
 
+    private String inputCategory;
+
+    private String inputType;
+
 
 }
