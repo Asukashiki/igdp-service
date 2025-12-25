@@ -227,7 +227,7 @@ public class MinioHandler {
             if(StrUtil.isNotBlank(url) && StrUtil.isNotBlank(eip)){
                 // 替换ip和端口
                 URI uri = new URI(url);
-                url = eip + uri.getPath() + "?" +uri.getQuery();
+                url = eip + uri.getPath();
             }
         } catch (Exception e) {
             log.info("预览文件失败", e);
