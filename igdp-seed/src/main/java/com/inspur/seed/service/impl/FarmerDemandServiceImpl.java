@@ -102,7 +102,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         // 根据当前年份自动获取或创建批次
         int currentYear = java.time.Year.now().getValue();
-        String batchNo = "BATCH-" + currentYear +"-"+ dto.getKebeleName() +"-" + randomString(6).toUpperCase();
+        String batchNo = "BATCH-" + currentYear +"-"+ dto.getKebele() +"-" + randomString(6).toUpperCase();
         DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(batchNo,currentYear);
 
         // 设置批次ID
