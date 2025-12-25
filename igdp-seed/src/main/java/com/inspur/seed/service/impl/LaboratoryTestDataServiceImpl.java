@@ -263,6 +263,8 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
         String username = SecurityUtils.getUsername();
         entity.setWorkflowStatus("S3");
         entity.setAuditOpinion(auditOpinion);
+        entity.setApproveBy(username);  // 记录退回人
+        entity.setApproveTime(LocalDateTime.now().toString());  // 记录退回时间
         entity.setUpdateBy(username);
         entity.setUpdateTime(LocalDateTime.now());
 
