@@ -63,15 +63,16 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
                 "D_" + dto.getOrgan() + "_" + dto.getFromSeedLevel() + "_" + dto.getToSeedLevel() + "_" + IdUtils.fastSimpleUUID().substring(0, 6);
         // 计算明细总数量
         BigDecimal totalQuantity = BigDecimal.ZERO;
-        for (BreedSeedDistributeDetail item : dto.getDetailList()) {
-            // 验证分发数量不能超过生产批次剩余量
-            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getProduceBatchId());
-            BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
-            if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
-                throw new ServiceException("Distribution quantity exceeds the remaining quantity of the production batch");
-            }
-            totalQuantity = totalQuantity.add(item.getDistributeQuantity());
-        }
+        // todo 逻辑修改待处理
+//        for (BreedSeedDistributeDetail item : dto.getDetailList()) {
+//            // 验证分发数量不能超过生产批次剩余量
+//            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getProduceBatchId());
+//            BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
+//            if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
+//                throw new ServiceException("Distribution quantity exceeds the remaining quantity of the production batch");
+//            }
+//            totalQuantity = totalQuantity.add(item.getDistributeQuantity());
+//        }
 
         // 插入分发主表
         BreedSeedDistributeMain main = new BreedSeedDistributeMain();
