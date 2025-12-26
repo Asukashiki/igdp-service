@@ -28,13 +28,11 @@ public class BreedingTrackingAddDTO {
     /**
      * 作物类型（枚举值）
      */
-    @NotBlank(message = "作物类型不能为空")
     private String cropType;
 
     /**
      * 阶段名称（01/02/03/04）
      */
-    @NotBlank(message = "阶段名称不能为空")
     private String stageName;
 
     /**
@@ -45,7 +43,6 @@ public class BreedingTrackingAddDTO {
     /**
      * 位置描述
      */
-    @NotBlank(message = "位置描述不能为空")
     private String location;
 
     /**
@@ -71,8 +68,6 @@ public class BreedingTrackingAddDTO {
     /**
      * 田间检查评分（0-100）
      */
-    @DecimalMin(value = "0", message = "田间检查评分最小值为0")
-    @DecimalMax(value = "100", message = "田间检查评分最大值为100")
     private BigDecimal fieldInspectionScore;
 
     /**
