@@ -7,10 +7,13 @@ import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.breed.BreedSeedDistributeDetail;
 import com.inspur.seed.domain.breed.BreedSeedProduce;
+import com.inspur.seed.domain.breed.BreedSeedProduceResult;
 import com.inspur.seed.dto.breed.BreedSeedProduceDTO;
 import com.inspur.seed.dto.breed.BreedSeedProduceQueryDTO;
 import com.inspur.seed.mapper.breed.BreedSeedDistributeDetailMapper;
 import com.inspur.seed.mapper.breed.BreedSeedProduceMapper;
+import com.inspur.seed.mapper.breed.BreedSeedProduceResultMapper;
+import com.inspur.seed.service.breed.IBreedSeedProduceResultService;
 import com.inspur.seed.service.breed.IBreedSeedProduceService;
 import com.inspur.seed.vo.breed.BreedSeedProduceVO;
 import org.springframework.beans.BeanUtils;
@@ -34,6 +37,9 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
 
     @Autowired
     private BreedSeedDistributeDetailMapper distributeDetailMapper;
+
+    @Autowired
+    private BreedSeedProduceResultMapper breedSeedProduceResultMapper;
 
 
 
@@ -116,13 +122,13 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // 获取生产总量
-        BreedSeedProduce produce = this.getById(produceBatchId);
-        if (produce == null) {
+        BreedSeedProduceResult breedSeedProduceResult = breedSeedProduceResultMapper.getResultByProduceBatchId(produceBatchId);
+        if (breedSeedProduceResult == null) {
             return BigDecimal.ZERO;
         }
 
         //
-        return produce.getInputSeedQuantity().subtract(distributedSum != null ? distributedSum : BigDecimal.ZERO);
+        return breedSeedProduceResult.getProducedAmount().subtract(distributedSum != null ? distributedSum : BigDecimal.ZERO);
     }
 
     @Override

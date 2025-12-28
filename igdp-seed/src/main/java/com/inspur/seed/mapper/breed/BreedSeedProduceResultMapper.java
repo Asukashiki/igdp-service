@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.inspur.seed.domain.breed.BreedSeedProduceResult;
 import com.inspur.seed.dto.breed.BreedSeedProduceResultQueryDTO;
 import com.inspur.seed.vo.breed.BreedSeedProduceResultVO;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -13,8 +14,9 @@ import java.util.List;
  *
  * @author igdp
  */
+@Mapper
 public interface BreedSeedProduceResultMapper extends BaseMapper<BreedSeedProduceResult> {
-    
+
     /**
      * Query Result List
      *
@@ -30,4 +32,6 @@ public interface BreedSeedProduceResultMapper extends BaseMapper<BreedSeedProduc
      * @return result vo
      */
     BreedSeedProduceResultVO getResultById(@Param("resultId") String resultId);
+
+    BreedSeedProduceResultVO getResultByProduceBatchId(@Param("produceBatchId") String produceBatchId);
 }

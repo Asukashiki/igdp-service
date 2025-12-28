@@ -20,7 +20,7 @@
     </resultMap>
 
     <sql id="selectResultVo">
-        select r.result_id, r.produce_batch_id, r.produced_amount, r.collection_date, r.operator, 
+        select r.result_id, r.produce_batch_id, r.produced_amount, r.collection_date, r.operator,
                r.create_by, r.create_time, r.update_by, r.update_time,
                p.produce_batch_name, p.variety_name, p.breed_batch_name
         from breed_seed_produce_result r
@@ -36,10 +36,15 @@
         </where>
         order by r.create_time desc
     </select>
-    
+
     <select id="getResultById" parameterType="String" resultMap="BreedSeedProduceResultResult">
         <include refid="selectResultVo"/>
         where r.result_id = #{resultId}
     </select>
-    
+
+    <select id="getResultByProduceBatchId" parameterType="String" resultMap="BreedSeedProduceResultResult">
+        <include refid="selectResultVo"/>
+        where r.produce_batch_id = #{produceBatchId}
+    </select>
+
 </mapper>
