@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.breed.BreedSeedDistributeDetailMapper">
+<mapper namespace="com.inspur.seed.breeding.seedDistribution.mapper.BreedSeedDistributeDetailMapper">
 
-    <resultMap id="DistributeDetailVOResult" type="com.inspur.seed.vo.breed.BreedSeedDistributeVO$DistributeDetailVO">
+    <resultMap id="DistributeDetailVOResult" type="com.inspur.seed.breeding.seedDistribution.domain.vo.BreedSeedDistributeVO$DistributeDetailVO">
         <id property="distributeDetailId" column="distribute_detail_id"/>
         <result property="produceBatchId" column="produce_batch_id"/>
         <result property="produceBatchName" column="produce_batch_name"/>

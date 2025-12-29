@@ -1,7 +1,6 @@
 package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -12,13 +11,13 @@ import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.dto.AgronomicTraitAuditDTO;
 import com.inspur.seed.domain.dto.AgronomicTraitAuditQueryDTO;
-import com.inspur.seed.domain.AgronomicTraitAudit;
-import com.inspur.seed.domain.entity.AgronomicTraitRecord;
+import com.inspur.seed.breeding.agronomicTrait.domain.entity.AgronomicTraitAudit;
+import com.inspur.seed.breeding.agronomicTrait.domain.entity.AgronomicTraitRecord;
 
 import com.inspur.seed.domain.vo.AgronomicTraitAuditVO;
-import com.inspur.seed.mapper.AgronomicTraitAuditMapper;
-import com.inspur.seed.mapper.AgronomicTraitRecordMapper;
-import com.inspur.seed.service.IBreedingBatchService;
+import com.inspur.seed.breeding.agronomicTrait.mapper.AgronomicTraitAuditMapper;
+import com.inspur.seed.breeding.agronomicTrait.mapper.AgronomicTraitRecordMapper;
+import com.inspur.seed.breeding.breedingBatch.service.IBreedingBatchService;
 import com.inspur.seed.service.IAgronomicTraitAuditService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

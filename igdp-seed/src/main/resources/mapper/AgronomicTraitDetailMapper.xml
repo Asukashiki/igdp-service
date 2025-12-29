@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.AgronomicTraitDetailMapper">
+<mapper namespace="com.inspur.seed.breeding.agronomicTrait.mapper.AgronomicTraitDetailMapper">
 
     <!-- 根据主记录ID查询明细列表 -->
-    <select id="selectDetailsByRecordId" resultType="com.inspur.seed.domain.entity.AgronomicTraitDetail">
+    <select id="selectDetailsByRecordId" resultType="com.inspur.seed.breeding.agronomicTrait.domain.entity.AgronomicTraitDetail">
         SELECT * FROM agronomic_trait_detail
         WHERE record_id = #{recordId} AND is_deleted = 0
         ORDER BY sort_order ASC, create_time ASC

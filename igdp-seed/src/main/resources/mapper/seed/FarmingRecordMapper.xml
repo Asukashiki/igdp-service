@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.FarmingRecordMapper">
+<mapper namespace="com.inspur.seed.breeding.farming.mapper.FarmingRecordMapper">
 
-    <resultMap type="com.inspur.seed.domain.FarmingRecord" id="FarmingRecordResult">
+    <resultMap type="com.inspur.seed.breeding.farming.domain.entity.FarmingRecord" id="FarmingRecordResult">
         <id property="farmingId" column="farming_id"/>
         <result property="farmingRecordId" column="farming_record_id"/>
         <result property="plotId" column="plot_id"/>
@@ -35,7 +35,7 @@
         from farming_record f
     </sql>
 
-    <select id="selectFarmingRecordList" parameterType="com.inspur.seed.domain.FarmingRecord" resultMap="FarmingRecordResult">
+    <select id="selectFarmingRecordList" parameterType="com.inspur.seed.breeding.farming.domain.entity.FarmingRecord" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
         <where>
             f.is_deleted = 0
@@ -86,7 +86,7 @@
     </select>
 
     <select id="getIrrigationCountByPlot" resultType="map">
-        SELECT 
+        SELECT
             plot_id as plotId,
             COUNT(*) as count
         FROM farming_record

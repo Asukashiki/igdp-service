@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.AgronomicTraitMapper">
+<mapper namespace="com.inspur.seed.breeding.agronomicTrait.mapper.AgronomicTraitMapper">
 
-    <resultMap type="com.inspur.seed.domain.AgronomicTrait" id="AgronomicTraitResult">
+    <resultMap type="com.inspur.seed.breeding.agronomicTrait.domain.entity.AgronomicTrait" id="AgronomicTraitResult">
         <id property="traitId" column="trait_id"/>
         <result property="batchId" column="batch_id"/>
         <result property="trialId" column="trial_id"/>
@@ -34,7 +34,7 @@
 
     </sql>
 
-    <select id="selectAgronomicTraitList" parameterType="com.inspur.seed.domain.AgronomicTrait" resultMap="AgronomicTraitResult">
+    <select id="selectAgronomicTraitList" parameterType="com.inspur.seed.breeding.agronomicTrait.domain.entity.AgronomicTrait" resultMap="AgronomicTraitResult">
         <include refid="selectAgronomicTraitVo"/>
         <where>
             a.is_deleted = 0

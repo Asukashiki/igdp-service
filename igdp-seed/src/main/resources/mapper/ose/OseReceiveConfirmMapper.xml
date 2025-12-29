@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.ose.OseReceiveConfirmMapper">
+<mapper namespace="com.inspur.seed.multiplication.oseReceive.mapper.OseReceiveConfirmMapper">
 
-    <resultMap id="OseReceiveConfirmVOResult" type="com.inspur.seed.vo.ose.OseReceiveConfirmVO">
+    <resultMap id="OseReceiveConfirmVOResult" type="com.inspur.seed.multiplication.oseReceive.domain.vo.OseReceiveConfirmVO">
         <id property="receiveConfirmId" column="receive_confirm_id"/>
         <result property="distributeId" column="distribute_id"/>
         <result property="oseId" column="ose_id"/>
@@ -13,15 +13,15 @@
         <result property="remark" column="remark"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
-        <association property="distributeDetail" javaType="com.inspur.seed.vo.ose.OseReceiveConfirmVO$DistributeDetailWrapper">
+        <association property="distributeDetail" javaType="com.inspur.seed.multiplication.oseReceive.domain.vo.OseReceiveConfirmVO$DistributeDetailWrapper">
             <result property="totalDistributeQuantity" column="total_distribute_quantity"/>
-            <collection property="detailList" ofType="com.inspur.seed.vo.ose.OseReceiveConfirmVO$DetailItem"
+            <collection property="detailList" ofType="com.inspur.seed.multiplication.oseReceive.domain.vo.OseReceiveConfirmVO$DetailItem"
                         column="distribute_id" select="selectDistributeDetailList"/>
         </association>
     </resultMap>
 
     <select id="selectReceiveConfirmById" resultMap="OseReceiveConfirmVOResult">
-        SELECT 
+        SELECT
             rc.receive_confirm_id,
             rc.distribute_id,
             rc.ose_id,
@@ -39,7 +39,7 @@
         WHERE rc.receive_confirm_id = #{receiveConfirmId}
     </select>
 
-    <select id="selectDistributeDetailList" resultType="com.inspur.seed.vo.ose.OseReceiveConfirmVO$DetailItem">
+    <select id="selectDistributeDetailList" resultType="com.inspur.seed.multiplication.oseReceive.domain.vo.OseReceiveConfirmVO$DetailItem">
         SELECT
             d.produce_batch_id AS breedSeedProduceBatchId,
             d.variety_name AS varietyName,
