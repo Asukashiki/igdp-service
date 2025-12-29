@@ -15,6 +15,7 @@ import com.inspur.agriculture.input.vo.registration.OrgRegistrationDetailVO;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.DateUtils;
 import com.inspur.common.utils.SecurityUtils;
+import com.inspur.farmland.mapper.PubUserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -77,7 +78,8 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
 
     @Autowired
     private AuditLogMapper auditLogMapper;
-
+    @Autowired
+    private PubUserMapper pubUserMapper;
     /**
      * 用户中心注册接口地址
      */
@@ -265,7 +267,11 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
         if (StringUtils.hasText(excludeId)) {
             wrapper.ne(OrgRegistration::getId, excludeId);
         }
-        return orgRegistrationMapper.selectCount(wrapper) == 0;
+        if (orgRegistrationMapper.selectCount(wrapper) == 0){
+            return pubUserMapper.CheckUser(username) == 0;
+        }else{
+            return false;
+        }
     }
 
     /**

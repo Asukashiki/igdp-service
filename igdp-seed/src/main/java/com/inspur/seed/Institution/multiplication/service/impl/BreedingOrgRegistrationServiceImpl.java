@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.inspur.farmland.mapper.PubUserMapper;
 import com.inspur.seed.Institution.multiplication.domain.entity.BreedingAuditLog;
 import com.inspur.seed.Institution.multiplication.domain.entity.BreedingOrgRegistration;
 import com.inspur.seed.Institution.multiplication.domain.dto.BreedingOrgRegistrationDTO;
@@ -61,6 +62,9 @@ public class BreedingOrgRegistrationServiceImpl extends ServiceImpl<BreedingOrgR
     private String userCenterRegisterUrl;
 
     private RestTemplate restTemplate;
+
+    @Autowired
+    private PubUserMapper pubUserMapper;
 
     @PostConstruct
     public void init() {
@@ -222,7 +226,11 @@ public class BreedingOrgRegistrationServiceImpl extends ServiceImpl<BreedingOrgR
         if (StringUtils.hasText(excludeId)) {
             wrapper.ne(BreedingOrgRegistration::getId, excludeId);
         }
-        return breedingOrgRegistrationMapper.selectCount(wrapper) == 0;
+        if (breedingOrgRegistrationMapper.selectCount(wrapper) == 0){
+            return pubUserMapper.CheckUser(username) == 0;
+        }else{
+            return false;
+        }
     }
 
     private void validateRegistrationDTO(BreedingOrgRegistrationDTO dto) {

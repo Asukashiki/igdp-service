@@ -3,10 +3,13 @@ package com.inspur.farmland.service.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.farmland.domain.DaInfo;
+import com.inspur.farmland.domain.PubUser;
 import com.inspur.farmland.mapper.DaInfoMapper;
+import com.inspur.farmland.mapper.PubUserMapper;
 import com.inspur.farmland.service.IDaInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +45,9 @@ public class DaInfoServiceImpl implements IDaInfoService {
     @Autowired
     private DaInfoMapper daInfoMapper;
 
+    @Autowired
+    private PubUserMapper pubUserMapper;
+
     /**
      * 用户中心注册接口地址
      */
@@ -55,21 +61,26 @@ public class DaInfoServiceImpl implements IDaInfoService {
         this.restTemplate = new RestTemplate();
     }
 
-
     @Override
     public List<DaInfo> selectDaInfoList(DaInfo daInfo) {
         LambdaQueryWrapper<DaInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DaInfo::getStatus, "1"); // 只查询未删除的数据
-
         // 条件查询
-        if (StrUtil.isNotBlank(daInfo.getDaName())) {
-            wrapper.like(DaInfo::getDaName, daInfo.getDaName());
-        }
-        if (StrUtil.isNotBlank(daInfo.getDaId())) {
-            wrapper.eq(DaInfo::getDaId, daInfo.getDaId());
-        }
-        if (StrUtil.isNotBlank(daInfo.getPhone())) {
-            wrapper.like(DaInfo::getPhone, daInfo.getPhone());
+        // 关键字模糊查询 (同时匹配DA姓名、ID、电话)
+        if (StrUtil.isNotBlank(daInfo.getSearchValue())) {
+            wrapper.and(w -> w.like(DaInfo::getDaName, daInfo.getSearchValue())
+                    .or().like(DaInfo::getDaId, daInfo.getSearchValue())
+                    .or().like(DaInfo::getPhone, daInfo.getSearchValue()));
+        } else {
+            if (StrUtil.isNotBlank(daInfo.getDaName())) {
+                wrapper.like(DaInfo::getDaName, daInfo.getDaName());
+            }
+            if (StrUtil.isNotBlank(daInfo.getDaId())) {
+                wrapper.eq(DaInfo::getDaId, daInfo.getDaId());
+            }
+            if (StrUtil.isNotBlank(daInfo.getPhone())) {
+                wrapper.like(DaInfo::getPhone, daInfo.getPhone());
+            }
         }
         if (StrUtil.isNotBlank(daInfo.getWoredaCode())) {
             wrapper.eq(DaInfo::getWoredaCode, daInfo.getWoredaCode());
@@ -88,8 +99,14 @@ public class DaInfoServiceImpl implements IDaInfoService {
     public DaInfo selectDaInfoByDaId(String daId) {
         LambdaQueryWrapper<DaInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DaInfo::getDaId, daId)
-               .eq(DaInfo::getStatus, "1");
-        return daInfoMapper.selectOne(wrapper);
+                .eq(DaInfo::getStatus, "1");
+        DaInfo daInfo = daInfoMapper.selectOne(wrapper);
+        if (daInfo != null) {
+            daInfo.setFarmerCount(daInfoMapper.selectFarmerCountByDaId(daId));
+            daInfo.setLandCount(daInfoMapper.selectLandCountByDaId(daId));
+            daInfo.setLandArea(daInfoMapper.selectLandAreaByDaId(daId));
+        }
+        return daInfo;
     }
 
     @Override
@@ -145,7 +162,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
         // 更新数据
         LambdaUpdateWrapper<DaInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(DaInfo::getDaId, daId)
-               .eq(DaInfo::getStatus, "1");
+                .eq(DaInfo::getStatus, "1");
 
         return daInfoMapper.update(daInfo, wrapper);
     }
@@ -156,9 +173,9 @@ public class DaInfoServiceImpl implements IDaInfoService {
         // 逻辑删除
         LambdaUpdateWrapper<DaInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(DaInfo::getDaId, daId)
-               .eq(DaInfo::getStatus, "1")
-               .set(DaInfo::getStatus, "0")
-               .set(DaInfo::getAccountStatus, "0"); // 同时禁用账号
+                .eq(DaInfo::getStatus, "1")
+                .set(DaInfo::getStatus, "0")
+                .set(DaInfo::getAccountStatus, "0"); // 同时禁用账号
 
         try {
             String username = SecurityUtils.getUsername();
@@ -173,17 +190,25 @@ public class DaInfoServiceImpl implements IDaInfoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int updateAccountStatus(String daId, String accountStatus) {
+        QueryWrapper<DaInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("da_id",daId);
+        DaInfo daInfo = daInfoMapper.selectOne(queryWrapper);
+        String account = daInfo.getAccount();
         LambdaUpdateWrapper<DaInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(DaInfo::getDaId, daId)
-               .eq(DaInfo::getStatus, "1")
-               .set(DaInfo::getAccountStatus, accountStatus);
-
+                .set(DaInfo::getAccountStatus, accountStatus);
+        LambdaUpdateWrapper<PubUser> wrapper2 = new LambdaUpdateWrapper<>();
+        wrapper2.eq(PubUser::getAccount,account).
+                set(PubUser::getStatus,accountStatus);
         try {
             String username = SecurityUtils.getUsername();
             wrapper.set(DaInfo::getUpdateBy, username);
         } catch (Exception e) {
             wrapper.set(DaInfo::getUpdateBy, "system");
         }
+
+        //syn to auth
+        pubUserMapper.update(null,wrapper2);
 
         return daInfoMapper.update(null, wrapper);
     }
@@ -196,8 +221,8 @@ public class DaInfoServiceImpl implements IDaInfoService {
 
         LambdaUpdateWrapper<DaInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(DaInfo::getDaId, daId)
-               .eq(DaInfo::getStatus, "1")
-               .set(DaInfo::getPassword, encodedPassword);
+                .eq(DaInfo::getStatus, "1")
+                .set(DaInfo::getPassword, encodedPassword);
 
         try {
             String username = SecurityUtils.getUsername();
@@ -213,8 +238,8 @@ public class DaInfoServiceImpl implements IDaInfoService {
     public List<Map<String, Object>> selectDaOptions(String kebeleCode) {
         LambdaQueryWrapper<DaInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DaInfo::getStatus, "1")
-               .eq(DaInfo::getAccountStatus, "1") // 只显示启用的账号
-               .select(DaInfo::getDaId, DaInfo::getDaName, DaInfo::getPhone);
+                .eq(DaInfo::getAccountStatus, "1") // 只显示启用的账号
+                .select(DaInfo::getDaId, DaInfo::getDaName, DaInfo::getPhone);
 
         // 如果指定了村代码，筛选负责该村的DA
         if (StrUtil.isNotBlank(kebeleCode)) {
@@ -240,7 +265,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
     public boolean checkDaIdUnique(String daId) {
         LambdaQueryWrapper<DaInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DaInfo::getDaId, daId)
-               .eq(DaInfo::getStatus, "1");
+                .eq(DaInfo::getStatus, "1");
         return daInfoMapper.selectCount(wrapper) == 0;
     }
 
@@ -248,7 +273,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
     public boolean checkIdCardUnique(String idCard, String daId) {
         LambdaQueryWrapper<DaInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DaInfo::getIdCard, idCard)
-               .eq(DaInfo::getStatus, "1");
+                .eq(DaInfo::getStatus, "1");
 
         // 修改时排除自己
         if (StrUtil.isNotBlank(daId)) {
@@ -262,7 +287,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
     public boolean checkAccountUnique(String account, String daId) {
         LambdaQueryWrapper<DaInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DaInfo::getAccount, account)
-               .eq(DaInfo::getStatus, "1");
+                .eq(DaInfo::getStatus, "1");
 
         // 修改时排除自己
         if (StrUtil.isNotBlank(daId)) {
@@ -307,8 +332,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
                     userCenterRegisterUrl,
                     HttpMethod.POST,
                     entity,
-                    Object.class
-            );
+                    Object.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("DA用户同步到用户中心成功: account={}", daInfo.getAccount());
