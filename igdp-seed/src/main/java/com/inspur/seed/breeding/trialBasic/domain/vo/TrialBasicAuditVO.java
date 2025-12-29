@@ -1,4 +1,4 @@
-package com.inspur.seed.domain.vo;
+package com.inspur.seed.breeding.trialBasic.domain.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

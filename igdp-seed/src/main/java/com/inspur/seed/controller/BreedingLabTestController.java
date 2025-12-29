@@ -4,8 +4,8 @@ import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.seed.domain.dto.BreedingLabTestDTO;
 import com.inspur.seed.domain.vo.BreedingLabTestVO;
 import com.inspur.seed.service.IBreedingLabTestService;
-import com.inspur.seed.service.IBreedingBatchService;
-import com.inspur.seed.service.ITrialBasicService;
+import com.inspur.seed.breeding.breedingBatch.service.IBreedingBatchService;
+import com.inspur.seed.breeding.trialBasic.service.ITrialBasicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,11 +1,11 @@
-package com.inspur.seed.controller;
+package com.inspur.seed.breeding.trialBasic.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
-import com.inspur.seed.domain.dto.TrialBasicAuditDTO;
-import com.inspur.seed.domain.vo.TrialBasicAuditVO;
-import com.inspur.seed.service.ITrialBasicAuditService;
+import com.inspur.seed.breeding.trialBasic.domain.dto.TrialBasicAuditDTO;
+import com.inspur.seed.breeding.trialBasic.domain.vo.TrialBasicAuditVO;
+import com.inspur.seed.breeding.trialBasic.service.ITrialBasicAuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

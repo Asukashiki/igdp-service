@@ -1,26 +1,24 @@
-package com.inspur.seed.service.impl;
+package com.inspur.seed.breeding.breedingBatch.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.MessageUtils;
 import com.inspur.common.utils.SecurityUtils;
-import com.inspur.seed.domain.BreedingBatch;
+import com.inspur.seed.breeding.breedingBatch.domain.entity.BreedingBatch;
 import com.inspur.seed.domain.dto.BreedingBatchDTO;
 import com.inspur.seed.domain.entity.ApprovalComment;
 import com.inspur.seed.domain.vo.BreedingBatchDetailVO;
-import com.inspur.seed.mapper.BreedingBatchMapper;
+import com.inspur.seed.breeding.breedingBatch.mapper.BreedingBatchMapper;
 import com.inspur.seed.service.IApprovalCommentService;
-import com.inspur.seed.service.IBreedingBatchService;
+import com.inspur.seed.breeding.breedingBatch.service.IBreedingBatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 

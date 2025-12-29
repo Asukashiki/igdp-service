@@ -1,4 +1,4 @@
-package com.inspur.seed.domain.dto;
+package com.inspur.seed.breeding.trialBasic.domain.dto;
 
 import lombok.Data;
 

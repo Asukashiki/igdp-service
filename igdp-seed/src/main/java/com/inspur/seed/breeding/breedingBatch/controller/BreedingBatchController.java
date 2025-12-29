@@ -1,11 +1,11 @@
-package com.inspur.seed.controller;
+package com.inspur.seed.breeding.breedingBatch.controller;
 
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.page.TableDataInfo;
-import com.inspur.seed.domain.BreedingBatch;
+import com.inspur.seed.breeding.breedingBatch.domain.entity.BreedingBatch;
 import com.inspur.seed.domain.dto.BreedingBatchDTO;
-import com.inspur.seed.service.IBreedingBatchService;
+import com.inspur.seed.breeding.breedingBatch.service.IBreedingBatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

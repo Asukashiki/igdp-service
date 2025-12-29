@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.breeding.trialBasic.service.ITrialBasicService;
 import com.inspur.seed.domain.dto.LaboratoryTestDataDTO;
 import com.inspur.seed.domain.entity.LaboratoryTestData;
 import com.inspur.seed.domain.vo.LaboratoryTestDataVO;
@@ -230,13 +231,13 @@ public class LaboratoryTestDataServiceImpl extends ServiceImpl<LaboratoryTestDat
         entity.setUpdateTime(LocalDateTime.now());
 
         boolean updateSuccess = this.updateById(entity);
-        
+
         // 审核通过后，检查该试验是否所有实验室测试数据都已审核通过
         // 如果是，则将试验状态更新为已完成(02)
         if (updateSuccess && cn.hutool.core.util.StrUtil.isNotBlank(entity.getTrialId())) {
             try {
-                com.inspur.seed.service.ITrialBasicService trialBasicService = 
-                    com.inspur.common.utils.spring.SpringUtils.getBean(com.inspur.seed.service.ITrialBasicService.class);
+                ITrialBasicService trialBasicService =
+                    com.inspur.common.utils.spring.SpringUtils.getBean(ITrialBasicService.class);
                 trialBasicService.checkAndUpdateTrialCompletionStatus(entity.getTrialId());
                 log.info("实验室测试数据审核通过后，已检查试验完成状态, trialId: {}", entity.getTrialId());
             } catch (Exception e) {

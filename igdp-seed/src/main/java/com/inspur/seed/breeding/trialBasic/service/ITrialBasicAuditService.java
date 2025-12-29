@@ -1,10 +1,10 @@
-package com.inspur.seed.service;
+package com.inspur.seed.breeding.trialBasic.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.inspur.seed.domain.dto.TrialBasicAuditDTO;
-import com.inspur.seed.domain.entity.TrialBasicAudit;
-import com.inspur.seed.domain.vo.TrialBasicAuditVO;
+import com.inspur.seed.breeding.trialBasic.domain.dto.TrialBasicAuditDTO;
+import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasicAudit;
+import com.inspur.seed.breeding.trialBasic.domain.vo.TrialBasicAuditVO;
 
 /**
  * 试验基础信息审核Service接口

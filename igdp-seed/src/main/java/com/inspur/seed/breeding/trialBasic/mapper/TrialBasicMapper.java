@@ -1,7 +1,7 @@
-package com.inspur.seed.mapper;
+package com.inspur.seed.breeding.trialBasic.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.inspur.seed.domain.TrialBasic;
+import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasic;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

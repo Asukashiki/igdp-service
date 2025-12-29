@@ -1,7 +1,7 @@
-package com.inspur.seed.service;
+package com.inspur.seed.breeding.breedingBatch.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.inspur.seed.domain.BreedingBatch;
+import com.inspur.seed.breeding.breedingBatch.domain.entity.BreedingBatch;
 import com.inspur.seed.domain.dto.BreedingBatchDTO;
 import com.inspur.seed.domain.vo.BreedingBatchDetailVO;
 

@@ -1,6 +1,6 @@
-package com.inspur.seed.service;
+package com.inspur.seed.breeding.trialBasic.service;
 
-import com.inspur.seed.domain.TrialBasic;
+import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasic;
 
 import java.util.List;
 

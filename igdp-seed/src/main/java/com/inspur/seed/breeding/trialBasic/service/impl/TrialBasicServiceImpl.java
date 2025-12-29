@@ -1,14 +1,16 @@
-package com.inspur.seed.service.impl;
+package com.inspur.seed.breeding.trialBasic.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.MessageUtils;
 import com.inspur.common.utils.SecurityUtils;
-import com.inspur.seed.domain.TrialBasic;
+import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasic;
+import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasicAudit;
+import com.inspur.seed.breeding.trialBasic.mapper.TrialBasicAuditMapper;
 import com.inspur.seed.domain.TrialPlotRelation;
-import com.inspur.seed.mapper.TrialBasicMapper;
+import com.inspur.seed.breeding.trialBasic.mapper.TrialBasicMapper;
 import com.inspur.seed.mapper.TrialPlotRelationMapper;
-import com.inspur.seed.service.ITrialBasicService;
+import com.inspur.seed.breeding.trialBasic.service.ITrialBasicService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,7 +38,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
     private TrialPlotRelationMapper trialPlotRelationMapper;
 
     @Autowired
-    private com.inspur.seed.mapper.TrialBasicAuditMapper trialBasicAuditMapper;
+    private TrialBasicAuditMapper trialBasicAuditMapper;
 
     @Autowired
     private com.inspur.seed.mapper.TrialBasicAuditHistoryMapper trialBasicAuditHistoryMapper;
@@ -210,12 +212,12 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         trialBasicMapper.updateById(trial);
 
         // 5. 创建或更新审核记录
-        com.inspur.seed.domain.entity.TrialBasicAudit audit = null;
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.TrialBasicAudit> queryWrapper =
+        TrialBasicAudit audit = null;
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<TrialBasicAudit> queryWrapper =
             new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        queryWrapper.eq(com.inspur.seed.domain.entity.TrialBasicAudit::getTrialId, trialId)
-                .eq(com.inspur.seed.domain.entity.TrialBasicAudit::getDeleted, "0")
-                .orderByDesc(com.inspur.seed.domain.entity.TrialBasicAudit::getSubmitTime)
+        queryWrapper.eq(TrialBasicAudit::getTrialId, trialId)
+                .eq(TrialBasicAudit::getDeleted, "0")
+                .orderByDesc(TrialBasicAudit::getSubmitTime)
                 .last("LIMIT 1");
         audit = trialBasicAuditMapper.selectOne(queryWrapper);
 
@@ -235,7 +237,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
             trialBasicAuditMapper.updateById(audit);
         } else {
             // 首次提交，创建新审核记录
-            audit = new com.inspur.seed.domain.entity.TrialBasicAudit();
+            audit = new TrialBasicAudit();
             audit.setAuditId(IdUtil.simpleUUID());
             audit.setTrialId(trial.getTrialId());
             audit.setBatchId(trial.getBatchId());
@@ -307,11 +309,11 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         trialBasicMapper.updateById(trial);
 
         // 6. 如果存在审核记录，也需要标记
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.TrialBasicAudit> queryWrapper =
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<TrialBasicAudit> queryWrapper =
             new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        queryWrapper.eq(com.inspur.seed.domain.entity.TrialBasicAudit::getTrialId, trialId)
-                .eq(com.inspur.seed.domain.entity.TrialBasicAudit::getDeleted, "0");
-        com.inspur.seed.domain.entity.TrialBasicAudit audit = trialBasicAuditMapper.selectOne(queryWrapper);
+        queryWrapper.eq(TrialBasicAudit::getTrialId, trialId)
+                .eq(TrialBasicAudit::getDeleted, "0");
+        TrialBasicAudit audit = trialBasicAuditMapper.selectOne(queryWrapper);
 
         if (audit != null) {
             // 记录审核历史
@@ -363,13 +365,13 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         trialBasicMapper.updateById(trial);
 
         // 5. 记录审核历史
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.TrialBasicAudit> queryWrapper =
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<TrialBasicAudit> queryWrapper =
             new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        queryWrapper.eq(com.inspur.seed.domain.entity.TrialBasicAudit::getTrialId, trialId)
-                .eq(com.inspur.seed.domain.entity.TrialBasicAudit::getDeleted, "0")
-                .orderByDesc(com.inspur.seed.domain.entity.TrialBasicAudit::getSubmitTime)
+        queryWrapper.eq(TrialBasicAudit::getTrialId, trialId)
+                .eq(TrialBasicAudit::getDeleted, "0")
+                .orderByDesc(TrialBasicAudit::getSubmitTime)
                 .last("LIMIT 1");
-        com.inspur.seed.domain.entity.TrialBasicAudit audit = trialBasicAuditMapper.selectOne(queryWrapper);
+        TrialBasicAudit audit = trialBasicAuditMapper.selectOne(queryWrapper);
 
         if (audit != null) {
             com.inspur.seed.domain.entity.TrialBasicAuditHistory history = new com.inspur.seed.domain.entity.TrialBasicAuditHistory();
@@ -419,9 +421,9 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
                 .eq(com.inspur.seed.domain.entity.LaboratoryTestData::getDelFlag, "0")
                 .eq(com.inspur.seed.domain.entity.LaboratoryTestData::getAuditCanceled, 0);
 
-        com.inspur.seed.mapper.LaboratoryTestDataMapper laboratoryTestDataMapper = 
+        com.inspur.seed.mapper.LaboratoryTestDataMapper laboratoryTestDataMapper =
             com.inspur.common.utils.spring.SpringUtils.getBean(com.inspur.seed.mapper.LaboratoryTestDataMapper.class);
-        
+
         java.util.List<com.inspur.seed.domain.entity.LaboratoryTestData> labDataList = laboratoryTestDataMapper.selectList(queryWrapper);
 
         // 4. 如果没有实验室测试数据，不更新状态

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.TrialBasicMapper">
+<mapper namespace="com.inspur.seed.breeding.trialBasic.mapper.TrialBasicMapper">
 
-    <resultMap type="com.inspur.seed.domain.TrialBasic" id="TrialBasicResult">
+    <resultMap type="com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasic" id="TrialBasicResult">
         <id property="trialId" column="trial_id"/>
         <result property="batchId" column="batch_id"/>
         <result property="trialName" column="trial_name"/>
@@ -56,7 +56,7 @@
         from trial_basic t
     </sql>
 
-    <select id="selectTrialBasicList" parameterType="com.inspur.seed.domain.TrialBasic" resultMap="TrialBasicResult">
+    <select id="selectTrialBasicList" parameterType="com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasic" resultMap="TrialBasicResult">
         <include refid="selectTrialBasicVo"/>
         <where>
             t.is_deleted = 0
