@@ -4,8 +4,12 @@ import cn.hutool.core.util.IdUtil;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.MessageUtils;
 import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.breeding.laboratoryTest.domain.entity.LaboratoryTestData;
+import com.inspur.seed.breeding.laboratoryTest.mapper.LaboratoryTestDataMapper;
 import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasic;
 import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasicAudit;
+import com.inspur.seed.breeding.trialBasic.domain.entity.TrialBasicAuditHistory;
+import com.inspur.seed.breeding.trialBasic.mapper.TrialBasicAuditHistoryMapper;
 import com.inspur.seed.breeding.trialBasic.mapper.TrialBasicAuditMapper;
 import com.inspur.seed.domain.TrialPlotRelation;
 import com.inspur.seed.breeding.trialBasic.mapper.TrialBasicMapper;
@@ -41,7 +45,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
     private TrialBasicAuditMapper trialBasicAuditMapper;
 
     @Autowired
-    private com.inspur.seed.mapper.TrialBasicAuditHistoryMapper trialBasicAuditHistoryMapper;
+    private TrialBasicAuditHistoryMapper trialBasicAuditHistoryMapper;
 
     @Override
     public List<TrialBasic> selectTrialBasicList(TrialBasic trialBasic) {
@@ -256,7 +260,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         }
 
         // 6. 记录审核历史
-        com.inspur.seed.domain.entity.TrialBasicAuditHistory history = new com.inspur.seed.domain.entity.TrialBasicAuditHistory();
+        TrialBasicAuditHistory history = new TrialBasicAuditHistory();
         history.setHistoryId(IdUtil.simpleUUID());
         history.setAuditId(audit.getAuditId());
         history.setTrialId(trial.getTrialId());
@@ -317,7 +321,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
 
         if (audit != null) {
             // 记录审核历史
-            com.inspur.seed.domain.entity.TrialBasicAuditHistory history = new com.inspur.seed.domain.entity.TrialBasicAuditHistory();
+            TrialBasicAuditHistory history = new TrialBasicAuditHistory();
             history.setHistoryId(IdUtil.simpleUUID());
             history.setAuditId(audit.getAuditId());
             history.setTrialId(trial.getTrialId());
@@ -374,7 +378,7 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         TrialBasicAudit audit = trialBasicAuditMapper.selectOne(queryWrapper);
 
         if (audit != null) {
-            com.inspur.seed.domain.entity.TrialBasicAuditHistory history = new com.inspur.seed.domain.entity.TrialBasicAuditHistory();
+            TrialBasicAuditHistory history = new TrialBasicAuditHistory();
             history.setHistoryId(IdUtil.simpleUUID());
             history.setAuditId(audit.getAuditId());
             history.setTrialId(trial.getTrialId());
@@ -415,16 +419,16 @@ public class TrialBasicServiceImpl implements ITrialBasicService {
         }
 
         // 3. 查询该试验下的所有实验室测试数据
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.inspur.seed.domain.entity.LaboratoryTestData> queryWrapper =
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<LaboratoryTestData> queryWrapper =
             new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        queryWrapper.eq(com.inspur.seed.domain.entity.LaboratoryTestData::getTrialId, trialId)
-                .eq(com.inspur.seed.domain.entity.LaboratoryTestData::getDelFlag, "0")
-                .eq(com.inspur.seed.domain.entity.LaboratoryTestData::getAuditCanceled, 0);
+        queryWrapper.eq(LaboratoryTestData::getTrialId, trialId)
+                .eq(LaboratoryTestData::getDelFlag, "0")
+                .eq(LaboratoryTestData::getAuditCanceled, 0);
 
-        com.inspur.seed.mapper.LaboratoryTestDataMapper laboratoryTestDataMapper =
-            com.inspur.common.utils.spring.SpringUtils.getBean(com.inspur.seed.mapper.LaboratoryTestDataMapper.class);
+        LaboratoryTestDataMapper laboratoryTestDataMapper =
+            com.inspur.common.utils.spring.SpringUtils.getBean(LaboratoryTestDataMapper.class);
 
-        java.util.List<com.inspur.seed.domain.entity.LaboratoryTestData> labDataList = laboratoryTestDataMapper.selectList(queryWrapper);
+        java.util.List<LaboratoryTestData> labDataList = laboratoryTestDataMapper.selectList(queryWrapper);
 
         // 4. 如果没有实验室测试数据，不更新状态
         if (labDataList == null || labDataList.isEmpty()) {

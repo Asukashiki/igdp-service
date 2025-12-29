@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.EnvironmentNewDataMapper">
+<mapper namespace="com.inspur.seed.breeding.environment.mapper.EnvironmentNewDataMapper">
 
-    <resultMap type="com.inspur.seed.domain.EnvironmentNewData" id="EnvironmentNewDataResult">
+    <resultMap type="com.inspur.seed.breeding.environment.domain.entity.EnvironmentNewData" id="EnvironmentNewDataResult">
         <id property="envRecordId" column="env_record_id"/>
         <result property="trialId" column="trial_id"/>
         <result property="batchId" column="batch_id"/>
@@ -39,7 +39,7 @@
         left join sys_user u on e.observer_id = u.user_id
     </sql>
 
-    <select id="selectEnvironmentNewDataList" parameterType="com.inspur.seed.domain.EnvironmentNewData" resultMap="EnvironmentNewDataResult">
+    <select id="selectEnvironmentNewDataList" parameterType="com.inspur.seed.breeding.environment.domain.entity.EnvironmentNewData" resultMap="EnvironmentNewDataResult">
         <include refid="selectEnvironmentNewDataVo"/>
         <where>
             e.is_deleted = 0

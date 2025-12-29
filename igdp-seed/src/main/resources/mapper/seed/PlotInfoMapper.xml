@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.PlotInfoMapper">
+<mapper namespace="com.inspur.seed.breeding.plotAndSowing.mapper.PlotInfoMapper">
 
-    <resultMap type="com.inspur.seed.domain.PlotInfo" id="PlotInfoResult">
+    <resultMap type="com.inspur.seed.breeding.plotAndSowing.domain.entity.PlotInfo" id="PlotInfoResult">
         <id property="plotId" column="plot_id"/>
         <result property="trialId" column="trial_id"/>
         <result property="batchId" column="batch_id"/>
@@ -49,15 +49,15 @@
                p.audited_by, p.audited_name, p.audit_time,
                p.create_by, p.update_by, p.is_deleted,
                -- 检查是否有作废审核记录的标记
-               (SELECT COUNT(*) FROM plot_audit_record par 
-                WHERE par.plot_id = p.plot_id 
-                AND par.audit_type = 'CANCEL_AUDIT' 
+               (SELECT COUNT(*) FROM plot_audit_record par
+                WHERE par.plot_id = p.plot_id
+                AND par.audit_type = 'CANCEL_AUDIT'
                 AND par.audit_time > p.audit_time) as audit_canceled
         from plot_info p
 
     </sql>
 
-    <select id="selectPlotInfoList" parameterType="com.inspur.seed.domain.PlotInfo" resultMap="PlotInfoResult">
+    <select id="selectPlotInfoList" parameterType="com.inspur.seed.breeding.plotAndSowing.domain.entity.PlotInfo" resultMap="PlotInfoResult">
         <include refid="selectPlotInfoVo"/>
         <where>
             p.is_deleted = 0

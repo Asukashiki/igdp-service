@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.breed.BreedSeedProduceResultMapper">
+<mapper namespace="com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceResultMapper">
 
-    <resultMap type="com.inspur.seed.vo.breed.BreedSeedProduceResultVO" id="BreedSeedProduceResultResult">
+    <resultMap type="com.inspur.seed.breeding.breederSeed.domain.vo.BreedSeedProduceResultVO" id="BreedSeedProduceResultResult">
         <result property="resultId"    column="result_id"    />
         <result property="produceBatchId"    column="produce_batch_id"    />
         <result property="producedAmount"    column="produced_amount"    />
@@ -27,7 +27,7 @@
         left join breed_seed_produce p on r.produce_batch_id = p.produce_batch_id
     </sql>
 
-    <select id="getResultList" parameterType="com.inspur.seed.dto.breed.BreedSeedProduceResultQueryDTO" resultMap="BreedSeedProduceResultResult">
+    <select id="getResultList" parameterType="com.inspur.seed.breeding.breederSeed.domain.dto.BreedSeedProduceResultQueryDTO" resultMap="BreedSeedProduceResultResult">
         <include refid="selectResultVo"/>
         <where>
             <if test="query.produceBatchName != null  and query.produceBatchName != ''"> and p.produce_batch_name like concat('%', #{query.produceBatchName}, '%')</if>

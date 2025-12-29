@@ -3,8 +3,8 @@ package com.inspur.seed.controller;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.utils.SecurityUtils;
-import com.inspur.seed.domain.FarmingRecord;
-import com.inspur.seed.service.IFarmingRecordService;
+import com.inspur.seed.breeding.farming.domain.entity.FarmingRecord;
+import com.inspur.seed.breeding.farming.service.IFarmingRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,11 +63,11 @@ public class FarmingRecordAuditController extends BaseController {
         if (farmingRecord.getFarmingId() == null || farmingRecord.getFarmingId().trim().isEmpty()) {
             return AjaxResult.error("Farming ID is required");
         }
-        
+
         if (farmingRecord.getWorkflowStatus() == null || farmingRecord.getWorkflowStatus().trim().isEmpty()) {
             return AjaxResult.error("Workflow status is required");
         }
-        
+
         // 验证审核意见是否填写
         if (farmingRecord.getAuditRemark() == null || farmingRecord.getAuditRemark().trim().isEmpty()) {
             return AjaxResult.error("Audit remark is required");
