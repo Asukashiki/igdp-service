@@ -83,8 +83,12 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
     /**
      * 用户中心注册接口地址
      */
-    @Value("${bsp.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
+    @Value("${bsp.center.register.url}")
     private String userCenterRegisterUrl;
+
+    @Value("${bsp.center.register.orgUrl}")
+    private String organRegisterUrl;
+
 
     private RestTemplate restTemplate;
 
@@ -191,6 +195,7 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
 
         // 如果审核通过，同步账号到用户中心
         if (Objects.equals(AUDIT_STATUS_APPROVED, dto.getAuditResult())) {
+            syncOrgToUserCenter(registration);
             syncUserToUserCenter(registration);
         }
     }
@@ -374,6 +379,49 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
             }
         } catch (Exception e) {
             log.error("用户同步到用户中心异常: account={}", registration.getApplyUsername(), e);
+            // 不抛出异常，避免影响审核流程。可根据业务需求调整
+        }
+    }
+
+    private void syncOrgToUserCenter(OrgRegistration registration) {
+        try {
+            // 构建请求体
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("regionCode", registration.getRegionCode());
+            requestBody.put("regionName", registration.getRegionName() != null ? registration.getRegionName() : "");
+            // 添加 orgCode 和 orgName，值与 regionCode 和 regionName 相同
+            requestBody.put("code", registration.getUnifiedCode());
+            requestBody.put("name", registration.getOrgName() != null ? registration.getOrgName() : "");
+
+            // 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            // 调用用户中心注册接口（API 可能返回 true/false 或 Map）
+            ResponseEntity<Object> response = restTemplate.exchange(
+                    organRegisterUrl,
+                    HttpMethod.POST,
+                    entity,
+                    Object.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                Object body = response.getBody();
+                // 处理不同的返回类型：可能是 Boolean 或 Map
+                if (body instanceof Boolean && Boolean.TRUE.equals(body)) {
+                    log.info("组织同步到用户中心成功: orgName={}", registration.getOrgName());
+                } else if (body instanceof Map) {
+                    log.info("组织同步到用户中心成功: orgName={}, response={}", registration.getOrgName(), body);
+                } else {
+                    log.warn("组织同步到用户中心返回未知格式: orgName={}, response={}", registration.getOrgName(), body);
+                }
+            } else {
+                log.error("组织同步到用户中心失败: orgName={}, status={}", registration.getOrgName(), response.getStatusCode());
+            }
+        } catch (Exception e) {
+            log.error("组织同步到用户中心异常: orgName={}", registration.getOrgName(), e);
             // 不抛出异常，避免影响审核流程。可根据业务需求调整
         }
     }
