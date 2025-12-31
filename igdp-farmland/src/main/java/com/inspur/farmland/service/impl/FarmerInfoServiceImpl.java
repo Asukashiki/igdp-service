@@ -40,20 +40,27 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         wrapper.eq(FarmerInfo::getStatus, "1");
 
         // 条件查询
-        if (StrUtil.isNotBlank(farmerInfo.getFarmerName())) {
-            wrapper.like(FarmerInfo::getFarmerName, farmerInfo.getFarmerName());
-        }
-        if (StrUtil.isNotBlank(farmerInfo.getFarmerId())) {
-            wrapper.eq(FarmerInfo::getFarmerId, farmerInfo.getFarmerId());
-        }
-        if (StrUtil.isNotBlank(farmerInfo.getIdCard())) {
-            wrapper.eq(FarmerInfo::getIdCard, farmerInfo.getIdCard());
-        }
-        if (StrUtil.isNotBlank(farmerInfo.getGender())) {
-            wrapper.eq(FarmerInfo::getGender, farmerInfo.getGender());
-        }
-        if (StrUtil.isNotBlank(farmerInfo.getPhone())) {
-            wrapper.like(FarmerInfo::getPhone, farmerInfo.getPhone());
+        // 关键字模糊查询 (同时匹配农民姓名、ID、电话)
+        if (StrUtil.isNotBlank(farmerInfo.getSearchValue())) {
+            wrapper.and(w -> w.like(FarmerInfo::getFarmerName, farmerInfo.getSearchValue())
+                    .or().like(FarmerInfo::getIdCard, farmerInfo.getSearchValue())
+                    .or().like(FarmerInfo::getPhone, farmerInfo.getSearchValue()));
+        } else {
+            if (StrUtil.isNotBlank(farmerInfo.getFarmerName())) {
+                wrapper.like(FarmerInfo::getFarmerName, farmerInfo.getFarmerName());
+            }
+            if (StrUtil.isNotBlank(farmerInfo.getFarmerId())) {
+                wrapper.eq(FarmerInfo::getFarmerId, farmerInfo.getFarmerId());
+            }
+            if (StrUtil.isNotBlank(farmerInfo.getIdCard())) {
+                wrapper.eq(FarmerInfo::getIdCard, farmerInfo.getIdCard());
+            }
+            if (StrUtil.isNotBlank(farmerInfo.getGender())) {
+                wrapper.eq(FarmerInfo::getGender, farmerInfo.getGender());
+            }
+            if (StrUtil.isNotBlank(farmerInfo.getPhone())) {
+                wrapper.like(FarmerInfo::getPhone, farmerInfo.getPhone());
+            }
         }
         if (StrUtil.isNotBlank(farmerInfo.getKebeleName())) {
             wrapper.like(FarmerInfo::getKebeleName, farmerInfo.getKebeleName());
@@ -72,7 +79,7 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
     public FarmerInfo selectFarmerInfoByFarmerId(String farmerId) {
         LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FarmerInfo::getFarmerId, farmerId)
-               .eq(FarmerInfo::getStatus, "1");
+                .eq(FarmerInfo::getStatus, "1");
         return farmerInfoMapper.selectOne(wrapper);
     }
 
@@ -126,7 +133,7 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         // 更新数据
         LambdaUpdateWrapper<FarmerInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(FarmerInfo::getFarmerId, farmerId)
-               .eq(FarmerInfo::getStatus, "1");
+                .eq(FarmerInfo::getStatus, "1");
 
         return farmerInfoMapper.update(farmerInfo, wrapper);
     }
@@ -137,18 +144,18 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         // 解除关联的土地
         LambdaUpdateWrapper<LandInfo> landWrapper = new LambdaUpdateWrapper<>();
         landWrapper.eq(LandInfo::getFarmerId, farmerId)
-                   .eq(LandInfo::getStatus, "1")
-                   .set(LandInfo::getFarmerId, null)
-                   .set(LandInfo::getFarmerName, null)
-                   .set(LandInfo::getFarmerIdCard, null)
-                   .set(LandInfo::getFarmerPhone, null);
+                .eq(LandInfo::getStatus, "1")
+                .set(LandInfo::getFarmerId, null)
+                .set(LandInfo::getFarmerName, null)
+                .set(LandInfo::getFarmerIdCard, null)
+                .set(LandInfo::getFarmerPhone, null);
         landInfoMapper.update(null, landWrapper);
 
         // 逻辑删除农民
         LambdaUpdateWrapper<FarmerInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(FarmerInfo::getFarmerId, farmerId)
-               .eq(FarmerInfo::getStatus, "1")
-               .set(FarmerInfo::getStatus, "0");
+                .eq(FarmerInfo::getStatus, "1")
+                .set(FarmerInfo::getStatus, "0");
 
         try {
             String username = SecurityUtils.getUsername();
@@ -189,8 +196,8 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
     public List<Map<String, Object>> selectFarmerOptions(String kebeleCode, String keyword) {
         LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FarmerInfo::getStatus, "1")
-               .select(FarmerInfo::getFarmerId, FarmerInfo::getFarmerName,
-                       FarmerInfo::getIdCard, FarmerInfo::getPhone);
+                .select(FarmerInfo::getFarmerId, FarmerInfo::getFarmerName,
+                        FarmerInfo::getIdCard, FarmerInfo::getPhone);
 
         // 村代码筛选
         if (StrUtil.isNotBlank(kebeleCode)) {
@@ -200,8 +207,8 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         // 关键词搜索
         if (StrUtil.isNotBlank(keyword)) {
             wrapper.and(w -> w.like(FarmerInfo::getFarmerName, keyword)
-                             .or()
-                             .like(FarmerInfo::getIdCard, keyword));
+                    .or()
+                    .like(FarmerInfo::getIdCard, keyword));
         }
 
         List<FarmerInfo> list = farmerInfoMapper.selectList(wrapper);
@@ -224,7 +231,7 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
     public boolean checkIdCardUnique(String idCard, String farmerId) {
         LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FarmerInfo::getIdCard, idCard)
-               .eq(FarmerInfo::getStatus, "1");
+                .eq(FarmerInfo::getStatus, "1");
 
         // 修改时排除自己
         if (StrUtil.isNotBlank(farmerId)) {
@@ -251,7 +258,7 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         // 查询该农民的所有土地
         LambdaQueryWrapper<LandInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LandInfo::getFarmerId, farmerId)
-               .eq(LandInfo::getStatus, "1");
+                .eq(LandInfo::getStatus, "1");
         List<LandInfo> landList = landInfoMapper.selectList(wrapper);
 
         // 计算统计数据
@@ -263,8 +270,8 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         // 更新农民统计信息
         LambdaUpdateWrapper<FarmerInfo> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(FarmerInfo::getFarmerId, farmerId)
-                     .set(FarmerInfo::getLandCount, landCount)
-                     .set(FarmerInfo::getTotalLandArea, totalArea);
+                .set(FarmerInfo::getLandCount, landCount)
+                .set(FarmerInfo::getTotalLandArea, totalArea);
 
         farmerInfoMapper.update(null, updateWrapper);
     }
@@ -291,7 +298,7 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
                 if (StrUtil.isNotBlank(farmer.getIdCard())) {
                     LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
                     wrapper.eq(FarmerInfo::getIdCard, farmer.getIdCard())
-                           .eq(FarmerInfo::getStatus, "1");
+                            .eq(FarmerInfo::getStatus, "1");
                     existFarmer = farmerInfoMapper.selectOne(wrapper);
                 }
 
@@ -312,7 +319,8 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
                 }
             } catch (Exception e) {
                 failCount++;
-                failMsg.append("导入 ").append(farmer.getFarmerName()).append(" 失败: ").append(e.getMessage()).append("; ");
+                failMsg.append("导入 ").append(farmer.getFarmerName()).append(" 失败: ").append(e.getMessage())
+                        .append("; ");
             }
         }
 
