@@ -9,6 +9,7 @@ import com.inspur.agriculture.input.domain.inventory.Warehouse;
 import com.inspur.agriculture.input.mapper.inventory.*;
 import com.inspur.agriculture.input.service.inventory.IBatchService;
 import com.inspur.agriculture.input.service.inventory.IInboundOrderService;
+import com.inspur.agriculture.input.util.UnitConversionUtil;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
@@ -240,18 +241,65 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
             throw new ServiceException("The warehouse is out of service and no goods can be stored");
         }
 
-        // 校验仓库容量
-        BigDecimal usedCapacity = warehouse.getUsedCapacity() != null ? warehouse.getUsedCapacity() : BigDecimal.ZERO;
-        BigDecimal totalQuantity = inboundOrder.getTotalQuantity();
-        BigDecimal availableCapacity = warehouse.getCapacity().subtract(usedCapacity);
-        if (availableCapacity.compareTo(totalQuantity) < 0) {
-            throw new ServiceException("The warehouse capacity is insufficient. Available capacity：" + availableCapacity + "，Required capacity：" + totalQuantity);
-        }
-
         // 查询入库明细
         LambdaQueryWrapper<InboundOrderDetail> detailWrapper = new LambdaQueryWrapper<>();
         detailWrapper.eq(InboundOrderDetail::getInboundOrderId, inboundOrderId);
         List<InboundOrderDetail> details = inboundOrderDetailMapper.selectList(detailWrapper);
+
+        // 计算所有明细的总容量（KG）和总容积（L）
+        BigDecimal totalCapacityKg = BigDecimal.ZERO;
+        BigDecimal totalVolumeL = BigDecimal.ZERO;
+        
+        // 存储每个明细的解析结果，用于后续更新库存
+        Map<String, UnitConversionUtil.UnitParseResult> detailUnitResults = new HashMap<>();
+        
+        for (InboundOrderDetail detail : details) {
+            String unitOfMeasure = detail.getUnitOfMeasure();
+            BigDecimal quantity = detail.getQuantity();
+            
+            if (StringUtils.isEmpty(unitOfMeasure)) {
+                throw new ServiceException("入库明细计量单位不能为空，投入品: " + detail.getMaterialName());
+            }
+            
+            // 解析计量单位并计算总量
+            UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(unitOfMeasure, quantity);
+            
+            if (!parseResult.isSuccess()) {
+                throw new ServiceException("计量单位解析失败，投入品: " + detail.getMaterialName() + "，错误: " + parseResult.getMessage());
+            }
+            
+            // 根据单位类型累加
+            if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(parseResult.getUnitType())) {
+                totalCapacityKg = totalCapacityKg.add(parseResult.getConvertedValue());
+            } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(parseResult.getUnitType())) {
+                totalVolumeL = totalVolumeL.add(parseResult.getConvertedValue());
+            }
+            
+            // 保存解析结果
+            detailUnitResults.put(detail.getDetailId(), parseResult);
+        }
+
+        // 校验仓库容量（KG）
+        if (totalCapacityKg.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal usedCapacity = warehouse.getUsedCapacity() != null ? warehouse.getUsedCapacity() : BigDecimal.ZERO;
+            BigDecimal warehouseCapacity = warehouse.getCapacity() != null ? warehouse.getCapacity() : BigDecimal.ZERO;
+            BigDecimal availableCapacity = warehouseCapacity.subtract(usedCapacity);
+            
+            if (availableCapacity.compareTo(totalCapacityKg) < 0) {
+                throw new ServiceException("仓库容量(KG)不足。可用容量：" + availableCapacity + " KG，需要容量：" + totalCapacityKg + " KG");
+            }
+        }
+
+        // 校验仓库容积（L）
+        if (totalVolumeL.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal usedWarehouseArea = warehouse.getUsedWarehouseArea() != null ? warehouse.getUsedWarehouseArea() : BigDecimal.ZERO;
+            BigDecimal warehouseArea = warehouse.getWarehouseArea() != null ? warehouse.getWarehouseArea() : BigDecimal.ZERO;
+            BigDecimal availableWarehouseArea = warehouseArea.subtract(usedWarehouseArea);
+            
+            if (availableWarehouseArea.compareTo(totalVolumeL) < 0) {
+                throw new ServiceException("仓库容积(L)不足。可用容积：" + availableWarehouseArea + " L，需要容积：" + totalVolumeL + " L");
+            }
+        }
 
         List<Map<String, Object>> updatedStock = new ArrayList<>();
 
@@ -267,6 +315,19 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
 
                 BigDecimal beforeQuantity = BigDecimal.ZERO;
                 BigDecimal afterQuantity = detail.getQuantity();
+                
+                // 获取该明细的单位解析结果
+                UnitConversionUtil.UnitParseResult unitResult = detailUnitResults.get(detail.getDetailId());
+                BigDecimal capacityValue = BigDecimal.ZERO;
+                BigDecimal warehouseAreaValue = BigDecimal.ZERO;
+                
+                if (unitResult != null && unitResult.isSuccess()) {
+                    if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitResult.getUnitType())) {
+                        capacityValue = unitResult.getConvertedValue();
+                    } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(unitResult.getUnitType())) {
+                        warehouseAreaValue = unitResult.getConvertedValue();
+                    }
+                }
 
                 if (existStock != null) {
                     // 更新现有库存
@@ -282,6 +343,17 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
                     // 更新投入品类型和投入品品类
                     existStock.setMaterialType(detail.getMaterialType());
                     existStock.setAgriculturalInputType(detail.getAgriculturalInputType());
+                    
+                    // 更新容量（KG）和容积（L）- 累加
+                    if (capacityValue.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal existCapacity = existStock.getCapacity() != null ? existStock.getCapacity() : BigDecimal.ZERO;
+                        existStock.setCapacity(existCapacity.add(capacityValue));
+                    }
+                    if (warehouseAreaValue.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal existWarehouseArea = existStock.getWarehouseArea() != null ? existStock.getWarehouseArea() : BigDecimal.ZERO;
+                        existStock.setWarehouseArea(existWarehouseArea.add(warehouseAreaValue));
+                    }
+                    
                     existStock.setUpdatedAt(new Date());
                     stockMapper.updateById(existStock);
                 } else {
@@ -300,6 +372,11 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
                     newStock.setInboundQuantity(detail.getQuantity());
                     newStock.setOutboundQuantity(BigDecimal.ZERO);
                     newStock.setExpiryDate(detail.getExpiryDate());
+                    
+                    // 设置容量（KG）和容积（L）
+                    newStock.setCapacity(capacityValue);
+                    newStock.setWarehouseArea(warehouseAreaValue);
+                    
                     newStock.setStatus("0");
                     newStock.setCreatedAt(new Date());
                     newStock.setUpdatedAt(new Date());
@@ -368,6 +445,8 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
                 stockInfo.put("warehouse_id", inboundOrder.getWarehouseId());
                 stockInfo.put("batch_id", batchNo);
                 stockInfo.put("new_quantity", existStock.getQuantity());
+                stockInfo.put("capacity_kg", existStock.getCapacity());
+                stockInfo.put("warehouse_area_l", existStock.getWarehouseArea());
                 updatedStock.add(stockInfo);
             }
         }
@@ -381,11 +460,22 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
                     "HasBeenWarehoused"
             );
 
-        // 更新仓库已用容量
-        try {
-            warehouseMapper.updateUsedCapacity(Long.valueOf(inboundOrder.getWarehouseId()), totalQuantity);
-        } catch (Exception e) {
-            throw new ServiceException("Failed to update the warehouse capacity: " + e.getMessage());
+        // 更新仓库已用容量（KG）
+        if (totalCapacityKg.compareTo(BigDecimal.ZERO) > 0) {
+            try {
+                warehouseMapper.updateUsedCapacity(Long.valueOf(inboundOrder.getWarehouseId()), totalCapacityKg);
+            } catch (Exception e) {
+                throw new ServiceException("Failed to update the warehouse capacity (KG): " + e.getMessage());
+            }
+        }
+
+        // 更新仓库已用容积（L）
+        if (totalVolumeL.compareTo(BigDecimal.ZERO) > 0) {
+            try {
+                warehouseMapper.updateUsedWarehouseArea(Long.valueOf(inboundOrder.getWarehouseId()), totalVolumeL);
+            } catch (Exception e) {
+                throw new ServiceException("Failed to update the warehouse area (L): " + e.getMessage());
+            }
         }
 
         // 更新入库单状态
@@ -399,6 +489,8 @@ public class InboundOrderServiceImpl implements IInboundOrderService {
         Map<String, Object> result = new HashMap<>();
         result.put("inbound_order_id", inboundOrderId);
         result.put("updated_stock", updatedStock);
+        result.put("total_capacity_kg", totalCapacityKg);
+        result.put("total_volume_l", totalVolumeL);
         return result;
     }
 

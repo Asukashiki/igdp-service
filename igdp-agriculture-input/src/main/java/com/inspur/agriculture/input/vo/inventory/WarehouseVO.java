@@ -33,14 +33,23 @@ public class WarehouseVO {
     /** 仓库位置 */
     private String location;
 
-    /** 仓库容量 */
+    /** 仓库容量KG */
     private BigDecimal capacity;
 
-    /** 已用容量 */
+    /** 已用容量KG */
     private BigDecimal usedCapacity;
 
-    /** 可用容量 */
+    /** 可用容量KG */
     private BigDecimal availableCapacity;
+
+    /** 仓库容积L */
+    private java.math.BigDecimal warehouseArea;
+
+    /** 已用容积L */
+    private BigDecimal usedWarehouseArea;
+
+    /** 可用容积L */
+    private BigDecimal availableWarehouseArea;
 
     /** 拥有者 */
     private String belongs;
@@ -86,8 +95,7 @@ public class WarehouseVO {
     /** 仓库归属部门ID */
     private String organCode;
 
-    /** 仓库面积 */
-    private java.math.BigDecimal warehouseArea;
+
 
     /** 场地证明材料 */
     private String siteCertificate;

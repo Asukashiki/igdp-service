@@ -26,6 +26,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="organName" column="organ_name"/>
         <result property="organCode" column="organ_code"/>
         <result property="warehouseArea" column="warehouse_area"/>
+        <result property="usedWarehouseArea" column="used_warehouse_area"/>
         <result property="siteCertificate" column="site_certificate"/>
     </resultMap>
 
@@ -43,7 +44,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                CASE w.status WHEN '0' THEN '停用' WHEN '1' THEN '启用' ELSE '' END as status_desc,
                w.contact_person, w.contact_phone, w.remark,
                w.create_people, w.create_time, w.update_people, w.update_time,
-               w.organ_code, w.organ_name, w.warehouse_area, w.site_certificate
+               w.organ_code, w.organ_name, w.warehouse_area, w.site_certificate,w.used_warehouse_area
         from inv_warehouse w
     </sql>
 
@@ -95,6 +96,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateUsedCapacity">
         update inv_warehouse
         set used_capacity = used_capacity + #{capacityChange},
+            update_time = now()
+        where warehouse_id = #{warehouseId}
+          and del_flag = '0'
+    </update>
+
+    <update id="updateUsedWarehouseArea">
+        update inv_warehouse
+        set used_warehouse_area = used_warehouse_area + #{warehouseAreaChange},
             update_time = now()
         where warehouse_id = #{warehouseId}
           and del_flag = '0'

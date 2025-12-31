@@ -23,6 +23,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="agriculturalInputType" column="agricultural_input_type"/>
         <result property="batchNo" column="batch_no"/>
         <result property="variety" column="variety"/>
+        <result property="capacity" column="capacity"/>
+        <result property="warehouseArea" column="warehouse_area"/>
     </resultMap>
 
     <sql id="selectStockVo">
@@ -31,7 +33,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                s.quantity, s.inbound_quantity, s.outbound_quantity,
                s.expiry_date, s.qr_code, s.status,
                s.created_at, s.updated_at,
-               iod.material_type, iod.agricultural_input_type, iod.variety, iod.batch_no
+               iod.material_type, iod.agricultural_input_type, iod.variety, iod.batch_no,
+               s.capacity, s.warehouse_area
         from stock s
         left join inv_warehouse w on s.warehouse_id = w.warehouse_id and w.del_flag = '0'
         left join inbound_order_detail iod on s.material_batch_id = iod.batch_no
@@ -225,10 +228,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectAvailableStockByTypeAndCategory" resultMap="StockResult">
         SELECT s.* 
         FROM stock s
-        LEFT JOIN inbound_order_detail iod ON s.material_batch_id = iod.batch_no
         WHERE s.warehouse_id = #{warehouseId}
-          AND iod.material_type = #{inputType}
-          AND iod.agricultural_input_type = #{agriculturalInputType}
+          AND s.material_type = #{inputType}
+          AND s.agricultural_input_type = #{agriculturalInputType}
           AND s.quantity > 0
           AND s.status = '0'
           AND (s.expiry_date is null or s.expiry_date > curdate())

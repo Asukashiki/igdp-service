@@ -86,6 +86,14 @@ public interface IFarmerInfoService {
     void updateLandStatistics(String farmerId);
 
     /**
+     * 根据身份证号查询农民
+     *
+     * @param idCard 身份证号
+     * @return 农民信息
+     */
+    FarmerInfo selectFarmerByIdCard(String idCard);
+
+    /**
      * 批量导入农民数据
      *
      * @param farmerList 农民数据列表

@@ -327,10 +327,10 @@ public class OutboundOrderController {
             List<Map<String, Object>> details = (List<Map<String, Object>>) requestData.get("details");
 
             if (warehouseId == null || warehouseId.isEmpty()) {
-                return AjaxResult.error("仓库ID不能为空");
+                return AjaxResult.error("The warehouse ID cannot be empty");
             }
             if (details == null || details.isEmpty()) {
-                return AjaxResult.error("出库明细不能为空");
+                return AjaxResult.error("The outbound details cannot be empty");
             }
 
             Map<String, Object> result = outboundOrderService.validateStockBatch(warehouseId, details);
@@ -338,10 +338,10 @@ public class OutboundOrderController {
             if ((Boolean) result.get("valid")) {
                 return AjaxResult.success(result);
             } else {
-                return AjaxResult.error(result.get("message").toString()).put("data", result);
+                return AjaxResult.success(result.get("message").toString()).put("data", result);
             }
         } catch (Exception e) {
-            return AjaxResult.error("库存校验失败: " + e.getMessage());
+            return AjaxResult.error("Inventory verification failed: " + e.getMessage());
         }
     }
 

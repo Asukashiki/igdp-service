@@ -5,6 +5,7 @@ import com.inspur.agriculture.input.domain.inventory.*;
 import com.inspur.agriculture.input.mapper.inventory.*;
 import com.inspur.agriculture.input.service.inventory.IInboundOrderService;
 import com.inspur.agriculture.input.service.inventory.IOutboundOrderService;
+import com.inspur.agriculture.input.util.UnitConversionUtil;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
@@ -52,11 +53,11 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
     @Override
     public Map<String, Object> selectOutboundOrderById(String outboundOrderId) {
         if (StringUtils.isEmpty(outboundOrderId)) {
-            throw new ServiceException("出库单ID不能为空");
+            throw new ServiceException("The outbound order ID cannot be empty");
         }
         Map<String, Object> result = outboundOrderMapper.selectOutboundOrderById(outboundOrderId);
         if (result == null) {
-            throw new ServiceException("出库单不存在");
+            throw new ServiceException("The outbound order does not exist");
         }
         // 查询明细（含批次拆分信息）
         List<Map<String, Object>> details = outboundOrderDetailMapper.selectDetailsWithBatchSplits(outboundOrderId);
@@ -69,22 +70,22 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
     public String createOutboundOrder(OutboundOrder outboundOrder, List<Map<String, Object>> details) {
         // 校验参数
         if (outboundOrder == null) {
-            throw new ServiceException("出库单信息不能为空");
+            throw new ServiceException("The outbound order information cannot be empty");
         }
         if (details == null || details.isEmpty()) {
-            throw new ServiceException("出库明细不能为空");
+            throw new ServiceException("The outbound order detail cannot be empty");
         }
 
         // 校验仓库是否存在
         if (StringUtils.isEmpty(outboundOrder.getWarehouseId())) {
-            throw new ServiceException("仓库ID不能为空");
+            throw new ServiceException("The warehouse ID cannot be empty");
         }
         Warehouse warehouse = warehouseMapper.selectById(Long.valueOf(outboundOrder.getWarehouseId()));
         if (warehouse == null) {
-            throw new ServiceException("仓库不存在");
+            throw new ServiceException("The warehouse does not exist");
         }
         if (!"1".equals(warehouse.getStatus())) {
-            throw new ServiceException("仓库已停用，无法出库");
+            throw new ServiceException("The warehouse has been deactivated and cannot be out of stock");
         }
 
         // 生成出库单ID和批次号
@@ -337,7 +338,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
     public Map<String, Object> confirmOutbound(String outboundOrderId, Date outboundTime, String operator) {
         // 校验参数
         if (StringUtils.isEmpty(outboundOrderId)) {
-            throw new ServiceException("出库单ID不能为空");
+            throw new ServiceException("The outbound order ID cannot be empty");
         }
 
         // 查询出库单
@@ -345,7 +346,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         wrapper.eq(OutboundOrder::getOutboundOrderId, outboundOrderId);
         OutboundOrder outboundOrder = outboundOrderMapper.selectOne(wrapper);
         if (outboundOrder == null) {
-            throw new ServiceException("出库单不存在");
+            throw new ServiceException("The outbound order does not exist");
         }
 
         // 校验状态（必须是已审核状态）
@@ -356,10 +357,10 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         // 校验仓库
         Warehouse warehouse = warehouseMapper.selectById(Long.valueOf(outboundOrder.getWarehouseId()));
         if (warehouse == null) {
-            throw new ServiceException("仓库不存在");
+            throw new ServiceException("The warehouse does not exist");
         }
         if (!"1".equals(warehouse.getStatus())) {
-            throw new ServiceException("仓库已停用，无法出库");
+            throw new ServiceException("The warehouse has been deactivated and cannot be out of stock");
         }
 
         // 查询出库明细
@@ -432,26 +433,26 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     // 调拨出库 -> 调拨入库（目标仓库）
                     inboundType = 2;
                     targetWarehouseId = outboundOrder.getOutboundObjectId();
-                    supplierType = "内部调拨";
-                    remark = "调拨入库 - 来自出库单：" + outboundOrderId;
+                    supplierType = "Internal transfer";
+                    remark = "Transfer in - from the outbound order：" + outboundOrderId;
                     autoApproved = true; // 调拨出库自动审核通过
                 } else {
                     // 销售出库等其他类型 -> 生成入库单但不自动审核
                     // 这里假设是退货入库或其他类型的入库
                     inboundType = 1; // 采购入库或其他入库类型
                     targetWarehouseId = outboundOrder.getOutboundObjectId();
-                    supplierType = "销售退货";
-                    remark = "出库关联入库单 - 来自出库单：" + outboundOrderId;
+                    supplierType = "Sales return";
+                    remark = "The inbound order is associated with the outbound order：" + outboundOrderId;
                     autoApproved = false; // 需要人工审核
                 }
 
                 // 校验目标仓库是否存在
                 Warehouse targetWarehouse = warehouseMapper.selectById(Long.valueOf(targetWarehouseId));
                 if (targetWarehouse == null) {
-                    throw new ServiceException("目标仓库不存在：" + targetWarehouseId);
+                    throw new ServiceException("The target warehouse does not exist：" + targetWarehouseId);
                 }
                 if (!"1".equals(targetWarehouse.getStatus())) {
-                    throw new ServiceException("目标仓库已停用，无法入库");
+                    throw new ServiceException("The target warehouse has been deactivated and cannot be stored");
                 }
 
                 // 构建入库单
@@ -513,9 +514,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     inboundOrderService.auditInboundOrder(
                             inboundOrderId,
                             "approved",
-                            "系统自动审核",
+                            "Automatic system review",
                             new Date(),
-                            "调拨出库自动生成的入库单，已自动审核通过"
+                            "The inbound order was automatically generated by the transfer outbound and has been automatically approved"
                     );
 
                     // 自动执行入库
@@ -528,7 +529,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
             } catch (Exception e) {
                 // 入库单创建失败不影响出库流程，但记录错误日志
-                throw new ServiceException("出库成功，但创建关联入库单失败：" + e.getMessage());
+                throw new ServiceException("The outbound was successful, but the creation of the associated inbound order failed：" + e.getMessage());
             }
         }
 
@@ -537,7 +538,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         result.put("outbound_order_id", outboundOrderId);
         result.put("updated_stock", updatedStock);
         result.put("batch_splits", batchSplits);
-        result.put("message", "出库单确认完成");
+        result.put("message", "The outbound order has been confirmed and completed");
 
         return result;
     }
@@ -546,7 +547,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
     @Transactional(rollbackFor = Exception.class)
     public boolean cancelOutboundOrder(String outboundOrderId, String operator) {
         if (StringUtils.isEmpty(outboundOrderId)) {
-            throw new ServiceException("出库单ID不能为空");
+            throw new ServiceException("The outbound order ID cannot be empty");
         }
 
         LambdaQueryWrapper<OutboundOrder> wrapper = new LambdaQueryWrapper<>();
@@ -554,11 +555,11 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
         OutboundOrder outboundOrder = outboundOrderMapper.selectOne(wrapper);
 
         if (outboundOrder == null) {
-            throw new ServiceException("出库单不存在");
+            throw new ServiceException("The outbound order does not exist");
         }
 
         if ("completed".equals(outboundOrder.getOutboundStatus())) {
-            throw new ServiceException("已完成的出库单不能取消");
+            throw new ServiceException("Completed outbound orders cannot be cancelled");
         }
 
         outboundOrder.setOutboundStatus("cancelled");
@@ -588,24 +589,59 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
     @Override
     public Map<String, Object> validateStock(String warehouseId, String materialId, BigDecimal quantity) {
+        // 调用新方法，不传计量单位时使用数量校验
+        return validateStockWithUnit(warehouseId, materialId, quantity, null);
+    }
+
+    /**
+     * 校验库存（支持计量单位转换）
+     * 
+     * @param warehouseId 仓库ID
+     * @param materialId 物料ID
+     * @param quantity 出库数量
+     * @param unitOfMeasure 计量单位（字典值，如 U101）
+     * @return 校验结果
+     */
+    public Map<String, Object> validateStockWithUnit(String warehouseId, String materialId, BigDecimal quantity, String unitOfMeasure) {
         Map<String, Object> result = new HashMap<>();
 
         try {
             // 校验参数
             if (StringUtils.isEmpty(warehouseId)) {
                 result.put("valid", false);
-                result.put("message", "仓库ID不能为空");
+                result.put("message", "Warehouse ID It cannot be empty.");
                 return result;
             }
             if (StringUtils.isEmpty(materialId)) {
                 result.put("valid", false);
-                result.put("message", "MaterialsID不能为空");
+                result.put("message", "Material ID It cannot be empty.");
                 return result;
             }
             if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
                 result.put("valid", false);
-                result.put("message", "出库数量必须大于0");
+                result.put("message", "Outbound quantity must be greater than 0");
                 return result;
+            }
+
+            // 如果提供了计量单位，则计算实际需要的容量（KG或L）
+            BigDecimal requiredCapacity = BigDecimal.ZERO;
+            BigDecimal requiredVolume = BigDecimal.ZERO;
+            String unitType = null;
+            
+            if (StringUtils.isNotEmpty(unitOfMeasure)) {
+                UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(unitOfMeasure, quantity);
+                if (!parseResult.isSuccess()) {
+                    result.put("valid", false);
+                    result.put("message", "Unit of measure parsing failed: " + parseResult.getMessage());
+                    return result;
+                }
+                
+                unitType = parseResult.getUnitType();
+                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
+                    requiredCapacity = parseResult.getConvertedValue();
+                } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(unitType)) {
+                    requiredVolume = parseResult.getConvertedValue();
+                }
             }
 
             // 查询可用库存（FIFO）
@@ -615,32 +651,404 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 result.put("valid", false);
                 result.put("message", "Insufficient inventory");
                 result.put("available_quantity", BigDecimal.ZERO);
+                result.put("available_capacity_kg", BigDecimal.ZERO);
+                result.put("available_volume_l", BigDecimal.ZERO);
                 return result;
             }
 
-            // 计算总可用库存
-            BigDecimal totalAvailable = BigDecimal.ZERO;
+            // 计算总可用库存数量和容量
+            BigDecimal totalAvailableQuantity = BigDecimal.ZERO;
+            BigDecimal totalAvailableCapacity = BigDecimal.ZERO;
+            BigDecimal totalAvailableVolume = BigDecimal.ZERO;
+            
             for (Stock stock : availableStocks) {
-                totalAvailable = totalAvailable.add(stock.getQuantity());
+                totalAvailableQuantity = totalAvailableQuantity.add(stock.getQuantity());
+                if (stock.getCapacity() != null) {
+                    totalAvailableCapacity = totalAvailableCapacity.add(stock.getCapacity());
+                }
+                if (stock.getWarehouseArea() != null) {
+                    totalAvailableVolume = totalAvailableVolume.add(stock.getWarehouseArea());
+                }
             }
 
-            // 校验库存是否充足
-            if (totalAvailable.compareTo(quantity) < 0) {
-                result.put("valid", false);
-                result.put("message", "Insufficient inventory，需要：" + quantity + "，可用：" + totalAvailable);
-                result.put("available_quantity", totalAvailable);
-                result.put("required_quantity", quantity);
-                result.put("shortage", quantity.subtract(totalAvailable));
+            // 根据是否有计量单位决定校验方式
+            boolean isValid;
+            String message;
+            
+            if (StringUtils.isNotEmpty(unitOfMeasure) && unitType != null) {
+                // 基于容量/容积校验
+                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
+                    isValid = totalAvailableCapacity.compareTo(requiredCapacity) >= 0;
+                    if (!isValid) {
+                        message = "Inventory capacity(KG) is insufficient，Needed：" + requiredCapacity + " KG，Available：" + totalAvailableCapacity + " KG";
+                        result.put("shortage_kg", requiredCapacity.subtract(totalAvailableCapacity));
+                    } else {
+                        message = "Inventory capacity(KG) is sufficient";
+                    }
+                    result.put("required_capacity_kg", requiredCapacity);
+                    result.put("available_capacity_kg", totalAvailableCapacity);
+                } else {
+                    isValid = totalAvailableVolume.compareTo(requiredVolume) >= 0;
+                    if (!isValid) {
+                        message = "Inventory volume(L) is insufficient，Needed：" + requiredVolume + " L，Available：" + totalAvailableVolume + " L";
+                        result.put("shortage_l", requiredVolume.subtract(totalAvailableVolume));
+                    } else {
+                        message = "Inventory volume(L) is sufficient";
+                    }
+                    result.put("required_volume_l", requiredVolume);
+                    result.put("available_volume_l", totalAvailableVolume);
+                }
+                result.put("unit_type", unitType);
             } else {
-                result.put("valid", true);
-                result.put("message", "库存充足");
-                result.put("available_quantity", totalAvailable);
-                result.put("required_quantity", quantity);
+                // 基于数量校验（兼容旧逻辑）
+                isValid = totalAvailableQuantity.compareTo(quantity) >= 0;
+                if (!isValid) {
+                    message = "Insufficient inventory，Needed：" + quantity + "，Available：" + totalAvailableQuantity;
+                    result.put("shortage", quantity.subtract(totalAvailableQuantity));
+                } else {
+                    message = "Inventory is sufficient";
+                }
             }
+
+            result.put("valid", isValid);
+            result.put("message", message);
+            result.put("available_quantity", totalAvailableQuantity);
+            result.put("required_quantity", quantity);
 
         } catch (Exception e) {
             result.put("valid", false);
-            result.put("message", "校验失败：" + e.getMessage());
+            result.put("message", "Batch verification failed：" + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * 校验库存（支持计量单位转换和投入品品类）
+     * 
+     * 计算逻辑：
+     * 1. 根据计量单位字典值解析出单位规格（如 Package/50kg = 50kg/包）
+     * 2. 计算所需总容量 = 单位规格 * 出库数量（如 50kg * 50 = 2500kg）
+     * 3. 根据投入品品类查询库存中该品类的总容量(KG)或容积(L)
+     * 4. 比较所需容量与库存容量，判断是否满足出库需求
+     * 
+     * @param warehouseId 仓库ID
+     * @param materialId 物料ID（可为空）
+     * @param materialType 投入品类型
+     * @param agriculturalInputType 投入品品类
+     * @param quantity 出库数量
+     * @param unitOfMeasure 计量单位（字典值，如 U103 = Package/50kg）
+     * @return 校验结果
+     */
+    public Map<String, Object> validateStockWithUnitAndCategory(String warehouseId, String materialId, 
+            String materialType, String agriculturalInputType, BigDecimal quantity, String unitOfMeasure) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 校验参数
+            if (StringUtils.isEmpty(warehouseId)) {
+                result.put("valid", false);
+                result.put("message", "Warehouse ID cannot be empty");
+                return result;
+            }
+            if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+                result.put("valid", false);
+                result.put("message", "Outbound quantity must be greater than 0");
+                return result;
+            }
+
+            // 如果提供了计量单位，则计算实际需要的容量（KG或L）
+            BigDecimal requiredCapacity = BigDecimal.ZERO;
+            BigDecimal requiredVolume = BigDecimal.ZERO;
+            String unitType = null;
+            
+            if (StringUtils.isNotEmpty(unitOfMeasure)) {
+                UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(unitOfMeasure, quantity);
+                if (!parseResult.isSuccess()) {
+                    result.put("valid", false);
+                    result.put("message", "Unit of measure parsing failed: " + parseResult.getMessage());
+                    return result;
+                }
+                
+                unitType = parseResult.getUnitType();
+                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
+                    requiredCapacity = parseResult.getConvertedValue();
+                } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(unitType)) {
+                    requiredVolume = parseResult.getConvertedValue();
+                }
+            }
+
+            // 查询可用库存 - 优先使用materialId，否则使用投入品类型和品类
+            List<Stock> availableStocks;
+            if (StringUtils.isNotEmpty(materialId)) {
+                // 根据materialId查询库存
+                availableStocks = stockMapper.selectAvailableStockFIFO(warehouseId, materialId, quantity);
+            } else if (StringUtils.isNotEmpty(materialType) && StringUtils.isNotEmpty(agriculturalInputType)) {
+                // 根据投入品类型和品类查询库存
+                availableStocks = stockMapper.selectAvailableStockByTypeAndCategory(warehouseId, materialType, agriculturalInputType, quantity);
+            } else {
+                result.put("valid", false);
+                result.put("message", "Material ID or input type and category are required");
+                result.put("available_quantity", BigDecimal.ZERO);
+                result.put("available_capacity_kg", BigDecimal.ZERO);
+                result.put("available_volume_l", BigDecimal.ZERO);
+                return result;
+            }
+
+            if (availableStocks == null || availableStocks.isEmpty()) {
+                result.put("valid", false);
+                result.put("message", "Insufficient inventory");
+                result.put("available_quantity", BigDecimal.ZERO);
+                result.put("available_capacity_kg", BigDecimal.ZERO);
+                result.put("available_volume_l", BigDecimal.ZERO);
+                result.put("max_available_by_unit", BigDecimal.ZERO);
+                return result;
+            }
+
+            // 计算总可用库存数量和容量
+            BigDecimal totalAvailableQuantity = BigDecimal.ZERO;
+            BigDecimal totalAvailableCapacity = BigDecimal.ZERO;
+            BigDecimal totalAvailableVolume = BigDecimal.ZERO;
+            
+            for (Stock stock : availableStocks) {
+                totalAvailableQuantity = totalAvailableQuantity.add(stock.getQuantity());
+                if (stock.getCapacity() != null) {
+                    totalAvailableCapacity = totalAvailableCapacity.add(stock.getCapacity());
+                }
+                if (stock.getWarehouseArea() != null) {
+                    totalAvailableVolume = totalAvailableVolume.add(stock.getWarehouseArea());
+                }
+            }
+
+            // 根据是否有计量单位决定校验方式
+            boolean isValid;
+            String message;
+            BigDecimal maxAvailableByUnit = BigDecimal.ZERO; // 按计量单位计算的最大可用数量
+            BigDecimal unitValue = BigDecimal.ONE; // 单位规格值（如 Package/50kg 的 50）
+            
+            if (StringUtils.isNotEmpty(unitOfMeasure) && unitType != null) {
+                // 获取单位规格值（如 Package/50kg 的 50）
+                UnitConversionUtil.UnitParseResult unitParseResult = UnitConversionUtil.parseUnitFromDict(unitOfMeasure);
+                if (unitParseResult.isSuccess()) {
+                    unitValue = unitParseResult.getConvertedValue();
+                }
+                
+                // 基于容量/容积校验
+                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
+                    // 计算按计量单位的最大可用数量 = 库存容量(KG) / 单位规格(KG)
+                    // 例如：库存2500KG，单位规格50KG/包 → 最大可用 = 2500/50 = 50包
+                    if (unitValue.compareTo(BigDecimal.ZERO) > 0) {
+                        maxAvailableByUnit = totalAvailableCapacity.divide(unitValue, 0, java.math.RoundingMode.FLOOR);
+                    }
+                    
+                    isValid = totalAvailableCapacity.compareTo(requiredCapacity) >= 0;
+                    if (!isValid) {
+                        message = "Inventory capacity (KG) is insufficient. Required: " + requiredCapacity + " KG, Available: " + totalAvailableCapacity + " KG";
+                        result.put("shortage_kg", requiredCapacity.subtract(totalAvailableCapacity));
+                    } else {
+                        message = "Inventory capacity is sufficient";
+                    }
+                    result.put("required_capacity_kg", requiredCapacity);
+                    result.put("available_capacity_kg", totalAvailableCapacity);
+                } else {
+                    // 计算按计量单位的最大可用数量 = 库存容积(L) / 单位规格(L)
+                    // 例如：库存500L，单位规格0.5L/瓶 → 最大可用 = 500/0.5 = 1000瓶
+                    if (unitValue.compareTo(BigDecimal.ZERO) > 0) {
+                        maxAvailableByUnit = totalAvailableVolume.divide(unitValue, 0, java.math.RoundingMode.FLOOR);
+                    }
+                    
+                    isValid = totalAvailableVolume.compareTo(requiredVolume) >= 0;
+                    if (!isValid) {
+                        message = "Inventory volume (L) is insufficient. Required: " + requiredVolume + " L, Available: " + totalAvailableVolume + " L";
+                        result.put("shortage_l", requiredVolume.subtract(totalAvailableVolume));
+                    } else {
+                        message = "Inventory volume is sufficient";
+                    }
+                    result.put("required_volume_l", requiredVolume);
+                    result.put("available_volume_l", totalAvailableVolume);
+                }
+                result.put("unit_type", unitType);
+                result.put("unit_value", unitValue); // 单位规格值
+                result.put("max_available_by_unit", maxAvailableByUnit);
+            } else {
+                // 基于数量校验（兼容旧逻辑）
+                maxAvailableByUnit = totalAvailableQuantity;
+                isValid = totalAvailableQuantity.compareTo(quantity) >= 0;
+                if (!isValid) {
+                    message = "Insufficient inventory. Required: " + quantity + ", Available: " + totalAvailableQuantity;
+                    result.put("shortage", quantity.subtract(totalAvailableQuantity));
+                } else {
+                    message = "Inventory is sufficient";
+                }
+                result.put("max_available_by_unit", maxAvailableByUnit);
+            }
+
+            result.put("valid", isValid);
+            result.put("message", message);
+            result.put("available_quantity", totalAvailableQuantity);
+            result.put("required_quantity", quantity);
+
+        } catch (Exception e) {
+            result.put("valid", false);
+            result.put("message", "Validation failed: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * 通过批次号校验库存容量
+     * 
+     * 计算逻辑：
+     * 1. 根据批次号查询库存记录，获取该批次的容量(capacity)或容积(warehouseArea)
+     * 2. 根据计量单位字典值解析出单位规格（如 Package/50kg = 50kg/包）
+     * 3. 计算所需总容量 = 单位规格 * 出库数量（如 50kg * 50 = 2500kg）
+     * 4. 比较所需容量与库存容量，判断是否满足出库需求
+     * 5. 计算最大可用数量 = 库存容量 / 单位规格
+     * 
+     * @param warehouseId 仓库ID
+     * @param materialBatchId 批次号（唯一标识）
+     * @param quantity 出库数量
+     * @param unitOfMeasure 计量单位（字典值，如 U103 = Package/50kg）
+     * @return 校验结果
+     */
+    public Map<String, Object> validateStockByBatchId(String warehouseId, String materialBatchId, 
+            BigDecimal quantity, String unitOfMeasure) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 校验参数
+            if (StringUtils.isEmpty(warehouseId)) {
+                result.put("valid", false);
+                result.put("message", "Warehouse ID cannot be empty");
+                return result;
+            }
+            if (StringUtils.isEmpty(materialBatchId)) {
+                result.put("valid", false);
+                result.put("message", "Material batch ID cannot be empty");
+                return result;
+            }
+            if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+                result.put("valid", false);
+                result.put("message", "Outbound quantity must be greater than 0");
+                return result;
+            }
+
+            // 根据批次号查询库存记录
+            LambdaQueryWrapper<Stock> stockWrapper = new LambdaQueryWrapper<>();
+            stockWrapper.eq(Stock::getWarehouseId, warehouseId);
+            stockWrapper.eq(Stock::getMaterialBatchId, materialBatchId);
+            stockWrapper.eq(Stock::getStatus, "0"); // 正常状态
+            Stock stock = stockMapper.selectOne(stockWrapper);
+
+            if (stock == null) {
+                result.put("valid", false);
+                result.put("message", "Stock record not found for batch: " + materialBatchId);
+                result.put("available_quantity", BigDecimal.ZERO);
+                result.put("available_capacity_kg", BigDecimal.ZERO);
+                result.put("available_volume_l", BigDecimal.ZERO);
+                result.put("max_available_by_unit", BigDecimal.ZERO);
+                return result;
+            }
+
+            // 获取库存信息
+            String materialName = stock.getMaterialName();
+            BigDecimal availableQuantity = stock.getQuantity() != null ? stock.getQuantity() : BigDecimal.ZERO;
+            BigDecimal availableCapacity = stock.getCapacity() != null ? stock.getCapacity() : BigDecimal.ZERO;
+            BigDecimal availableVolume = stock.getWarehouseArea() != null ? stock.getWarehouseArea() : BigDecimal.ZERO;
+
+            result.put("material_name", materialName);
+            result.put("available_quantity", availableQuantity);
+
+            // 如果提供了计量单位，则计算实际需要的容量（KG或L）
+            BigDecimal requiredCapacity = BigDecimal.ZERO;
+            BigDecimal requiredVolume = BigDecimal.ZERO;
+            String unitType = null;
+            BigDecimal unitValue = BigDecimal.ONE; // 单位规格值
+            
+            if (StringUtils.isNotEmpty(unitOfMeasure)) {
+                UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(unitOfMeasure, quantity);
+                if (!parseResult.isSuccess()) {
+                    result.put("valid", false);
+                    result.put("message", "Unit of measure parsing failed: " + parseResult.getMessage());
+                    return result;
+                }
+                
+                unitType = parseResult.getUnitType();
+                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
+                    requiredCapacity = parseResult.getConvertedValue();
+                } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(unitType)) {
+                    requiredVolume = parseResult.getConvertedValue();
+                }
+
+                // 获取单位规格值
+                UnitConversionUtil.UnitParseResult unitParseResult = UnitConversionUtil.parseUnitFromDict(unitOfMeasure);
+                if (unitParseResult.isSuccess()) {
+                    unitValue = unitParseResult.getConvertedValue();
+                }
+            }
+
+            // 根据是否有计量单位决定校验方式
+            boolean isValid;
+            String message;
+            BigDecimal maxAvailableByUnit = BigDecimal.ZERO;
+            
+            if (StringUtils.isNotEmpty(unitOfMeasure) && unitType != null) {
+                // 基于容量/容积校验
+                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
+                    // 计算按计量单位的最大可用数量 = 库存容量(KG) / 单位规格(KG)
+                    if (unitValue.compareTo(BigDecimal.ZERO) > 0) {
+                        maxAvailableByUnit = availableCapacity.divide(unitValue, 0, java.math.RoundingMode.FLOOR);
+                    }
+                    
+                    isValid = availableCapacity.compareTo(requiredCapacity) >= 0;
+                    if (!isValid) {
+                        message = "Inventory capacity (KG) is insufficient. Required: " + requiredCapacity + " KG, Available: " + availableCapacity + " KG";
+                        result.put("shortage_kg", requiredCapacity.subtract(availableCapacity));
+                    } else {
+                        message = "Inventory capacity is sufficient";
+                    }
+                    result.put("required_capacity_kg", requiredCapacity);
+                    result.put("available_capacity_kg", availableCapacity);
+                } else {
+                    // 计算按计量单位的最大可用数量 = 库存容积(L) / 单位规格(L)
+                    if (unitValue.compareTo(BigDecimal.ZERO) > 0) {
+                        maxAvailableByUnit = availableVolume.divide(unitValue, 0, java.math.RoundingMode.FLOOR);
+                    }
+                    
+                    isValid = availableVolume.compareTo(requiredVolume) >= 0;
+                    if (!isValid) {
+                        message = "Inventory volume (L) is insufficient. Required: " + requiredVolume + " L, Available: " + availableVolume + " L";
+                        result.put("shortage_l", requiredVolume.subtract(availableVolume));
+                    } else {
+                        message = "Inventory volume is sufficient";
+                    }
+                    result.put("required_volume_l", requiredVolume);
+                    result.put("available_volume_l", availableVolume);
+                }
+                result.put("unit_type", unitType);
+                result.put("unit_value", unitValue);
+                result.put("max_available_by_unit", maxAvailableByUnit);
+            } else {
+                // 基于数量校验（兼容旧逻辑）
+                maxAvailableByUnit = availableQuantity;
+                isValid = availableQuantity.compareTo(quantity) >= 0;
+                if (!isValid) {
+                    message = "Insufficient inventory. Required: " + quantity + ", Available: " + availableQuantity;
+                    result.put("shortage", quantity.subtract(availableQuantity));
+                } else {
+                    message = "Inventory is sufficient";
+                }
+                result.put("max_available_by_unit", maxAvailableByUnit);
+            }
+
+            result.put("valid", isValid);
+            result.put("message", message);
+            result.put("required_quantity", quantity);
+
+        } catch (Exception e) {
+            result.put("valid", false);
+            result.put("message", "Validation failed: " + e.getMessage());
         }
 
         return result;
@@ -656,37 +1064,56 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             // 校验参数
             if (StringUtils.isEmpty(warehouseId)) {
                 result.put("valid", false);
-                result.put("message", "仓库ID不能为空");
+                result.put("message", "The warehouse ID cannot be empty");
                 return result;
             }
             if (details == null || details.isEmpty()) {
                 result.put("valid", false);
-                result.put("message", "出库明细不能为空");
+                result.put("message", "The outbound details cannot be empty");
                 return result;
             }
 
             // 逐个校验每个明细
             for (Map<String, Object> detail : details) {
-                String materialId = detail.get("materialId") != null ? detail.get("materialId").toString() : null;
-                String materialName = detail.get("materialName") != null ? detail.get("materialName").toString() : "";
+                String materialBatchId = detail.get("materialBatchId") != null ? detail.get("materialBatchId").toString() : null;
                 BigDecimal quantity = detail.get("quantity") != null ? new BigDecimal(detail.get("quantity").toString()) : BigDecimal.ZERO;
+                String unitOfMeasure = detail.get("unitOfMeasure") != null ? detail.get("unitOfMeasure").toString() : null;
 
-                if (StringUtils.isEmpty(materialId) || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+                if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
                     continue;
                 }
 
-                // 调用单个校验方法
-                Map<String, Object> validateResult = validateStock(warehouseId, materialId, quantity);
+                // 调用通过批次号校验库存的方法
+                Map<String, Object> validateResult = validateStockByBatchId(warehouseId, materialBatchId, quantity, unitOfMeasure);
 
                 if (!(Boolean) validateResult.get("valid")) {
                     allValid = false;
                     Map<String, Object> insufficientItem = new HashMap<>();
-                    insufficientItem.put("material_id", materialId);
-                    insufficientItem.put("material_name", materialName);
+                    insufficientItem.put("material_batch_id", materialBatchId);
+                    insufficientItem.put("material_name", validateResult.get("material_name"));
                     insufficientItem.put("required_quantity", quantity);
+                    insufficientItem.put("unit_of_measure", unitOfMeasure);
                     insufficientItem.put("available_quantity", validateResult.get("available_quantity"));
-                    insufficientItem.put("shortage", validateResult.get("shortage"));
                     insufficientItem.put("message", validateResult.get("message"));
+                    
+                    // 添加容量/容积相关信息
+                    if (validateResult.get("unit_type") != null) {
+                        insufficientItem.put("unit_type", validateResult.get("unit_type"));
+                        insufficientItem.put("max_available_by_unit", validateResult.get("max_available_by_unit"));
+                        if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(validateResult.get("unit_type"))) {
+                            insufficientItem.put("required_capacity_kg", validateResult.get("required_capacity_kg"));
+                            insufficientItem.put("available_capacity_kg", validateResult.get("available_capacity_kg"));
+                            insufficientItem.put("shortage_kg", validateResult.get("shortage_kg"));
+                        } else {
+                            insufficientItem.put("required_volume_l", validateResult.get("required_volume_l"));
+                            insufficientItem.put("available_volume_l", validateResult.get("available_volume_l"));
+                            insufficientItem.put("shortage_l", validateResult.get("shortage_l"));
+                        }
+                    } else {
+                        insufficientItem.put("shortage", validateResult.get("shortage"));
+                        insufficientItem.put("max_available_by_unit", validateResult.get("max_available_by_unit"));
+                    }
+                    
                     insufficientItems.add(insufficientItem);
                 }
             }
@@ -694,15 +1121,15 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             // 构建返回结果
             result.put("valid", allValid);
             if (allValid) {
-                result.put("message", "所有Materials库存充足");
+                result.put("message", "All Materials are in sufficient stock");
             } else {
-                result.put("message", "部分MaterialsInsufficient inventory");
+                result.put("message", "Partial MaterialsInsufficient inventory");
                 result.put("insufficient_items", insufficientItems);
             }
 
         } catch (Exception e) {
             result.put("valid", false);
-            result.put("message", "批量校验失败：" + e.getMessage());
+            result.put("message", "Batch verification failed：" + e.getMessage());
         }
 
         return result;
@@ -721,12 +1148,12 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             // 校验参数
             if (StringUtils.isEmpty(releaseId)) {
                 result.put("valid", false);
-                result.put("message", "分发单ID不能为空");
+                result.put("message", "Release order ID cannot be empty");
                 return result;
             }
             if (StringUtils.isEmpty(warehouseId)) {
                 result.put("valid", false);
-                result.put("message", "仓库ID不能为空");
+                result.put("message", "Warehouse ID cannot be empty");
                 return result;
             }
 
@@ -734,7 +1161,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             Map<String, Object> releaseMain = outboundOrderMapper.selectReleaseMainById(releaseId);
             if (releaseMain == null) {
                 result.put("valid", false);
-                result.put("message", "分发单不存在");
+                result.put("message", "Release order does not exist");
                 return result;
             }
 
@@ -743,7 +1170,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
             if (releaseDetails == null || releaseDetails.isEmpty()) {
                 result.put("valid", false);
-                result.put("message", "分发单明细不存在");
+                result.put("message", "Release order details do not exist");
                 return result;
             }
 
@@ -809,7 +1236,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     insufficientItem.put("required_quantity", required);
                     insufficientItem.put("available_quantity", totalAvailable);
                     insufficientItem.put("shortage", required.subtract(totalAvailable));
-                    insufficientItem.put("message", "Insufficient inventory，需要：" + required + "，可用：" + totalAvailable);
+                    insufficientItem.put("message", "Insufficient inventory，Needed：" + required + "，Available：" + totalAvailable);
                     insufficientItems.add(insufficientItem);
                 }
 
@@ -822,15 +1249,15 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             result.put("valid", allValid);
 
             if (allValid) {
-                result.put("message", "所有投入品库存充足");
+                result.put("message", "All inputs have sufficient stock");
             } else {
-                result.put("message", "部分投入品Insufficient inventory");
+                result.put("message", "Partial inputs have insufficient stock");
                 result.put("insufficient_items", insufficientItems);
             }
 
         } catch (Exception e) {
             result.put("valid", false);
-            result.put("message", "校验失败：" + e.getMessage());
+            result.put("message", "Batch verification failed：" + e.getMessage());
         }
 
         return result;

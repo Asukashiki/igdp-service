@@ -54,4 +54,14 @@ public interface WarehouseMapper extends BaseMapper<Warehouse> {
      */
     int updateUsedCapacity(@Param("warehouseId") Long warehouseId,
                            @Param("capacityChange") BigDecimal capacityChange);
+
+    /**
+     * 更新仓库已用容积（L）
+     *
+     * @param warehouseId        仓库ID
+     * @param warehouseAreaChange 容积变化(正数为增加,负数为减少)
+     * @return 影响行数
+     */
+    int updateUsedWarehouseArea(@Param("warehouseId") Long warehouseId,
+                                 @Param("warehouseAreaChange") BigDecimal warehouseAreaChange);
 }
