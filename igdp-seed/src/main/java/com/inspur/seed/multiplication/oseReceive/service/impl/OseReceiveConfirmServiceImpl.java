@@ -201,6 +201,7 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
         List<OseReceiveConfirmVO.DetailItem> voDetailList = detailList.stream().map(detail -> {
             OseReceiveConfirmVO.DetailItem item = new OseReceiveConfirmVO.DetailItem();
             item.setBreedSeedProduceBatchId(detail.getProduceBatchId());
+            item.setParentalSeedSource(detail.getParentalSeedSource()); // 从分发明细获取parentalSeedSource
             item.setVarietyName(detail.getVarietyName());
             item.setCropType(detail.getCropType());
             item.setDistributeQuantity(detail.getDistributeQuantity());

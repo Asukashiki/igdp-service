@@ -42,6 +42,7 @@
     <select id="selectDistributeDetailList" resultType="com.inspur.seed.multiplication.oseReceive.domain.vo.OseReceiveConfirmVO$DetailItem">
         SELECT
             d.produce_batch_id AS breedSeedProduceBatchId,
+            d.parental_seed_source AS parentalSeedSource,
             d.variety_name AS varietyName,
             d.crop_type AS cropType,
             p.to_seed_level AS seedType,

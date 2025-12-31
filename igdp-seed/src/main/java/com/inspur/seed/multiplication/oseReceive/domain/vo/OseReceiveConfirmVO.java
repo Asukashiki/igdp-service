@@ -100,6 +100,11 @@ public class OseReceiveConfirmVO implements Serializable {
         private String breedSeedProduceBatchId;
 
         /**
+         * 亲本种子来源
+         */
+        private String parentalSeedSource;
+
+        /**
          * 品种名称
          */
         private String varietyName;

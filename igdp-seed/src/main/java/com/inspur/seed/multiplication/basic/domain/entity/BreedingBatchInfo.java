@@ -49,6 +49,12 @@ public class BreedingBatchInfo implements Serializable {
     private String receivedId;
 
     /**
+     * 分发ID
+     */
+    @TableField("distribution_id")
+    private String distributionId;
+
+    /**
      * 作物类型（枚举值）
      */
     @TableField("crop_type")
