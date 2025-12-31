@@ -62,8 +62,8 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
                 wrapper.like(FarmerInfo::getPhone, farmerInfo.getPhone());
             }
         }
-        if (StrUtil.isNotBlank(farmerInfo.getKebeleCode())) {
-            wrapper.eq(FarmerInfo::getKebeleCode, farmerInfo.getKebeleCode());
+        if (StrUtil.isNotBlank(farmerInfo.getKebeleName())) {
+            wrapper.like(FarmerInfo::getKebeleName, farmerInfo.getKebeleName());
         }
         if (StrUtil.isNotBlank(farmerInfo.getDaId())) {
             wrapper.eq(FarmerInfo::getDaId, farmerInfo.getDaId());
@@ -239,6 +239,17 @@ public class FarmerInfoServiceImpl implements com.inspur.farmland.service.IFarme
         }
 
         return farmerInfoMapper.selectCount(wrapper) == 0;
+    }
+
+    @Override
+    public FarmerInfo selectFarmerByIdCard(String idCard) {
+        if (StrUtil.isBlank(idCard)) {
+            return null;
+        }
+        LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(FarmerInfo::getIdCard, idCard)
+               .eq(FarmerInfo::getStatus, "1");
+        return farmerInfoMapper.selectOne(wrapper);
     }
 
     @Override

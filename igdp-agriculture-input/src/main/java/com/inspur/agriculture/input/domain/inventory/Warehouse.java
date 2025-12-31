@@ -40,12 +40,11 @@ public class Warehouse implements Serializable {
     /** 仓库位置 */
     private String location;
 
-    /** 仓库容量 */
+    /** 仓库容量KG */
     private BigDecimal capacity;
 
-    /** 已用容量 */
+    /** 已用容量KG */
     private BigDecimal usedCapacity;
-
 
     /** 状态: 0-停用/1-启用 */
     private String status;
@@ -84,6 +83,10 @@ public class Warehouse implements Serializable {
     @TableField(exist = false)
     private BigDecimal availableCapacity;
 
+    /** 可用容积(非数据库字段) */
+    @TableField(exist = false)
+    private BigDecimal availableWarehouseArea;
+
     /** 状态描述(非数据库字段) */
     @TableField(exist = false)
     private String statusDesc;
@@ -91,8 +94,14 @@ public class Warehouse implements Serializable {
     private String organName;
 
     private String organCode;
-
+    /**
+     * 仓库容积L
+     */
     private BigDecimal warehouseArea;
+    /**
+     * 已用仓库容积L
+     */
+    private BigDecimal usedWarehouseArea;
 
     private String siteCertificate;
 }

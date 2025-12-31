@@ -42,7 +42,15 @@ public class C1BreedingTestServiceImpl extends ServiceImpl<C1BreedingTestMapper,
 
     @Override
     public boolean add(C1BreedingTest entity) {
-        String testId = "C1TS-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) 
+        // 根据种子级别生成不同的检测编号前缀
+        String prefix;
+        if ("Basic".equalsIgnoreCase(entity.getSeedClass())) {
+            prefix = "BTS"; // Breeder seed Test
+        } else {
+            prefix = "C1TS"; // C1 Test
+        }
+
+        String testId = prefix + "-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                 + "-" + String.format("%04d", (int)(Math.random() * 10000));
         entity.setTestId(testId);
         entity.setDeleted("0");

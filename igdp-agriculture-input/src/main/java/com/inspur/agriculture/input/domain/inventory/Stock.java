@@ -92,6 +92,13 @@ public class Stock implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createdAt;
 
+    /** 存入容量KG */
+    private BigDecimal capacity;
+    /**
+     * 存入容积L
+     */
+    private BigDecimal warehouseArea;
+
     /**
      * 更新时间
      */
