@@ -8,6 +8,8 @@ import com.inspur.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -138,4 +140,23 @@ public class DaInfo extends BaseEntity {
     private String updateByName;
 
     private String remark;
+
+    /**
+     * DA所属农民数量
+     */
+    @TableField(exist = false)
+    private Long farmerCount;
+
+    /**
+     * DA所属土地数量
+     */
+    @TableField(exist = false)
+    private Long landCount;
+
+    /**
+     * DA所属土地面积
+     */
+    @TableField(exist = false)
+    private BigDecimal landArea;
+
 }
