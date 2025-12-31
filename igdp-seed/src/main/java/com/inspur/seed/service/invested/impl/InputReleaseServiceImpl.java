@@ -427,46 +427,9 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     }
 
     @Override
-    public Map<String, Object> queryAvailableStock(String inputType, String inputCategory, String organCode) {
+    public Map<String, Object> queryAvailableStock(String inputCategory, String organCode) {
         Map<String, Object> result = new HashMap<>();
         
-        // 计算未入库分发单的数量（已分发但未完成入库确认的分发单明细总和）
-        // 状态说明: Pending=待审批, Approved=已审批, distributed=已分发(未入库), completed=已完成(已入库)
-        // 只有 completed 状态表示已入库完成，其他都算未入库
-        LambdaQueryWrapper<InputReleaseMain> mainWrapper = new LambdaQueryWrapper<>();
-        mainWrapper.eq(InputReleaseMain::getIsDeleted, 0)
-                   .ne(InputReleaseMain::getStatus, "completed"); // 排除已完成的，其余都是未入库
-        List<InputReleaseMain> pendingMains = this.list(mainWrapper);
-        
-        BigDecimal pendingQuantity = BigDecimal.ZERO;
-        
-        if (!pendingMains.isEmpty()) {
-            // 获取分发单编号列表（用于匹配明细）
-            List<String> releaseIds = pendingMains.stream()
-                    .map(InputReleaseMain::getReleaseId)
-                    .collect(java.util.stream.Collectors.toList());
-            
-            // 查询对应的明细
-            LambdaQueryWrapper<InputReleaseDetail> detailWrapper = new LambdaQueryWrapper<>();
-            detailWrapper.in(InputReleaseDetail::getReleaseId, releaseIds)
-                        .eq(InputReleaseDetail::getIsDeleted, 0);
-            
-            if (inputType != null && !inputType.isEmpty()) {
-                detailWrapper.eq(InputReleaseDetail::getInputType, inputType);
-            }
-            if (inputCategory != null && !inputCategory.isEmpty()) {
-                detailWrapper.eq(InputReleaseDetail::getInputCategory, inputCategory);
-            }
-            
-            List<InputReleaseDetail> pendingDetails = detailMapper.selectList(detailWrapper);
-            for (InputReleaseDetail detail : pendingDetails) {
-                if (detail.getQuantity() != null) {
-                    pendingQuantity = pendingQuantity.add(detail.getQuantity());
-                }
-            }
-        }
-        
-        // 从仓库模块查询实际库存
         // 根据组织编码查询对应仓库
         List<String> warehouseIds = new java.util.ArrayList<>();
         if (organCode != null && !organCode.isEmpty()) {
@@ -480,51 +443,27 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
                     .collect(java.util.stream.Collectors.toList());
         }
         
-        // 查询库存（按仓库和物料过滤）
-        BigDecimal warehouseStock = BigDecimal.ZERO;
+        // 查询库存数量
+        BigDecimal quantity = BigDecimal.ZERO;
         
-        if ((inputType != null && !inputType.isEmpty()) && !warehouseIds.isEmpty()) {
-            // 通过AgriInput表查询所有匹配的materialId
-            LambdaQueryWrapper<com.inspur.agriculture.input.domain.AgriInput> inputWrapper = 
-                new LambdaQueryWrapper<>();
-            inputWrapper.eq(com.inspur.agriculture.input.domain.AgriInput::getType, inputType);
+        if (inputCategory != null && !inputCategory.isEmpty() && !warehouseIds.isEmpty()) {
+            // 根据投入品类别和仓库查询库存
+            LambdaQueryWrapper<Stock> stockWrapper = new LambdaQueryWrapper<>();
+            stockWrapper.eq(Stock::getAgriculturalInputType, inputCategory)
+                       .in(Stock::getWarehouseId, warehouseIds)
+                       .eq(Stock::getStatus, "0"); // 正常状态
+            List<Stock> stockList = stockMapper.selectList(stockWrapper);
             
-            if (inputCategory != null && !inputCategory.isEmpty()) {
-                inputWrapper.eq(com.inspur.agriculture.input.domain.AgriInput::getAgriculturalInputType, inputCategory);
-            }
-            
-            List<com.inspur.agriculture.input.domain.AgriInput> inputs = agriInputMapper.selectList(inputWrapper);
-            
-            if (!inputs.isEmpty()) {
-                // 获取所有匹配的inputId列表
-                List<String> materialIds = inputs.stream()
-                        .map(input -> String.valueOf(input.getInputId()))
-                        .collect(java.util.stream.Collectors.toList());
-                
-                // 查询这些materialId的库存
-                LambdaQueryWrapper<Stock> stockWrapper = new LambdaQueryWrapper<>();
-                stockWrapper.in(Stock::getMaterialId, materialIds)
-                           .in(Stock::getWarehouseId, warehouseIds);
-                List<Stock> stockList = stockMapper.selectList(stockWrapper);
-                
-                for (Stock stock : stockList) {
-                    if (stock.getQuantity() != null) {
-                        warehouseStock = warehouseStock.add(stock.getQuantity());
-                    }
+            for (Stock stock : stockList) {
+                if (stock.getQuantity() != null) {
+                    quantity = quantity.add(stock.getQuantity());
                 }
             }
         }
         
-        BigDecimal availableStock = warehouseStock.subtract(pendingQuantity);
-        if (availableStock.compareTo(BigDecimal.ZERO) < 0) {
-            availableStock = BigDecimal.ZERO;
-        }
-        
-        result.put("warehouseStock", warehouseStock);
-        result.put("pendingQuantity", pendingQuantity);
-        result.put("availableStock", availableStock);
-        result.put("inputType", inputType);
+        result.put("availableStock", quantity);
         result.put("inputCategory", inputCategory);
+        result.put("organCode", organCode);
         
         return result;
     }

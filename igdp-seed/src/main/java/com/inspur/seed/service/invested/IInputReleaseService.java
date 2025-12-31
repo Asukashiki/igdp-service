@@ -77,13 +77,12 @@ public interface IInputReleaseService extends IService<InputReleaseMain> {
     Map<String, String> queryStockStatus(List<String> releaseIds);
 
     /**
-     * 查询可用库存（仓库库存 - 未入库分发单数量）
+     * 查询可用库存
      *
-     * @param inputType 投入品类型
      * @param inputCategory 投入品类别
      * @param organCode 组织编码
      * @return 可用库存信息
      */
-    Map<String, Object> queryAvailableStock(String inputType, String inputCategory, String organCode);
+    Map<String, Object> queryAvailableStock(String inputCategory, String organCode);
 }
 

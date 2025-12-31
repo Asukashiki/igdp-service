@@ -133,18 +133,17 @@ public class InputReleaseController extends BaseController {
     }
 
     /**
-     * 查询可用库存（仓库库存 - 未入库分发单数量）
-     * @param inputType 投入品类型
+     * 查询可用库存
      * @param inputCategory 投入品类别
      * @param organCode 用户组织编码
      */
     @GetMapping("/availableStock")
     public AjaxResult getAvailableStock(
             @RequestParam String inputType,
-            @RequestParam(required = false) String inputCategory,
+            @RequestParam String inputCategory,
             @RequestParam String organCode) {
         try {
-            Map<String, Object> result = releaseService.queryAvailableStock(inputType, inputCategory, organCode);
+            Map<String, Object> result = releaseService.queryAvailableStock(inputCategory, organCode);
             return AjaxResult.success("查询成功", result);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
