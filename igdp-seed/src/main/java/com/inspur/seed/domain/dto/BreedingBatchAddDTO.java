@@ -23,6 +23,11 @@ public class BreedingBatchAddDTO {
     private String receivedId;
 
     /**
+     * 分发ID
+     */
+    private String distributionId;
+
+    /**
      * 作物类型（枚举值）
      */
     @NotBlank(message = "作物类型不能为空")

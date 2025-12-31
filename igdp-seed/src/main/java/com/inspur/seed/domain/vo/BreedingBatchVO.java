@@ -31,6 +31,11 @@ public class BreedingBatchVO {
     private String receivedId;
 
     /**
+     * 分发ID
+     */
+    private String distributionId;
+
+    /**
      * 作物类型
      */
     private String cropType;
