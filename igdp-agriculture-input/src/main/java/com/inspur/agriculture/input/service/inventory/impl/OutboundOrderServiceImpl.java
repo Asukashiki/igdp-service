@@ -189,6 +189,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             List<OutboundOrderDetail> details = outboundOrderDetailMapper.selectList(detailWrapper);
 
             BigDecimal totalOutboundQuantity = BigDecimal.ZERO;
+            // 累计出库的总容量(KG)和总容积(L)，用于更新仓库已用容量/容积
+            BigDecimal totalOutboundCapacityKg = BigDecimal.ZERO;
+            BigDecimal totalOutboundVolumeL = BigDecimal.ZERO;
 
             // 处理每个明细
             for (OutboundOrderDetail detail : details) {
@@ -275,8 +278,12 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                         if (parseResult.isSuccess()) {
                             if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(parseResult.getUnitType())) {
                                 outboundCapacityKg = parseResult.getConvertedValue();
+                                // 累加到总出库容量
+                                totalOutboundCapacityKg = totalOutboundCapacityKg.add(outboundCapacityKg);
                             } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(parseResult.getUnitType())) {
                                 outboundVolumeL = parseResult.getConvertedValue();
+                                // 累加到总出库容积
+                                totalOutboundVolumeL = totalOutboundVolumeL.add(outboundVolumeL);
                             }
                         }
                     }
@@ -336,8 +343,15 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 }
             }
 
-            // 更新仓库已用容量（减少）
-            warehouseMapper.updateUsedCapacity(Long.valueOf(outboundOrder.getWarehouseId()), totalOutboundQuantity.negate());
+            // 更新仓库已用容量（KG）- 减少
+            if (totalOutboundCapacityKg.compareTo(BigDecimal.ZERO) > 0) {
+                warehouseMapper.updateUsedCapacity(Long.valueOf(outboundOrder.getWarehouseId()), totalOutboundCapacityKg.negate());
+            }
+
+            // 更新仓库已用容积（L）- 减少
+            if (totalOutboundVolumeL.compareTo(BigDecimal.ZERO) > 0) {
+                warehouseMapper.updateUsedWarehouseArea(Long.valueOf(outboundOrder.getWarehouseId()), totalOutboundVolumeL.negate());
+            }
 
             // 审批通过后，更新关联的分发单状态和确认接收单状态
             if (StringUtils.isNotEmpty(outboundOrder.getRelatedOrderNo())) {
