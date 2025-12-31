@@ -2,16 +2,15 @@
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper">
+<mapper namespace="com.inspur.seed.mapper.basic.BasicSeedProduceResultMapper">
 
-    <resultMap type="com.inspur.seed.vo.prebasic.PrebasicSeedProduceResultVO" id="PrebasicSeedProduceResultResult">
+    <resultMap type="com.inspur.seed.vo.basic.BasicSeedProduceResultVO" id="BasicSeedProduceResultResult">
         <result property="resultId" column="result_id"/>
         <result property="produceBatchId" column="produce_batch_id"/>
         <result property="produceBatchName" column="produce_batch_name"/>
         <result property="varietyName" column="variety_name"/>
         <result property="collectionDate" column="collection_date"/>
         <result property="outputQuantity" column="output_quantity"/>
-        <result property="remainingQuantity" column="remaining_quantity"/>
         <result property="breedBatchName" column="breed_batch_name"/>
         <result property="trialName" column="trial_name"/>
         <result property="fromSeedLevel" column="from_seed_level"/>
@@ -23,14 +22,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectResultVo">
         select result_id, produce_batch_id, produce_batch_name, variety_name, 
-               collection_date, output_quantity, remaining_quantity, breed_batch_name, trial_name,
+               collection_date, output_quantity, breed_batch_name, trial_name,
                from_seed_level, to_seed_level, operator,
                create_time, update_time
-        from prebasic_seed_produce_result
+        from basic_seed_produce_result
     </sql>
 
-    <select id="selectResultList" parameterType="com.inspur.seed.dto.prebasic.PrebasicSeedProduceResultQueryDTO" 
-            resultMap="PrebasicSeedProduceResultResult">
+    <select id="selectResultList" parameterType="com.inspur.seed.dto.basic.BasicSeedProduceResultQueryDTO" 
+            resultMap="BasicSeedProduceResultResult">
         <include refid="selectResultVo"/>
         <where>
             <if test="produceBatchId != null and produceBatchId != ''">
@@ -52,18 +51,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by create_time desc
     </select>
 
-    <select id="selectResultById" parameterType="String" resultMap="PrebasicSeedProduceResultResult">
+    <select id="selectResultById" parameterType="String" resultMap="BasicSeedProduceResultResult">
         <include refid="selectResultVo"/>
         where result_id = #{resultId}
     </select>
 
     <select id="countByProduceBatchId" parameterType="String" resultType="Long">
-        select count(*) from prebasic_seed_produce_result
+        select count(*) from basic_seed_produce_result
         where produce_batch_id = #{produceBatchId}
     </select>
 
-    <select id="getResultByProduceBatchId" parameterType="String" resultType="com.inspur.seed.domain.prebasic.PrebasicSeedProduceResult">
-        select * from prebasic_seed_produce_result
+    <select id="getResultByProduceBatchId" parameterType="String" resultType="com.inspur.seed.domain.basic.BasicSeedProduceResult">
+        select * from basic_seed_produce_result
         where produce_batch_id = #{produceBatchId}
         limit 1
     </select>

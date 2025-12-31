@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.basic.BasicSeedProduceMapper">
+
+    <resultMap type="com.inspur.seed.vo.basic.BasicSeedProduceVO" id="BasicSeedProduceResult">
+        <result property="produceBatchId" column="produce_batch_id"/>
+        <result property="produceBatchName" column="produce_batch_name"/>
+        <result property="prebasicSeedBatchId" column="prebasic_seed_batch_id"/>
+        <result property="prebasicSeedBatchName" column="prebasic_seed_batch_name"/>
+        <result property="varietyId" column="variety_id"/>
+        <result property="varietyName" column="variety_name"/>
+        <result property="cropType" column="crop_type"/>
+        <result property="breedBatchId" column="breed_batch_id"/>
+        <result property="breedBatchName" column="breed_batch_name"/>
+        <result property="trialId" column="trial_id"/>
+        <result property="trialName" column="trial_name"/>
+        <result property="landId" column="land_id"/>
+        <result property="landName" column="land_name"/>
+        <result property="time" column="time"/>
+        <result property="inputSeedQuantity" column="input_seed_quantity"/>
+        <result property="produceSeedQuantity" column="produce_seed_quantity"/>
+        <result property="fromSeedLevel" column="from_seed_level"/>
+        <result property="toSeedLevel" column="to_seed_level"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="produceStatus" column="produce_status"/>
+        <result property="flowStatus" column="flow_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectProduceVo">
+        select produce_batch_id, produce_batch_name, prebasic_seed_batch_id, prebasic_seed_batch_name,
+               variety_id, variety_name, crop_type, breed_batch_id, breed_batch_name,
+               trial_id, trial_name, land_id, land_name, time,
+               input_seed_quantity, produce_seed_quantity, from_seed_level, to_seed_level,
+               operator_id, operator_name, produce_status, flow_status, create_time, update_time
+        from basic_seed_produce
+    </sql>
+
+    <select id="selectProduceList" parameterType="com.inspur.seed.dto.basic.BasicSeedProduceQueryDTO" 
+            resultMap="BasicSeedProduceResult">
+        <include refid="selectProduceVo"/>
+        <where>
+            <if test="produceBatchId != null and produceBatchId != ''">
+                AND produce_batch_id = #{produceBatchId}
+            </if>
+            <if test="produceBatchName != null and produceBatchName != ''">
+                AND produce_batch_name like concat('%', #{produceBatchName}, '%')
+            </if>
+            <if test="varietyName != null and varietyName != ''">
+                AND variety_name like concat('%', #{varietyName}, '%')
+            </if>
+            <if test="cropType != null and cropType != ''">
+                AND crop_type = #{cropType}
+            </if>
+            <if test="produceStatus != null and produceStatus != ''">
+                AND produce_status = #{produceStatus}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND time &lt;= #{endTime}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectProduceById" parameterType="String" resultMap="BasicSeedProduceResult">
+        <include refid="selectProduceVo"/>
+        where produce_batch_id = #{produceBatchId}
+    </select>
+
+    <select id="getMaxSequence" parameterType="String" resultType="Integer">
+        SELECT MAX(CAST(SUBSTRING(produce_batch_id, LENGTH(#{prefix}) + 1) AS UNSIGNED))
+        FROM basic_seed_produce
+        WHERE produce_batch_id LIKE CONCAT(#{prefix}, '%')
+    </select>
+
+</mapper>

@@ -1,38 +1,37 @@
-package com.inspur.seed.service.prebasic.impl;
+package com.inspur.seed.service.basic.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
-import com.inspur.seed.domain.prebasic.PrebasicSeedProduce;
-import com.inspur.seed.domain.prebasic.PrebasicSeedProduceResult;
-import com.inspur.seed.dto.prebasic.PrebasicSeedProduceResultQueryDTO;
-import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceMapper;
-import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper;
-import com.inspur.seed.service.prebasic.IPrebasicSeedProduceResultService;
-import com.inspur.seed.vo.prebasic.PrebasicSeedProduceResultVO;
+import com.inspur.seed.domain.basic.BasicSeedProduce;
+import com.inspur.seed.domain.basic.BasicSeedProduceResult;
+import com.inspur.seed.dto.basic.BasicSeedProduceResultQueryDTO;
+import com.inspur.seed.mapper.basic.BasicSeedProduceMapper;
+import com.inspur.seed.mapper.basic.BasicSeedProduceResultMapper;
+import com.inspur.seed.service.basic.IBasicSeedProduceResultService;
+import com.inspur.seed.vo.basic.BasicSeedProduceResultVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Pre-basic Seed 生产结果Service实现
+ * Basic Seed 生产结果Service实现
  *
  * @author igdp
  */
 @Service
-public class PrebasicSeedProduceResultServiceImpl extends ServiceImpl<PrebasicSeedProduceResultMapper, PrebasicSeedProduceResult> implements IPrebasicSeedProduceResultService {
+public class BasicSeedProduceResultServiceImpl extends ServiceImpl<BasicSeedProduceResultMapper, BasicSeedProduceResult> implements IBasicSeedProduceResultService {
 
     @Autowired
-    private PrebasicSeedProduceMapper prebasicSeedProduceMapper;
+    private BasicSeedProduceMapper basicSeedProduceMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int submitResult(PrebasicSeedProduceResult result) {
+    public int submitResult(BasicSeedProduceResult result) {
         // 1. 验证批次是否存在
-        PrebasicSeedProduce produce = prebasicSeedProduceMapper.selectById(result.getProduceBatchId());
+        BasicSeedProduce produce = basicSeedProduceMapper.selectById(result.getProduceBatchId());
         if (produce == null) {
             throw new ServiceException("Production batch not found");
         }
@@ -67,19 +66,19 @@ public class PrebasicSeedProduceResultServiceImpl extends ServiceImpl<PrebasicSe
             produce.setFlowStatus("S2"); // 设置审核状态为已审批
             produce.setProduceSeedQuantity(result.getOutputQuantity());
             produce.setUpdateTime(new Date());
-            prebasicSeedProduceMapper.updateById(produce);
+            basicSeedProduceMapper.updateById(produce);
         }
         
         return rows;
     }
 
     @Override
-    public List<PrebasicSeedProduceResultVO> getResultList(PrebasicSeedProduceResultQueryDTO queryDTO) {
+    public List<BasicSeedProduceResultVO> getResultList(BasicSeedProduceResultQueryDTO queryDTO) {
         return baseMapper.selectResultList(queryDTO);
     }
 
     @Override
-    public PrebasicSeedProduceResultVO getResultById(String resultId) {
+    public BasicSeedProduceResultVO getResultById(String resultId) {
         return baseMapper.selectResultById(resultId);
     }
 }

@@ -18,4 +18,6 @@ public interface PrebasicSeedProduceResultMapper extends BaseMapper<PrebasicSeed
     PrebasicSeedProduceResultVO selectResultById(@Param("resultId") String resultId);
     
     Long countByProduceBatchId(@Param("produceBatchId") String produceBatchId);
+    
+    PrebasicSeedProduceResult getResultByProduceBatchId(@Param("produceBatchId") String produceBatchId);
 }

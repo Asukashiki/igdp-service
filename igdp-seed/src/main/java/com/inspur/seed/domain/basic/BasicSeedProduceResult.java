@@ -1,4 +1,4 @@
-package com.inspur.seed.domain.prebasic;
+package com.inspur.seed.domain.basic;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -14,14 +14,14 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * Pre-basic Seed 生产结果表
+ * Basic Seed 生产结果表
  *
  * @author igdp
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("prebasic_seed_produce_result")
-public class PrebasicSeedProduceResult extends BaseEntity {
+@TableName("basic_seed_produce_result")
+public class BasicSeedProduceResult extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.ASSIGN_UUID)

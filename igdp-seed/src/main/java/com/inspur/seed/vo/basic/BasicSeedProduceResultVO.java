@@ -1,4 +1,4 @@
-package com.inspur.seed.vo.prebasic;
+package com.inspur.seed.vo.basic;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -6,10 +6,10 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * Pre-basic Seed 生产结果VO
+ * Basic Seed 生产结果VO
  */
 @Data
-public class PrebasicSeedProduceResultVO {
+public class BasicSeedProduceResultVO {
     private String resultId;
     private String produceBatchId;
     private String produceBatchName;
