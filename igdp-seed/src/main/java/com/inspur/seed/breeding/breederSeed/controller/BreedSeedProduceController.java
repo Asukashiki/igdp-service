@@ -44,6 +44,18 @@ public class BreedSeedProduceController extends BaseController {
     }
 
     /**
+     * 获取生产批次剩余数量
+     */
+    @GetMapping("/remaining/{produceBatchId}")
+    public AjaxResult getRemaining(@PathVariable("produceBatchId") String produceBatchId) {
+        BreedSeedProduceVO vo = breedSeedProduceService.getProduceById(produceBatchId);
+        if (vo == null) {
+            return error("Production batch not found");
+        }
+        return success(vo);
+    }
+
+    /**
      * 新增生产数据
      */
     @PostMapping("/add")

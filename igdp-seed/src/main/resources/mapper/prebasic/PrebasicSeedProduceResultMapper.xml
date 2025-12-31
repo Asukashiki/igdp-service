@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper">
+
+    <resultMap type="com.inspur.seed.vo.prebasic.PrebasicSeedProduceResultVO" id="PrebasicSeedProduceResultResult">
+        <result property="resultId" column="result_id"/>
+        <result property="produceBatchId" column="produce_batch_id"/>
+        <result property="produceBatchName" column="produce_batch_name"/>
+        <result property="varietyName" column="variety_name"/>
+        <result property="collectionDate" column="collection_date"/>
+        <result property="outputQuantity" column="output_quantity"/>
+        <result property="breedBatchName" column="breed_batch_name"/>
+        <result property="trialName" column="trial_name"/>
+        <result property="fromSeedLevel" column="from_seed_level"/>
+        <result property="toSeedLevel" column="to_seed_level"/>
+        <result property="operator" column="operator"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectResultVo">
+        select result_id, produce_batch_id, produce_batch_name, variety_name, 
+               collection_date, output_quantity, breed_batch_name, trial_name,
+               from_seed_level, to_seed_level, operator,
+               create_time, update_time
+        from prebasic_seed_produce_result
+    </sql>
+
+    <select id="selectResultList" parameterType="com.inspur.seed.dto.prebasic.PrebasicSeedProduceResultQueryDTO" 
+            resultMap="PrebasicSeedProduceResultResult">
+        <include refid="selectResultVo"/>
+        <where>
+            <if test="produceBatchId != null and produceBatchId != ''">
+                AND produce_batch_id = #{produceBatchId}
+            </if>
+            <if test="varietyName != null and varietyName != ''">
+                AND variety_name like concat('%', #{varietyName}, '%')
+            </if>
+            <if test="produceBatchName != null and produceBatchName != ''">
+                AND produce_batch_name like concat('%', #{produceBatchName}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND collection_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND collection_date &lt;= #{endDate}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectResultById" parameterType="String" resultMap="PrebasicSeedProduceResultResult">
+        <include refid="selectResultVo"/>
+        where result_id = #{resultId}
+    </select>
+
+    <select id="countByProduceBatchId" parameterType="String" resultType="Long">
+        select count(*) from prebasic_seed_produce_result
+        where produce_batch_id = #{produceBatchId}
+    </select>
+
+</mapper>

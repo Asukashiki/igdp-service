@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -49,6 +50,9 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
     @Autowired
     private IBreedSeedProduceService produceService;
 
+    @Autowired
+    private com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceResultMapper produceResultMapper;
+
     @Override
     public List<BreedSeedDistributeVO> getDistributeList(BreedSeedDistributeQueryDTO queryDTO) {
         return distributeMapper.selectDistributeList(queryDTO);
@@ -62,14 +66,29 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
                 "D_" + dto.getOrgan() + "_" + dto.getFromSeedLevel() + "_" + dto.getToSeedLevel() + "_" + IdUtils.fastSimpleUUID().substring(0, 6);
         // 计算明细总数量
         BigDecimal totalQuantity = BigDecimal.ZERO;
-        // todo 逻辑修改待处理
+        
+        // 验证并扣减剩余量
         for (BreedSeedDistributeDetail item : dto.getDetailList()) {
-            // 验证分发数量不能超过生产批次剩余量
-            BreedSeedProduceVO produceVO = produceService.getProduceById(item.getProduceBatchId());
-            BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
-            if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
-                throw new ServiceException("Distribution quantity exceeds the remaining quantity of the production batch");
+            // 1. 获取生产结果记录
+            com.inspur.seed.breeding.breederSeed.domain.entity.BreedSeedProduceResult produceResult = 
+                produceResultMapper.getResultByProduceBatchId(item.getProduceBatchId());
+            
+            if (produceResult == null) {
+                throw new ServiceException("Production result not found for batch: " + item.getProduceBatchId());
             }
+            
+            // 2. 验证剩余量是否足够
+            BigDecimal remaining = produceResult.getRemainingQuantity();
+            if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
+                throw new ServiceException("Insufficient remaining quantity. Available: " + remaining + " kg, Required: " + item.getDistributeQuantity() + " kg");
+            }
+            
+            // 3. 扣减剩余量
+            BigDecimal newRemaining = remaining.subtract(item.getDistributeQuantity());
+            produceResult.setRemainingQuantity(newRemaining);
+            produceResult.setUpdateTime(LocalDateTime.now());
+            produceResultMapper.updateById(produceResult);
+            
             totalQuantity = totalQuantity.add(item.getDistributeQuantity());
         }
 
@@ -98,14 +117,12 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
             item.setDistributeDetailId(IdUtils.fastSimpleUUID());
             item.setDistributeId(distributeId);
 
-
-            // 计算并记录剩余量
+            // 获取生产批次信息用于填充明细
             BreedSeedProduceVO produceVO = produceService.getProduceById(item.getProduceBatchId());
-            BigDecimal remaining = produceVO != null ? produceVO.getRemainingQuantity() : BigDecimal.ZERO;
-            item.setProduceBatchRemaining(remaining.subtract(item.getDistributeQuantity()));
-
-            // 从breed_seed_produce表自动带出品种名称、作物类型
             if (produceVO != null) {
+                // 记录分发后的剩余量（用于显示）
+                item.setProduceBatchRemaining(produceVO.getRemainingQuantity().subtract(item.getDistributeQuantity()));
+                // 从breed_seed_produce表自动带出品种名称、作物类型
                 item.setVarietyName(produceVO.getVarietyName());
                 item.setCropType(produceVO.getCropType());
             }
