@@ -54,6 +54,12 @@ public class DaInfoServiceImpl implements IDaInfoService {
     @Value("${bsp.center.register.url:http://172.26.100.103:9403/rbac/user/register}")
     private String userCenterRegisterUrl;
 
+    /**
+     * 用户中心更新接口地址
+     */
+    @Value("${bsp.center.update.url:http://172.26.100.103:9403/rbac/user/update}")
+    private String userCenterUpdateUrl;
+
     private RestTemplate restTemplate;
 
     @PostConstruct
@@ -145,6 +151,12 @@ public class DaInfoServiceImpl implements IDaInfoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int updateDaInfo(String daId, DaInfo daInfo) {
+        // 获取原有DA信息（用于同步到用户中心）
+        DaInfo existingDa = selectDaInfoByDaId(daId);
+        if (existingDa == null) {
+            throw new com.inspur.common.exception.ServiceException("DA information does not exist");
+        }
+
         // 设置更新信息
         try {
             String username = SecurityUtils.getUsername();
@@ -164,7 +176,18 @@ public class DaInfoServiceImpl implements IDaInfoService {
         wrapper.eq(DaInfo::getDaId, daId)
                 .eq(DaInfo::getStatus, "1");
 
-        return daInfoMapper.update(daInfo, wrapper);
+        int rows = daInfoMapper.update(daInfo, wrapper);
+
+        // 如果更新成功，同步到用户中心
+        if (rows > 0) {
+            // 重新查询完整的DA信息
+            DaInfo updatedDa = selectDaInfoByDaId(daId);
+            if (updatedDa != null) {
+                syncUpdateToUserCenter(updatedDa);
+            }
+        }
+
+        return rows;
     }
 
     @Override
@@ -386,5 +409,52 @@ public class DaInfoServiceImpl implements IDaInfoService {
     private String encryptPasswordForUserCenter(String storedEncryptedPassword) {
         String rawPassword = aesDecrypt(storedEncryptedPassword);
         return aesEncrypt(rawPassword);
+    }
+
+    /**
+     * 同步更新到用户中心
+     *
+     * @param daInfo DA信息
+     */
+    private void syncUpdateToUserCenter(DaInfo daInfo) {
+        try {
+            // 构建请求体
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("account", daInfo.getAccount());
+            requestBody.put("name", daInfo.getDaName());
+            requestBody.put("gender", "MALE".equals(daInfo.getGender()) ? "0" : "1");
+            requestBody.put("identityNum", daInfo.getIdCard() != null ? daInfo.getIdCard() : "");
+            requestBody.put("mobile", daInfo.getPhone() != null ? daInfo.getPhone() : "");
+            requestBody.put("email", daInfo.getEmail() != null ? daInfo.getEmail() : "");
+
+            // 区域/组织信息映射
+            requestBody.put("regionCode", daInfo.getWoredaCode());
+            requestBody.put("regionName", "");
+            requestBody.put("orgCode", daInfo.getWoredaCode());
+            requestBody.put("orgName", "");
+
+            // 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            // 调用用户中心更新接口
+            ResponseEntity<Object> response = restTemplate.exchange(
+                    userCenterUpdateUrl,
+                    HttpMethod.POST,
+                    entity,
+                    Object.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("DA用户信息同步更新到用户中心成功: account={}", daInfo.getAccount());
+            } else {
+                log.error("DA用户信息同步更新到用户中心失败: account={}, status={}", daInfo.getAccount(), response.getStatusCode());
+            }
+        } catch (Exception e) {
+            log.error("DA用户信息同步更新异常: account={}", daInfo.getAccount(), e);
+            // 不抛出异常，避免影响主流程
+        }
     }
 }

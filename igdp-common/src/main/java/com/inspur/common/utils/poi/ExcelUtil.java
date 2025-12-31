@@ -935,6 +935,11 @@ public class ExcelUtil<T>
             {
                 cellValue = StringUtils.EMPTY;
             }
+            // 检查是否是[object Object]这样的字符串表示
+            if (StringUtils.isNotEmpty(cellValue) && cellValue.contains("Object") && cellValue.contains("@"))
+            {
+                cellValue = StringUtils.EMPTY;
+            }
             cell.setCellValue(StringUtils.isNull(cellValue) ? attr.defaultValue() : cellValue + attr.suffix());
         }
         else if (ColumnType.NUMERIC == attr.cellType())
@@ -1073,7 +1078,7 @@ public class ExcelUtil<T>
                     // 设置列类型
                     setCellVo(value, attr, cell);
                 }
-                addStatisticsData(column, Convert.toStr(value), attr);
+                addStatisticsData(column, value, attr);
             }
         }
         catch (Exception e)
@@ -1291,13 +1296,21 @@ public class ExcelUtil<T>
         {
             log.error("不能格式化数据 " + excel.handler(), e.getMessage());
         }
-        return Convert.toStr(value);
+        
+        // 转换为字符串并检查是否是[object Object]
+        String result = Convert.toStr(value);
+        if (StringUtils.isNotEmpty(result) && result.contains("Object") && result.contains("@"))
+        {
+            result = StringUtils.EMPTY;
+        }
+        
+        return result;
     }
 
     /**
      * 合计统计信息
      */
-    private void addStatisticsData(Integer index, String text, Excel entity)
+    private void addStatisticsData(Integer index, Object value, Excel entity)
     {
         if (entity != null && entity.isStatistics())
         {
@@ -1306,6 +1319,14 @@ public class ExcelUtil<T>
             {
                 statistics.put(index, temp);
             }
+            
+            // 转换为字符串并检查是否是[object Object]
+            String text = Convert.toStr(value);
+            if (StringUtils.isNotEmpty(text) && text.contains("Object") && text.contains("@"))
+            {
+                text = StringUtils.EMPTY;
+            }
+            
             try
             {
                 temp = Double.valueOf(text);
