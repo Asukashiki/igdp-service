@@ -319,6 +319,8 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 try {
                     // 更新分发单状态为Completed
                     outboundOrderMapper.updateReleaseOrderStatus(outboundOrder.getRelatedOrderNo(), "outCompleted");
+                    // 更新农民分发单
+
                 } catch (Exception e) {
                     // 记录日志但不影响主流程
                     throw new ServiceException("The outbound approval was successful, but the update of the associated distribution order status failed: " + e.getMessage());

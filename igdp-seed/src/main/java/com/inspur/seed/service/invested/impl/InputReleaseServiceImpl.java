@@ -14,17 +14,12 @@ import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.common.utils.uuid.IdUtils;
-import com.inspur.seed.domain.invested.InputReceiveUnion;
-import com.inspur.seed.domain.invested.InputReceiveWoreda;
-import com.inspur.seed.domain.invested.InputReleaseDetail;
-import com.inspur.seed.domain.invested.InputReleaseMain;
+import com.inspur.seed.domain.invested.*;
 import com.inspur.seed.dto.invested.InputReleaseDTO;
 import com.inspur.seed.dto.invested.InputReleaseDetailDTO;
-import com.inspur.seed.mapper.invested.InputReceiveUnionMapper;
-import com.inspur.seed.mapper.invested.InputReceiveWoredaMapper;
-import com.inspur.seed.mapper.invested.InputReleaseDetailMapper;
-import com.inspur.seed.mapper.invested.InputReleaseMainMapper;
+import com.inspur.seed.mapper.invested.*;
 import com.inspur.seed.service.invested.IInputReleaseService;
+import org.apache.ibatis.executor.ExecutorException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +64,11 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
 
     @Resource
     private InputReleaseMainMapper inputReleaseMainMapper;
+
+    @Resource
+    private InputReleaseFarmerMainMapper inputReleaseFarmerMainMapper;
+
+    @Resource InputReleaseFarmerDetailMapper inputReleaseFarmerDetailMapper;
 
     @Override
     public List<InputReleaseMain> queryReleaseList(String releaseType, String unionName, String inputType,
@@ -186,20 +186,30 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     @Override
     public Map<String, Object> queryReleaseDetail(String id) {
         InputReleaseMain main = getById(id);
+        Map<String, Object> result = new HashMap<>();
         if (main == null) {
-            throw new ServiceException("分发单不存在");
+            InputReleaseFarmerMain farmerMain = inputReleaseFarmerMainMapper.selectById(id);
+            if(farmerMain == null){
+                throw new ServiceException("distribute order is not existed");
+            }
+            LambdaQueryWrapper<InputReleaseFarmerDetail> wrapperFarmer = new LambdaQueryWrapper<>();
+            wrapperFarmer.eq(InputReleaseFarmerDetail::getReleaseId, farmerMain.getReleaseId());
+            wrapperFarmer.orderByAsc(InputReleaseFarmerDetail::getCreateTime);
+            List<InputReleaseFarmerDetail> farmerDetails = inputReleaseFarmerDetailMapper.selectList(wrapperFarmer);
+            result.put("main", farmerMain);
+            result.put("details", farmerDetails);
+            return result;
+        }else{
+            LambdaQueryWrapper<InputReleaseDetail> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(InputReleaseDetail::getReleaseId, main.getReleaseId());
+            wrapper.orderByAsc(InputReleaseDetail::getCreateTime);
+            List<InputReleaseDetail> details = detailMapper.selectList(wrapper);
+            result.put("main", main);
+            result.put("details", details);
+            return result;
         }
 
-        // 查询明细
-        LambdaQueryWrapper<InputReleaseDetail> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(InputReleaseDetail::getReleaseId, main.getReleaseId());
-        wrapper.orderByAsc(InputReleaseDetail::getCreateTime);
-        List<InputReleaseDetail> details = detailMapper.selectList(wrapper);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("main", main);
-        result.put("details", details);
-        return result;
     }
 
     @Override
