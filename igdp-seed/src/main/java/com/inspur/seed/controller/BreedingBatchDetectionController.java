@@ -1,12 +1,12 @@
 package com.inspur.seed.controller;
 
 import com.inspur.common.core.domain.AjaxResult;
-import com.inspur.seed.domain.dto.C1BreedingBatchQueryDTO;
-import com.inspur.seed.domain.dto.BreedingBatchQueryDTO;
-import com.inspur.seed.service.IC1BreedingBatchService;
-import com.inspur.seed.service.IBreedingBatchInfoService;
-import com.inspur.seed.domain.vo.C1BreedingBatchVO;
-import com.inspur.seed.domain.vo.BreedingBatchVO;
+import com.inspur.seed.multiplication.basic.domain.dto.BreedingBatchQueryDTO;
+import com.inspur.seed.multiplication.basic.domain.vo.BreedingBatchVO;
+import com.inspur.seed.multiplication.basic.service.IBreedingBatchInfoService;
+import com.inspur.seed.multiplication.c1Seed.domain.dto.C1BreedingBatchQueryDTO;
+import com.inspur.seed.multiplication.c1Seed.domain.vo.C1BreedingBatchVO;
+import com.inspur.seed.multiplication.c1Seed.service.IC1BreedingBatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
