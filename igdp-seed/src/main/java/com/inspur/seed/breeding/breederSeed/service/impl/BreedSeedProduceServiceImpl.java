@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,14 +73,25 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
         // 执行查询
         List<BreedSeedProduce> entities = this.list(queryWrapper);
 
-        // 转换为VO并计算remaining_quantity
+        // 转换为VO并从数据库读取剩余量
         return entities.stream().map(entity -> {
             BreedSeedProduceVO vo = new BreedSeedProduceVO();
             BeanUtils.copyProperties(entity, vo);
 
-            // 计算剩余数量
-            BigDecimal remainingQuantity = calculateRemainingQuantity(entity.getProduceBatchId());
-            vo.setRemainingQuantity(remainingQuantity);
+            // 从生产结果表读取剩余量
+            BreedSeedProduceResult result = breedSeedProduceResultMapper.getResultByProduceBatchId(entity.getProduceBatchId());
+            if (result != null) {
+                // 有生产结果：使用存储的剩余量
+                vo.setRemainingQuantity(result.getRemainingQuantity());
+            } else {
+                // 没有生产结果：
+                if ("Ongoing".equals(entity.getProduceStatus()) && entity.getInputSeedQuantity() != null) {
+                    // 如果还在生产中，剩余量可以认为是投入数量
+                    vo.setRemainingQuantity(entity.getInputSeedQuantity());
+                } else {
+                    vo.setRemainingQuantity(BigDecimal.ZERO);
+                }
+            }
 
             return vo;
         }).collect(Collectors.toList());
@@ -95,19 +107,32 @@ public class BreedSeedProduceServiceImpl extends ServiceImpl<BreedSeedProduceMap
         BreedSeedProduceVO vo = new BreedSeedProduceVO();
         BeanUtils.copyProperties(entity, vo);
 
-        // 计算剩余数量
-        BigDecimal remainingQuantity = calculateRemainingQuantity(breedSeedProduceBatchId);
-        vo.setRemainingQuantity(remainingQuantity);
+        // 从生产结果表读取剩余量
+        BreedSeedProduceResult result = breedSeedProduceResultMapper.getResultByProduceBatchId(breedSeedProduceBatchId);
+        if (result != null) {
+            // 有生产结果：使用存储的剩余量
+            vo.setRemainingQuantity(result.getRemainingQuantity());
+        } else {
+            // 没有生产结果：
+            if ("Ongoing".equals(entity.getProduceStatus()) && entity.getInputSeedQuantity() != null) {
+                // 如果还在生产中，剩余量可以认为是投入数量
+                vo.setRemainingQuantity(entity.getInputSeedQuantity());
+            } else {
+                vo.setRemainingQuantity(BigDecimal.ZERO);
+            }
+        }
 
         return vo;
     }
 
     /**
-     * 计算剩余可分发量
-     *
+     * 计算剩余可分发量（已废弃 - 现在使用数据库存储字段）
+     * 
+     * @deprecated 使用 breed_seed_produce_result.remaining_quantity 字段代替
      * @param produceBatchId 生产批次ID
      * @return 剩余可分发量
      */
+    @Deprecated
     private BigDecimal calculateRemainingQuantity(String produceBatchId) {
         // 查询该生产批次的所有分发明细
         LambdaQueryWrapper<BreedSeedDistributeDetail> queryWrapper = Wrappers.lambdaQuery();

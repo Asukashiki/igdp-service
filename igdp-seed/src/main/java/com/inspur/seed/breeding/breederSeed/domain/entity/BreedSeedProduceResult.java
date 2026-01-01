@@ -39,6 +39,12 @@ public class BreedSeedProduceResult extends BaseEntity {
     private BigDecimal producedAmount;
 
     /**
+     * Remaining Quantity (kg) - 剩余可分发量
+     * 计算规则：produced_amount - 已分发总量
+     */
+    private BigDecimal remainingQuantity;
+
+    /**
      * Collection Date
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
