@@ -1,5 +1,6 @@
 package com.inspur.seed.service.basic.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.domain.basic.BasicSeedProduce;
@@ -9,6 +10,7 @@ import com.inspur.seed.mapper.basic.BasicSeedProduceMapper;
 import com.inspur.seed.mapper.basic.BasicSeedProduceResultMapper;
 import com.inspur.seed.service.basic.IBasicSeedProduceResultService;
 import com.inspur.seed.vo.basic.BasicSeedProduceResultVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,5 +82,19 @@ public class BasicSeedProduceResultServiceImpl extends ServiceImpl<BasicSeedProd
     @Override
     public BasicSeedProduceResultVO getResultById(String resultId) {
         return baseMapper.selectResultById(resultId);
+    }
+    
+    @Override
+    public BasicSeedProduceResultVO getResultByProduceBatchId(String produceBatchId) {
+        LambdaQueryWrapper<BasicSeedProduceResult> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BasicSeedProduceResult::getProduceBatchId, produceBatchId);
+        BasicSeedProduceResult result = this.getOne(queryWrapper);
+        if (result == null) {
+            return null;
+        }
+        // 将实体对象转换为VO对象
+        BasicSeedProduceResultVO vo = new BasicSeedProduceResultVO();
+        BeanUtils.copyProperties(result, vo);
+        return vo;
     }
 }

@@ -46,6 +46,8 @@ public class BreedSeedDistributeDetail implements Serializable {
      */
     private String breedBatchName;
 
+    private String breedBatchId;
+
 
     private String parentalSeedSource;
 

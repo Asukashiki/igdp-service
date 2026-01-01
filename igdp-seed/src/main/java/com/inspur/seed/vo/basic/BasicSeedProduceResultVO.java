@@ -14,6 +14,7 @@ public class BasicSeedProduceResultVO {
     private String produceBatchId;
     private String produceBatchName;
     private String varietyName;
+    private String varietyId;
     
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date collectionDate;
@@ -21,6 +22,8 @@ public class BasicSeedProduceResultVO {
     private BigDecimal outputQuantity;
     private BigDecimal remainingQuantity;
     private String breedBatchName;
+    private String breedBatchId;
+    private String cropType;
     private String trialName;
     private String fromSeedLevel;
     private String toSeedLevel;

@@ -13,6 +13,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="outputQuantity" column="output_quantity"/>
         <result property="remainingQuantity" column="remaining_quantity"/>
         <result property="breedBatchName" column="breed_batch_name"/>
+        <result property="breedBatchId" column="breed_batch_id"/>
+        <result property="varietyId" column="variety_id"/>
+        <result property="cropType" column="crop_type"/>
         <result property="trialName" column="trial_name"/>
         <result property="fromSeedLevel" column="from_seed_level"/>
         <result property="toSeedLevel" column="to_seed_level"/>
@@ -22,8 +25,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectResultVo">
-        select result_id, produce_batch_id, produce_batch_name, variety_name, 
-               collection_date, output_quantity, remaining_quantity, breed_batch_name, trial_name,
+        select result_id, produce_batch_id, produce_batch_name, variety_name, variety_id, crop_type,
+               collection_date, output_quantity, remaining_quantity, breed_batch_name, breed_batch_id, trial_name,
                from_seed_level, to_seed_level, operator,
                create_time, update_time
         from prebasic_seed_produce_result
@@ -62,10 +65,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where produce_batch_id = #{produceBatchId}
     </select>
 
-    <select id="getResultByProduceBatchId" parameterType="String" resultType="com.inspur.seed.domain.prebasic.PrebasicSeedProduceResult">
-        select * from prebasic_seed_produce_result
-        where produce_batch_id = #{produceBatchId}
-        limit 1
-    </select>
+
 
 </mapper>

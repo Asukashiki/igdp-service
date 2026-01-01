@@ -15,4 +15,6 @@ public interface IPrebasicSeedProduceResultService {
     List<PrebasicSeedProduceResultVO> getResultList(PrebasicSeedProduceResultQueryDTO queryDTO);
     
     PrebasicSeedProduceResultVO getResultById(String resultId);
+    
+    PrebasicSeedProduceResultVO getResultByProduceBatchId(String produceBatchId);
 }

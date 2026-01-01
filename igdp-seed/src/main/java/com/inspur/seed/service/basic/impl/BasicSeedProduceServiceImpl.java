@@ -13,6 +13,8 @@ import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceMapper;
 import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper;
 import com.inspur.seed.service.basic.IBasicSeedProduceService;
 import com.inspur.seed.vo.basic.BasicSeedProduceVO;
+import com.inspur.seed.vo.prebasic.PrebasicSeedProduceResultVO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +58,7 @@ public class BasicSeedProduceServiceImpl extends ServiceImpl<BasicSeedProduceMap
         }
 
         // 2. 查询Pre-basic Seed的生产结果记录并扣减剩余量
-        PrebasicSeedProduceResult produceResult = prebasicSeedProduceResultMapper.getResultByProduceBatchId(dto.getPrebasicSeedBatchId());
+        PrebasicSeedProduceResult produceResult = prebasicSeedProduceResultMapper.selectResultByProduceBatchId(dto.getPrebasicSeedBatchId());
         if (produceResult == null) {
             throw new ServiceException("Production result not found for batch: " + dto.getPrebasicSeedBatchId());
         }
@@ -155,7 +157,7 @@ public class BasicSeedProduceServiceImpl extends ServiceImpl<BasicSeedProduceMap
         }
         
         // 归还剩余量到Pre-basic Seed
-        PrebasicSeedProduceResult produceResult = prebasicSeedProduceResultMapper.getResultByProduceBatchId(produce.getPrebasicSeedBatchId());
+        PrebasicSeedProduceResult produceResult = prebasicSeedProduceResultMapper.selectResultByProduceBatchId(produce.getPrebasicSeedBatchId());
         if (produceResult != null) {
             produceResult.setRemainingQuantity(
                 produceResult.getRemainingQuantity().add(produce.getInputSeedQuantity())

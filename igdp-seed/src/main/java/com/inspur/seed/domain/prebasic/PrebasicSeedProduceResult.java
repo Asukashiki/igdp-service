@@ -52,4 +52,10 @@ public class PrebasicSeedProduceResult extends BaseEntity {
     private String toSeedLevel;
 
     private String operator;
+
+    private String breedBatchId;
+
+    private String varietyId;
+
+    private String cropType;
 }

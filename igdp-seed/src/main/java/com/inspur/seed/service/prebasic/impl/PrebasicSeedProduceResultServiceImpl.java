@@ -1,5 +1,6 @@
 package com.inspur.seed.service.prebasic.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.domain.prebasic.PrebasicSeedProduce;
@@ -9,6 +10,7 @@ import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceMapper;
 import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper;
 import com.inspur.seed.service.prebasic.IPrebasicSeedProduceResultService;
 import com.inspur.seed.vo.prebasic.PrebasicSeedProduceResultVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,5 +83,19 @@ public class PrebasicSeedProduceResultServiceImpl extends ServiceImpl<PrebasicSe
     @Override
     public PrebasicSeedProduceResultVO getResultById(String resultId) {
         return baseMapper.selectResultById(resultId);
+    }
+    
+    @Override
+    public PrebasicSeedProduceResultVO getResultByProduceBatchId(String produceBatchId) {
+        LambdaQueryWrapper<PrebasicSeedProduceResult> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PrebasicSeedProduceResult::getProduceBatchId, produceBatchId);
+        PrebasicSeedProduceResult result = this.getOne(queryWrapper);
+        if (result == null) {
+            return null;
+        }
+        // 将实体对象转换为VO对象
+        PrebasicSeedProduceResultVO vo = new PrebasicSeedProduceResultVO();
+        BeanUtils.copyProperties(result, vo);
+        return vo;
     }
 }

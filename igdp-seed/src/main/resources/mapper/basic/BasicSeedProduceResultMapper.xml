@@ -61,10 +61,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where produce_batch_id = #{produceBatchId}
     </select>
 
-    <select id="getResultByProduceBatchId" parameterType="String" resultType="com.inspur.seed.domain.basic.BasicSeedProduceResult">
-        select * from basic_seed_produce_result
-        where produce_batch_id = #{produceBatchId}
-        limit 1
-    </select>
+
 
 </mapper>

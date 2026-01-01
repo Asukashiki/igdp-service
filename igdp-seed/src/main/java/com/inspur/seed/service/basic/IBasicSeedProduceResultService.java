@@ -15,4 +15,6 @@ public interface IBasicSeedProduceResultService {
     List<BasicSeedProduceResultVO> getResultList(BasicSeedProduceResultQueryDTO queryDTO);
     
     BasicSeedProduceResultVO getResultById(String resultId);
+    
+    BasicSeedProduceResultVO getResultByProduceBatchId(String produceBatchId);
 }

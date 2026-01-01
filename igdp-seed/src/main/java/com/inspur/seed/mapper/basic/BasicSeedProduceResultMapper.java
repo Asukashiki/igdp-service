@@ -5,6 +5,7 @@ import com.inspur.seed.domain.basic.BasicSeedProduceResult;
 import com.inspur.seed.dto.basic.BasicSeedProduceResultQueryDTO;
 import com.inspur.seed.vo.basic.BasicSeedProduceResultVO;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -19,5 +20,6 @@ public interface BasicSeedProduceResultMapper extends BaseMapper<BasicSeedProduc
     
     Long countByProduceBatchId(@Param("produceBatchId") String produceBatchId);
     
-    BasicSeedProduceResult getResultByProduceBatchId(@Param("produceBatchId") String produceBatchId);
+    @Select("SELECT * FROM basic_seed_produce_result WHERE produce_batch_id = #{produceBatchId}")
+    BasicSeedProduceResult selectResultByProduceBatchId(@Param("produceBatchId") String produceBatchId);
 }

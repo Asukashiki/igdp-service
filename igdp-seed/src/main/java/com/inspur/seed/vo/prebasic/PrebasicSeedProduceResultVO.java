@@ -14,16 +14,19 @@ public class PrebasicSeedProduceResultVO {
     private String produceBatchId;
     private String produceBatchName;
     private String varietyName;
+    private String varietyId;
     
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date collectionDate;
     
     private BigDecimal outputQuantity;
     private BigDecimal remainingQuantity;
+    private String breedBatchId;
     private String breedBatchName;
     private String trialName;
     private String fromSeedLevel;
     private String toSeedLevel;
+    private String cropType;
     private String operator;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
