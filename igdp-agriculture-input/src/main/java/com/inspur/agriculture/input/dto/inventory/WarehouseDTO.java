@@ -60,4 +60,7 @@ public class WarehouseDTO {
     private String organCode;
 
     private String siteCertificate;
+
+     /** 是否开启库存的校验: 0-不开启/1-开启 */
+    private String isFlag;
 }

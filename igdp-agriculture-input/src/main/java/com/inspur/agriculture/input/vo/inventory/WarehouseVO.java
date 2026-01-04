@@ -99,4 +99,7 @@ public class WarehouseVO {
 
     /** 场地证明材料 */
     private String siteCertificate;
+
+    /** 是否开启库存的校验: 0-不开启/1-开启 */
+    private String isFlag;
 }
