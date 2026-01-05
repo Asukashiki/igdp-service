@@ -40,8 +40,10 @@ public class SysRole extends BaseEntity
 
     /** 角色名称 */
     @Excel(name = "角色名称")
-    @NotBlank(message = "角色名称不能为空")
-    @Size(min = 0, max = 30, message = "角色名称长度不能超过30个字符")
+    // 角色名称不能为空
+    @NotBlank(message = "Role name cannot be empty")
+    // 角色名称长度不能超过30个字符
+    @Size(min = 0, max = 30, message = "Role name length cannot exceed 30 characters")
     private String roleName;
 
     /**
@@ -51,13 +53,16 @@ public class SysRole extends BaseEntity
 
     /** 角色权限 */
     @Excel(name = "角色权限")
-    @NotBlank(message = "权限字符不能为空")
-    @Size(min = 0, max = 100, message = "权限字符长度不能超过100个字符")
+    // 权限字符不能为空
+    @NotBlank(message = "Permission string cannot be empty")
+    // 权限字符长度不能超过100个字符
+    @Size(min = 0, max = 100, message = "Permission string length cannot exceed 100 characters")
     private String roleKey;
 
     /** 角色排序 */
     @Excel(name = "角色排序")
-    @NotNull(message = "显示顺序不能为空")
+    // 显示顺序不能为空
+    @NotNull(message = "Display order cannot be empty")
     private Integer roleSort;
 
     /** 数据范围（1：所有数据权限；2：自定义数据权限；3：本部门数据权限；4：本部门及以下数据权限；5：仅本人数据权限） */

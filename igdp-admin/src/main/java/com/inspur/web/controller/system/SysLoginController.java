@@ -1,5 +1,6 @@
 package com.inspur.web.controller.system;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,8 +23,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.inspur.common.constant.Constants;
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.core.domain.entity.SysDept;
 import com.inspur.common.core.domain.entity.SysMenu;
 import com.inspur.common.core.domain.entity.SysUser;
+import com.inspur.common.utils.StringUtils;
+import com.inspur.system.service.ISysDeptService;
 import com.inspur.common.core.domain.model.LoginBody;
 import com.inspur.common.utils.LoginHelper;
 import com.inspur.framework.web.service.SysLoginService;
@@ -52,6 +56,8 @@ public class SysLoginController {
     private ISysWorkbenchItemService workbenchItemService;
     @Resource
     private IAccountStrategy accountStrategy;
+    @Autowired
+    private ISysDeptService deptService;
 
     /**
      * 登录方法
@@ -122,7 +128,39 @@ public class SysLoginController {
         ajax.put("user", user);
         ajax.put("roles", roles);
         ajax.put("permissions", permissions);
+        // 构建区划路径链
+        ajax.put("deptPath", buildDeptPath(user.getDeptId()));
         return ajax;
+    }
+
+    /**
+     * 根据部门ID构建从根到当前部门的完整路径链
+     */
+    private List<SysDept> buildDeptPath(String deptId) {
+        if (StringUtils.isEmpty(deptId)) {
+            return new ArrayList<>();
+        }
+        SysDept dept = deptService.selectDeptById(deptId);
+        if (dept == null) {
+            return new ArrayList<>();
+        }
+        List<SysDept> path = new ArrayList<>();
+        // 先添加祖先节点
+        if (StringUtils.isNotEmpty(dept.getAncestors())) {
+            // ancestors 格式: "0,100,101" (逗号分隔)
+            String[] ancestorIds = dept.getAncestors().split(",");
+            for (String id : ancestorIds) {
+                if (StringUtils.isNotEmpty(id) && !"0".equals(id)) {
+                    SysDept pathDept = deptService.selectDeptById(id);
+                    if (pathDept != null) {
+                        path.add(pathDept);
+                    }
+                }
+            }
+        }
+        // 最后添加当前部门
+        path.add(dept);
+        return path;
     }
 
     /**

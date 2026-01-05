@@ -40,24 +40,33 @@ public class SysDept extends BaseEntity
     private String ancestors;
 
     /** 部门名称 */
-    @NotBlank(message = "部门名称不能为空")
-    @Size(min = 0, max = 30, message = "部门名称长度不能超过30个字符")
+    // 部门名称不能为空
+    @NotBlank(message = "Department name cannot be empty")
+    // 部门名称长度不能超过1000个字符
+    @Size(min = 0, max = 1000, message = "Department name length cannot exceed 1000 characters")
     private String deptName;
 
+    /** 类型: D=部门, A=区划 */
+    private String deptType;
+
     /** 显示顺序 */
-    @NotNull(message = "显示顺序不能为空")
+    // 显示顺序不能为空
+    @NotNull(message = "Display order cannot be empty")
     private Integer orderNum;
 
     /** 负责人 */
     private String leader;
 
     /** 联系电话 */
-    @Size(min = 0, max = 11, message = "联系电话长度不能超过11个字符")
+    // 联系电话长度不能超过11个字符
+    @Size(min = 0, max = 11, message = "Contact phone number length cannot exceed 11 characters")
     private String phone;
 
     /** 邮箱 */
-    @Email(message = "邮箱格式不正确")
-    @Size(min = 0, max = 50, message = "邮箱长度不能超过50个字符")
+    // 邮箱格式不正确
+    @Email(message = "Incorrect email format")
+    // 邮箱长度不能超过50个字符
+    @Size(min = 0, max = 50, message = "Email length cannot exceed 50 characters")
     private String email;
 
     /** 部门状态:0正常,1停用 */
@@ -74,6 +83,9 @@ public class SysDept extends BaseEntity
 
     public static final String STATUS_VALID = "0";
     public static final String STATUS_INVALID = "1";
+    
+    public static final String TYPE_DEPT = "D";
+    public static final String TYPE_AREA = "A";
 
     @Override
     public String toString() {
@@ -82,6 +94,7 @@ public class SysDept extends BaseEntity
             .append("parentId", getParentId())
             .append("ancestors", getAncestors())
             .append("deptName", getDeptName())
+            .append("deptType", getDeptType())
             .append("orderNum", getOrderNum())
             .append("leader", getLeader())
             .append("phone", getPhone())

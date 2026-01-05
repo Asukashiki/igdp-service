@@ -1,5 +1,6 @@
 package com.inspur.common.core.domain.model;
 
+import com.inspur.common.core.domain.entity.SysDept;
 import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.core.domain.entity.SysUser;
 import lombok.Data;
@@ -83,6 +84,11 @@ public class LoginUser implements Serializable {
      * 用户信息
      */
     private SysUser user;
+
+    /**
+     * 区划路径链（从顶级到当前部门的完整路径）
+     */
+    private List<SysDept> deptPath;
 
     public LoginUser() {
     }

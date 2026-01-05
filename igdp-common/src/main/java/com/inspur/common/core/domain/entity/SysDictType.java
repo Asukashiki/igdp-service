@@ -37,18 +37,23 @@ public class SysDictType extends BaseEntity {
     /**
      * 字典名称
      */
+    // 字典名称不能为空
+    @NotBlank(message = "Dictionary name cannot be empty")
+    // 字典类型名称长度不能超过100个字符
+    @Size(min = 0, max = 100, message = "Dictionary type name length cannot exceed 100 characters")
     @Excel(name = "字典名称")
-    @NotBlank(message = "字典名称不能为空")
-    @Size(min = 0, max = 100, message = "字典类型名称长度不能超过100个字符")
     private String dictName;
 
     /**
      * 字典类型
      */
+    // 字典类型不能为空
+    @NotBlank(message = "Dictionary type cannot be empty")
+    // 字典类型长度不能超过100个字符
+    @Size(min = 0, max = 100, message = "Dictionary type length cannot exceed 100 characters")
+    // 字典类型必须以字母开头，且只能为（小写字母，数字，下滑线）
+    @Pattern(regexp = "^[a-z][a-z0-9_]*$", message = "Dictionary type must start with a letter and can only contain (lowercase letters, numbers, underscores)")
     @Excel(name = "字典类型")
-    @NotBlank(message = "字典类型不能为空")
-    @Size(min = 0, max = 100, message = "字典类型类型长度不能超过100个字符")
-    @Pattern(regexp = "^[a-z][a-z0-9_]*$", message = "字典类型必须以字母开头，且只能为（小写字母，数字，下滑线）")
     private String dictType;
 
     /**

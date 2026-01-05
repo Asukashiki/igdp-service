@@ -10,6 +10,7 @@ import com.inspur.common.core.domain.entity.SysUser;
 import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.common.utils.LoginHelper;
 import com.inspur.system.service.ISysDeptService;
+import com.inspur.system.service.ISysMenuService;
 import com.inspur.system.service.ISysRoleService;
 import com.inspur.system.service.ISysUserService;
 import com.inspur.ucif.service.IAccountStrategy;
@@ -18,7 +19,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,6 +37,8 @@ public class IgdpAccountStrategy implements IAccountStrategy {
     private ISysDeptService sysDeptService;
     @Resource
     private ISysRoleService sysRoleService;
+    @Resource
+    private ISysMenuService sysMenuService;
 
     @Override
     public LoginUser getCurrentUser() {
@@ -103,6 +105,7 @@ public class IgdpAccountStrategy implements IAccountStrategy {
 
     @Override
     public List<SysMenu> getMenuTree(String token) {
-        return Collections.emptyList();
+        String userId = LoginHelper.getUserId();
+        return sysMenuService.selectMenuTreeByUserId(userId);
     }
 }

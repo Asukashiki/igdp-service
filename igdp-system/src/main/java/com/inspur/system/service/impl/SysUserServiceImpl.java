@@ -381,7 +381,7 @@ public class SysUserServiceImpl extends MPJBaseServiceImpl<SysUserMapper, SysUse
     @Override
     public void checkUserAllowed(SysUser user) {
         if (StringUtils.isNotNull(user.getUserId()) && user.isAdmin()) {
-            throw new ServiceException("不允许操作超级管理员用户");
+            throw new ServiceException("No permission to operate super administrator user!");
         }
     }
 
@@ -397,7 +397,7 @@ public class SysUserServiceImpl extends MPJBaseServiceImpl<SysUserMapper, SysUse
             user.setUserId(userId);
             List<SysUser> users = SpringUtils.getAopProxy(this).selectUserList(user);
             if (StringUtils.isEmpty(users)) {
-                throw new ServiceException("没有权限访问用户数据！");
+                throw new ServiceException("No permission to access user data!");
             }
         }
     }
@@ -552,11 +552,11 @@ public class SysUserServiceImpl extends MPJBaseServiceImpl<SysUserMapper, SysUse
         //校验密码是否符合规则
         PasswdStrength.PASSWD_LEVEL level = PasswdStrength.getLevel(password);
         if (level.ordinal() < PasswdStrength.PASSWD_LEVEL.STRONG.ordinal()) {
-            return AjaxResult.error("密码强度太弱，请使用8位以上的大小写字母数字以及特殊符号组合");
+            return AjaxResult.error("Password strength is too weak, please use a password of 8 characters or more, including uppercase and lowercase letters, numbers, and special characters");
         }
         int result = this.baseMapper.resetUserPwd(userId, SmUtil.sm3(MD5.create().digestHex(password)));
         if (result > 0) {
-            return AjaxResult.success("密码重置成功");
+            return AjaxResult.success("Password reset successfully");
         } else {
             return AjaxResult.error("密码重置失败");
         }
@@ -661,7 +661,7 @@ public class SysUserServiceImpl extends MPJBaseServiceImpl<SysUserMapper, SysUse
     @Override
     public String importUser(List<SysUser> userList, Boolean isUpdateSupport, String operName) {
         if (StringUtils.isNull(userList) || userList.isEmpty()) {
-            throw new ServiceException("导入用户数据不能为空！");
+            throw new ServiceException("Import user data cannot be empty!");
         }
         int successNum = 0;
         int failureNum = 0;
@@ -679,7 +679,7 @@ public class SysUserServiceImpl extends MPJBaseServiceImpl<SysUserMapper, SysUse
                     user.setCreateTime(LocalDateTime.now());
                     save(user);
                     successNum++;
-                    successMsg.append("<br/>").append(successNum).append("、账号 ").append(user.getUserName()).append(" 导入成功");
+                    successMsg.append("<br/>").append(successNum).append("、account ").append(user.getUserName()).append(" imported successfully");
                 } else if (isUpdateSupport) {
                     BeanValidators.validateWithException(validator, user);
                     checkUserAllowed(u);
@@ -689,23 +689,23 @@ public class SysUserServiceImpl extends MPJBaseServiceImpl<SysUserMapper, SysUse
                     user.setUpdateTime(LocalDateTime.now());
                     updateById(user);
                     successNum++;
-                    successMsg.append("<br/>").append(successNum).append("、账号 ").append(user.getUserName()).append(" 更新成功");
+                    successMsg.append("<br/>").append(successNum).append("、account ").append(user.getUserName()).append(" updated successfully");
                 } else {
                     failureNum++;
-                    failureMsg.append("<br/>").append(failureNum).append("、账号 ").append(user.getUserName()).append(" 已存在");
+                    failureMsg.append("<br/>").append(failureNum).append("、account ").append(user.getUserName()).append(" already exists");
                 }
             } catch (Exception e) {
                 failureNum++;
-                String msg = "<br/>" + failureNum + "、账号 " + user.getUserName() + " 导入失败：";
+                String msg = "<br/>" + failureNum + ", account " + user.getUserName() + " import failed: ";
                 failureMsg.append(msg).append(e.getMessage());
                 log.error(msg, e);
             }
         }
         if (failureNum > 0) {
-            failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
+            failureMsg.insert(0, "Sorry, import failed! A total of " + failureNum + " records have incorrect data formats, errors are as follows:");
             throw new ServiceException(failureMsg.toString());
         } else {
-            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
+            successMsg.insert(0, "Congratulations, all data imported successfully! A total of " + successNum + " records.");
         }
         return successMsg.toString();
     }

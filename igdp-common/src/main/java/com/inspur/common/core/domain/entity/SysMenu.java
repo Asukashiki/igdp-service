@@ -35,8 +35,8 @@ public class SysMenu extends BaseEntity
     private String menuId;
 
     /** 菜单名称 */
-    @NotBlank(message = "菜单名称不能为空")
-    @Size(min = 0, max = 50, message = "菜单名称长度不能超过50个字符")
+    @NotBlank(message = "Menu name cannot be empty")
+    @Size(min = 0, max = 500, message = "Menu name length cannot exceed 500 characters")
     private String menuName;
 
     /**
@@ -51,11 +51,11 @@ public class SysMenu extends BaseEntity
     private String parentId;
 
     /** 显示顺序 */
-    @NotNull(message = "显示顺序不能为空")
+    @NotNull(message = "Display order cannot be empty")
     private Integer orderNum;
 
     /** 路由地址 */
-    @Size(min = 0, max = 2000, message = "路由地址不能超过2000个字符")
+    @Size(min = 0, max = 2000, message = "Route address length cannot exceed 2000 characters")
     private String path;
 
     /**
@@ -65,7 +65,7 @@ public class SysMenu extends BaseEntity
     private String link;
 
     /** 组件路径 */
-    @Size(min = 0, max = 2000, message = "组件路径不能超过2000个字符")
+    @Size(min = 0, max = 2000, message = "Component path length cannot exceed 2000 characters")
     private String component;
 
     /** 路由参数 */
@@ -78,7 +78,7 @@ public class SysMenu extends BaseEntity
     private String isCache;
 
     /** 类型（M目录 C菜单 F按钮） */
-    @NotBlank(message = "菜单类型不能为空")
+    @NotBlank(message = "Menu type cannot be empty")
     private String menuType;
 
     /** 显示状态（0显示 1隐藏） */
@@ -88,7 +88,7 @@ public class SysMenu extends BaseEntity
     private String status;
 
     /** 权限字符串 */
-    @Size(min = 0, max = 100, message = "权限标识长度不能超过100个字符")
+    @Size(min = 0, max = 100, message = "Permission string length cannot exceed 100 characters")
     private String perms;
 
     /** 菜单图标 */
@@ -96,7 +96,4 @@ public class SysMenu extends BaseEntity
 
     /** 子菜单 */
     private transient List<SysMenu> children = new ArrayList<>();
-
-
-
 }
