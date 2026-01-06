@@ -57,4 +57,6 @@ public class SsoInfo {
      * 获取菜单信息接口
      */
     private String getMenuByUserApi;
+
+    private String getOrgAllTree;
 }

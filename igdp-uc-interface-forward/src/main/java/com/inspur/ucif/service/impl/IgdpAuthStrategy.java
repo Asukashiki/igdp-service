@@ -263,4 +263,9 @@ public class IgdpAuthStrategy implements IAuthStrategy {
         }
         return headers;
     }
+
+    @Override
+    public AjaxResult syncOrganization() {
+        return null;
+    }
 }

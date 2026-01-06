@@ -4,6 +4,8 @@ import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SmUtil;
+import cn.hutool.crypto.digest.MD5;
 import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.utils.LoginHelper;
 import org.apache.commons.lang3.ObjectUtils;
@@ -170,5 +172,22 @@ public class SysLoginService {
             loginUser.setRoles(sysUser.getRoles().stream().map(SysRole::getRoleId).collect(Collectors.toSet()));
         }
         return loginUser;
+    }
+
+    /**
+     * 第三方用户同步
+     */
+    public void syncThirdUser(SysUser sysUser) {
+        if (sysUser != null) {
+            // 插入用户
+            SysUser user = userService.selectUserById(sysUser.getUserId());
+            if (ObjectUtils.isEmpty(user)) {
+                sysUser.setPassword(SmUtil.sm3(MD5.create().digestHex(Constants.INIT_PASSWORD)));
+                userService.insertUser(sysUser);
+            }else {
+                // 更新用户
+                userService.updateUser(sysUser);
+            }
+        }
     }
 }

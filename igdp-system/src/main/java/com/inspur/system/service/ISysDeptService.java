@@ -116,6 +116,11 @@ public interface ISysDeptService extends MPJBaseService<SysDept> {
     int insertDept(SysDept dept);
 
     /**
+     * 保存部门信息
+     */
+    boolean saveDept(SysDept dept);
+
+    /**
      * 修改保存部门信息
      *
      * @param dept 部门信息

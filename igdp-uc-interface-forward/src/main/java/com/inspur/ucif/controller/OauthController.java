@@ -119,4 +119,17 @@ public class OauthController {
             throw new RuntimeException("用户退出登录接口发生异常", e);
         }
     }
+
+
+    /**
+     * 获取所有组织树
+     */
+    @GetMapping("/syncOrganization")
+    public AjaxResult syncOrganization() {
+        try {
+            return authStrategyFactory.getClassBySysName("bsp").syncOrganization();
+        } catch (Exception e) {
+            throw new RuntimeException("同步组织接口发生异常", e);
+        }
+    }
 }

@@ -46,4 +46,9 @@ public interface IAuthStrategy {
      * */
     AjaxResult logout(String token);
 
+    /**
+     * 获取所有菜单树
+     * @return 菜单树
+     * */
+    AjaxResult syncOrganization();
 }

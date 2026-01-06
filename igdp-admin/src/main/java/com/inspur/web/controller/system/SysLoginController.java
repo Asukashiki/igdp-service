@@ -58,6 +58,8 @@ public class SysLoginController {
     private IAccountStrategy accountStrategy;
     @Autowired
     private ISysDeptService deptService;
+    @Autowired
+    private ISysMenuService sysMenuService;
 
     /**
      * 登录方法
@@ -170,9 +172,9 @@ public class SysLoginController {
      */
     @GetMapping("/getRouters")
     public AjaxResult getRouters() {
-        String token = StpUtil.getTokenValue();
-        List<SysMenu> menus = accountStrategy.getInstance(SystemConfig.getAccountSelectType()).getMenuTree(token);
-        return AjaxResult.success(menuService.buildMenus(menus));
+        String userId = LoginHelper.getUserId();
+        List<SysMenu> sysMenus = sysMenuService.selectMenuTreeByUserId(userId);
+        return AjaxResult.success(menuService.buildMenus(sysMenus));
     }
 
 

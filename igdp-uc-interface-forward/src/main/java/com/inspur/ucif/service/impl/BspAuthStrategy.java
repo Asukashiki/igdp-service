@@ -5,14 +5,16 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
+
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.inspur.common.config.SsoConfig;
-import com.inspur.common.constant.ApiConstants;
 import com.inspur.common.constant.Constants;
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.common.core.domain.entity.SysDept;
 import com.inspur.common.core.domain.entity.SysMenu;
-import com.inspur.common.core.domain.entity.SysRole;
 import com.inspur.common.core.domain.entity.SysUser;
 import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.common.core.domain.model.SsoInfo;
@@ -20,6 +22,7 @@ import com.inspur.common.utils.LoginHelper;
 import com.inspur.framework.manager.AsyncManager;
 import com.inspur.framework.manager.factory.AsyncFactory;
 import com.inspur.framework.web.service.SysLoginService;
+import com.inspur.system.service.ISysDeptService;
 import com.inspur.system.service.ISysMenuService;
 import com.inspur.system.service.ISysUserService;
 import com.inspur.ucif.constant.GrantTypeConstants;
@@ -27,17 +30,15 @@ import com.inspur.ucif.domain.OauthPayload;
 import com.inspur.ucif.domain.TokenDto;
 import com.inspur.ucif.service.IAuthStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 系统内置用户认证对接
@@ -69,6 +70,8 @@ public class BspAuthStrategy implements IAuthStrategy {
     @Resource
     private ISysMenuService sysMenuService;
 
+    @Autowired
+    private ISysDeptService sysDeptService;
     /**
      * 单点登录 code换取token
      *
@@ -309,6 +312,8 @@ public class BspAuthStrategy implements IAuthStrategy {
         saLoginModel.setToken(tokenDto.getAccessToken());
         saLoginModel.setTimeout(tokenDto.getExpiresIn());
         LoginHelper.login(currentUser, saLoginModel);
+        // 更新创建或更新用户信息
+        sysLoginService.syncThirdUser(currentUser.getUser());
         sysLoginService.recordLoginInfo(currentUser.getUserId());
     }
 
@@ -357,4 +362,89 @@ public class BspAuthStrategy implements IAuthStrategy {
         return headers;
     }
 
+
+    @Override
+    public AjaxResult syncOrganization() {
+        SsoInfo ssoInfo = ssoConfig.getSsoInfo(GrantTypeConstants.BSP_GRANT_TYPE);
+        if (null == ssoInfo) {
+            return  AjaxResult.success();
+        }
+        String getAllTreeUrl = ssoInfo.getServer() + ssoInfo.getGetOrgAllTree();
+        Map<String, String> headers = initHeaders(null);
+        String result = HttpRequest.get(getAllTreeUrl).addHeaders(headers).execute().body();
+        log.info("调用用户中心获取所有树接口响应内容：{}", result);
+
+        JSONObject retJo = JSON.parseObject(result);
+        if (null == retJo) {
+            return  AjaxResult.success();
+        }
+        if (!retJo.getInteger(SSO_RESPONSE_CODE).equals(SSO_CODE_SUCCESS)) {
+            return  AjaxResult.success();
+        }
+        syncOrg(retJo);
+        return AjaxResult.success();
+
+    }
+
+    /**
+     * 同步组织机构
+     */
+    public void syncOrg(JSONObject retJo) {
+        // 检查返回结果
+        if (!retJo.getInteger(SSO_RESPONSE_CODE).equals(SSO_CODE_SUCCESS)) {
+            return;
+        }
+
+        JSONArray data = retJo.getJSONArray("data");
+        if (data == null || data.isEmpty()) {
+            return;
+        }
+
+        // 遍历组织数据并转换为部门实体
+        for (int i = 0; i < data.size(); i++) {
+            JSONObject orgObj = data.getJSONObject(i);
+            convertOrgToDept(orgObj, orgObj.getString("orgParentId")); // 根部门的父ID为null
+        }
+    }
+
+
+    private void convertOrgToDept(JSONObject orgObj, String parentId) {
+        if (orgObj == null) {
+            return;
+        }
+
+        // 创建部门实体
+        SysDept dept = new SysDept();
+        dept.setDeptId(orgObj.getString("orgId")); // 组织ID作为部门ID
+        dept.setParentId(parentId); // 设置父部门ID
+        Map<String, String> nameMap = new HashMap<>();
+        nameMap.put("zh_CN", orgObj.getString("orgName"));
+        nameMap.put("en_US", orgObj.getString("orgName"));
+        // 名称格式处理：{"zh_CN":"埃塞俄比亚","en_US":"Ethiopia"}
+        dept.setDeptName(JSONUtil.toJsonStr(nameMap)); // 组织名称作为部门名称
+        dept.setAncestors(orgObj.getString("orgParentIds")); // 祖级列表
+        dept.setOrderNum(orgObj.getInteger("orgSortOrder")); // 排序号
+        dept.setStatus("0"); // 默认启用状态
+        dept.setDelFlag("0"); // 默认未删除
+
+        // 根据orgType设置部门类型 (可以根据实际业务需求调整)
+        String orgType = orgObj.getString("orgType");
+        if ("0".equals(orgType) || "1".equals(orgType)) {
+            dept.setDeptType(SysDept.TYPE_AREA); // 区划类型
+        } else {
+            dept.setDeptType(SysDept.TYPE_DEPT); // 部门类型
+        }
+
+        // 插入或更新部门信息
+        sysDeptService.saveDept(dept);
+
+        // 递归处理子组织
+        JSONArray children = orgObj.getJSONArray("children");
+        if (children != null && !children.isEmpty()) {
+            for (int i = 0; i < children.size(); i++) {
+                JSONObject childOrg = children.getJSONObject(i);
+                convertOrgToDept(childOrg, dept.getDeptId()); // 当前部门ID作为子部门的父ID
+            }
+        }
+    }
 }
