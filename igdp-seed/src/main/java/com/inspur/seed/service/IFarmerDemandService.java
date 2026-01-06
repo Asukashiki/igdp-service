@@ -2,12 +2,16 @@ package com.inspur.seed.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.inspur.seed.domain.dto.DemandOrganDTO;
 import com.inspur.seed.domain.dto.FarmerDemandAddDTO;
 import com.inspur.seed.domain.dto.FarmerDemandPageDTO;
 import com.inspur.seed.domain.dto.FarmerDemandUpdateDTO;
 import com.inspur.seed.domain.entity.DemandFarmerDetail;
 import com.inspur.seed.domain.vo.FarmerDemandDetailVO;
 import com.inspur.seed.domain.vo.FarmerDemandPageVO;
+import com.inspur.seed.domain.vo.FarmerInputAggregationVO;
+
+import java.util.List;
 
 /**
  * Farmer Demand Service Interface
@@ -33,6 +37,8 @@ public interface IFarmerDemandService extends IService<DemandFarmerDetail> {
      */
     boolean updateFarmerDemand(FarmerDemandUpdateDTO dto);
 
+    boolean updateAuditFarmerDemand(FarmerDemandUpdateDTO dto);
+
     /**
      * Get farmer demand detail
      *
@@ -56,4 +62,22 @@ public interface IFarmerDemandService extends IService<DemandFarmerDetail> {
      * @return Success flag
      */
     boolean deleteFarmerDemand(String id);
+
+    /**
+     * Get aggregated statistics of farmer input items
+     *
+     * @return List of aggregated input items grouped by category and type
+     */
+    List<FarmerInputAggregationVO>  getInputAggregation(DemandOrganDTO demanOrganDTO);
+
+    int submitInputAggregation(DemandOrganDTO demandOrganDTO);
+
+    /**
+     * Get demand list by farmerId
+     *
+     * @param farmerId Farmer ID
+     * @param year Optional year filter
+     * @return List of aggregated input items for the farmer
+     */
+    List<FarmerInputAggregationVO> getDemandByFarmerId(String farmerId, String year);
 }

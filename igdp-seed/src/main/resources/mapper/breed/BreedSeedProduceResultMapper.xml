@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceResultMapper">
+
+    <resultMap type="com.inspur.seed.breeding.breederSeed.domain.vo.BreedSeedProduceResultVO" id="BreedSeedProduceResultResult">
+        <result property="resultId"    column="result_id"    />
+        <result property="produceBatchId"    column="produce_batch_id"    />
+        <result property="producedAmount"    column="produced_amount"    />
+        <result property="remainingQuantity"    column="remaining_quantity"    />
+        <result property="collectionDate"    column="collection_date"    />
+        <result property="operator"    column="operator"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="produceBatchName"    column="produce_batch_name"    />
+        <result property="varietyName"    column="variety_name"    />
+        <result property="breedBatchName"    column="breed_batch_name"    />
+    </resultMap>
+
+    <sql id="selectResultVo">
+        select r.result_id, r.produce_batch_id, r.produced_amount, r.remaining_quantity, r.collection_date, r.operator,
+               r.create_by, r.create_time, r.update_by, r.update_time,
+               p.produce_batch_name, p.variety_name, p.breed_batch_name
+        from breed_seed_produce_result r
+        left join breed_seed_produce p on r.produce_batch_id = p.produce_batch_id
+    </sql>
+
+    <select id="getResultList" parameterType="com.inspur.seed.breeding.breederSeed.domain.dto.BreedSeedProduceResultQueryDTO" resultMap="BreedSeedProduceResultResult">
+        <include refid="selectResultVo"/>
+        <where>
+            <if test="query.produceBatchName != null  and query.produceBatchName != ''"> and p.produce_batch_name like concat('%', #{query.produceBatchName}, '%')</if>
+            <if test="query.varietyName != null  and query.varietyName != ''"> and p.variety_name like concat('%', #{query.varietyName}, '%')</if>
+            <if test="query.operator != null  and query.operator != ''"> and r.operator like concat('%', #{query.operator}, '%')</if>
+        </where>
+        order by r.create_time desc
+    </select>
+
+    <select id="getResultById" parameterType="String" resultMap="BreedSeedProduceResultResult">
+        <include refid="selectResultVo"/>
+        where r.result_id = #{resultId}
+    </select>
+
+    <select id="getResultByProduceBatchId" parameterType="String" resultMap="BreedSeedProduceResultResult">
+        <include refid="selectResultVo"/>
+        where r.produce_batch_id = #{produceBatchId}
+    </select>
+
+</mapper>

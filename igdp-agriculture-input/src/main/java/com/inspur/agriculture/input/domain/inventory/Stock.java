@@ -42,8 +42,19 @@ public class Stock implements Serializable {
      * 投入品批次ID
      */
     private String materialBatchId;
-
+    
     private String materialName;
+
+    /**
+     * 投入品类型
+     */
+    private String materialType;
+    
+    /**
+     * 农资类型(投入品品类)
+     */
+    private String agriculturalInputType;
+
     /**
      * 库存数量
      */
@@ -81,9 +92,22 @@ public class Stock implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createdAt;
 
+    /** 存入容量KG */
+    private BigDecimal capacity;
+    /**
+     * 存入容积L
+     */
+    private BigDecimal warehouseArea;
+
     /**
      * 更新时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updatedAt;
+    
+    // 为了兼容之前的查询结果，添加一些额外的字段（非数据库字段）
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String batchNo;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String variety;
 }

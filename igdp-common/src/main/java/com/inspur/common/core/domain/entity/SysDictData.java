@@ -63,6 +63,14 @@ public class SysDictData extends BaseEntity {
     private Map<String, String> dictLabelObject;
 
     /**
+     * 字典标签对象（解析后的国际化对象）
+     * 非数据库字段，用于前端直接使用
+     */
+    @TableField(exist = false)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Map<String, String> dictLabelObject;
+
+    /**
      * 字典键值
      */
     // 字典键值
@@ -116,6 +124,13 @@ public class SysDictData extends BaseEntity {
      * 备注
      */
     private String remark;
+
+    /**
+     * 实际值
+     */
+    @Excel(name = "实际值")
+    @Size(min = 0, max = 200, message = "Actual value length cannot exceed 200 characters")
+    private String actualValue;
 
     public static final String STATUS_VALID = "0";
     public static final String STATUS_INVALID = "1";

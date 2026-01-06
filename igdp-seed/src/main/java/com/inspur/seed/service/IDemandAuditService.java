@@ -52,4 +52,14 @@ public interface IDemandAuditService {
      * @return Success flag
      */
     boolean lockBatchDemands(DemandLockDTO dto);
+
+    /**
+     * Query approved audit demands page (status = approved)
+     *
+     * @param dto Approved page query DTO
+     * @return Page result
+     */
+    Page<DemandPendingPageVO> getApprovedAuditPage(DemandAuditPendingPageDTO dto);
+
+    Page<DemandPendingPageVO> getAuditPage(DemandAuditPendingPageDTO dto);
 }

@@ -136,4 +136,39 @@ public interface StockMapper extends BaseMapper<Stock> {
     List<Stock> selectAvailableStockFIFO(@Param("warehouseId") String warehouseId,
                                           @Param("materialId") String materialId,
                                           @Param("quantity") BigDecimal quantity);
+
+    /**
+     * 根据批次ID查询库存（加行锁 FOR UPDATE）
+     * 用于并发控制，防止并发修改异常
+     *
+     * @param warehouseId     仓库ID
+     * @param materialId      物料ID
+     * @param materialBatchId 批次ID
+     * @return 库存
+     */
+    Stock selectByBatchForUpdate(@Param("warehouseId") String warehouseId,
+                                  @Param("materialId") String materialId,
+                                  @Param("materialBatchId") String materialBatchId);
+
+    /**
+     * 按投入品类型和投入品品类统计库存合计
+     *
+     * @param params 查询条件
+     * @return 合计统计列表
+     */
+    List<Map<String, Object>> selectStockSummary(@Param("params") Map<String, Object> params);
+    
+    /**
+     * 按FIFO规则查询指定类型和品类的可用库存
+     *
+     * @param warehouseId 仓库ID
+     * @param inputType   投入品类型
+     * @param agriculturalInputType 投入品品类
+     * @param quantity    需要数量
+     * @return 可用库存列表（按入库时间排序）
+     */
+    List<Stock> selectAvailableStockByTypeAndCategory(@Param("warehouseId") String warehouseId,
+                                                      @Param("inputType") String inputType,
+                                                      @Param("agriculturalInputType") String agriculturalInputType,
+                                                      @Param("quantity") BigDecimal quantity);
 }

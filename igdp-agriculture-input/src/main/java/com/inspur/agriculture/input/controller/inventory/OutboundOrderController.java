@@ -58,6 +58,9 @@ public class OutboundOrderController {
             if (queryDTO.getRelatedOrderNo() != null && !queryDTO.getRelatedOrderNo().isEmpty()) {
                 params.put("relatedOrderNo", queryDTO.getRelatedOrderNo());
             }
+            if (queryDTO.getOrganCode() != null && !queryDTO.getOrganCode().isEmpty()) {
+                params.put("organCode", queryDTO.getOrganCode());
+            }
 
             // 开启分页
             PageHelper.startPage(page, pageSize);
@@ -129,6 +132,7 @@ public class OutboundOrderController {
                 detailMap.put("quantity", detail.getQuantity());
                 detailMap.put("specModel", detail.getSpecModel());
                 detailMap.put("unitOfMeasure", detail.getUnitOfMeasure());
+                detailMap.put("agriculturalInputType", detail.getAgriculturalInputType());
                 details.add(detailMap);
             }
 
@@ -169,12 +173,12 @@ public class OutboundOrderController {
             );
 
             if (success) {
-                return AjaxResult.success("审核成功");
+                return AjaxResult.success("Successful review");
             } else {
-                return AjaxResult.error("审核失败");
+                return AjaxResult.error("Review failed");
             }
         } catch (Exception e) {
-            return AjaxResult.error("审核出库单失败: " + e.getMessage());
+            return AjaxResult.error("The review of the outbound order failed: " + e.getMessage());
         }
     }
 
@@ -306,6 +310,74 @@ public class OutboundOrderController {
             return AjaxResult.success(stats);
         } catch (Exception e) {
             return AjaxResult.error("统计失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 批量校验库存是否充足
+     *
+     * @param requestData 校验数据（包含仓库ID和出库明细列表）
+     * @return 校验结果
+     */
+    @PostMapping("/validate-stock")
+    public AjaxResult validateStock(@RequestBody Map<String, Object> requestData) {
+        try {
+            String warehouseId = requestData.get("warehouseId") != null ? requestData.get("warehouseId").toString() : null;
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> details = (List<Map<String, Object>>) requestData.get("details");
+
+            if (warehouseId == null || warehouseId.isEmpty()) {
+                return AjaxResult.error("The warehouse ID cannot be empty");
+            }
+            if (details == null || details.isEmpty()) {
+                return AjaxResult.error("The outbound details cannot be empty");
+            }
+
+            Map<String, Object> result = outboundOrderService.validateStockBatch(warehouseId, details);
+
+            if ((Boolean) result.get("valid")) {
+                return AjaxResult.success(result);
+            } else {
+                return AjaxResult.success(result.get("message").toString()).put("data", result);
+            }
+        } catch (Exception e) {
+            return AjaxResult.error("Inventory verification failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取分发单列表（用于关联单号下拉框）
+     * 显示格式：分发单名称 (分发单编号)
+     *
+     * @return 分发单列表
+     */
+    @GetMapping("/release-orders")
+    public AjaxResult getReleaseOrders() {
+        try {
+            List<Map<String, Object>> releaseOrders = outboundOrderService.selectReleaseOrderList();
+            return AjaxResult.success(releaseOrders);
+        } catch (Exception e) {
+            return AjaxResult.error("查询分发单列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据关联单号（分发单ID）获取分发投入品明细并校验库存
+     *
+     * @param releaseId 分发单ID
+     * @param warehouseId 仓库ID
+     * @return 分发投入品明细及库存校验结果
+     */
+    @GetMapping("/release-details/{releaseId}")
+    public AjaxResult getReleaseDetails(
+            @PathVariable String releaseId,
+            @RequestParam String warehouseId
+    ) {
+        try {
+            Map<String, Object> result = outboundOrderService.validateReleaseStock(releaseId, warehouseId);
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error("查询分发单明细失败: " + e.getMessage());
         }
     }
 }

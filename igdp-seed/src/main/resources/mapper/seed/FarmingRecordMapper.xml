@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.FarmingRecordMapper">
+<mapper namespace="com.inspur.seed.breeding.farming.mapper.FarmingRecordMapper">
 
-    <resultMap type="com.inspur.seed.domain.FarmingRecord" id="FarmingRecordResult">
+    <resultMap type="com.inspur.seed.breeding.farming.domain.entity.FarmingRecord" id="FarmingRecordResult">
         <id property="farmingId" column="farming_id"/>
         <result property="farmingRecordId" column="farming_record_id"/>
         <result property="plotId" column="plot_id"/>
@@ -20,33 +20,56 @@
         <result property="createBy" column="create_by"/>
         <result property="updateBy" column="update_by"/>
         <result property="isDeleted" column="is_deleted"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditRemark" column="audit_remark"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="workflowStatus" column="workflow_status"/>
     </resultMap>
 
     <sql id="selectFarmingRecordVo">
         select f.farming_id, f.farming_record_id, f.plot_id, f.trial_id, f.batch_id,
                f.activity_date, f.activity_type, f.input_name, f.quantity, f.unit,
                f.operator_id, f.operation_desc,
-               f.create_time, f.update_time, f.create_by, f.update_by, f.is_deleted
+               f.create_time, f.update_time, f.create_by, f.update_by, f.is_deleted,
+               f.audit_by, f.audit_remark, f.audit_time, f.workflow_status
         from farming_record f
     </sql>
 
-    <select id="selectFarmingRecordList" parameterType="com.inspur.seed.domain.FarmingRecord" resultMap="FarmingRecordResult">
+    <select id="selectFarmingRecordList" parameterType="com.inspur.seed.breeding.farming.domain.entity.FarmingRecord" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
         <where>
             f.is_deleted = 0
+            <!-- 新增：trialId 筛选条件 -->
+            <if test="trialId != null and trialId != ''">
+                AND f.trial_id = #{trialId}
+            </if>
             <if test="plotId != null and plotId != ''">
                 AND f.plot_id = #{plotId}
             </if>
             <if test="activityType != null and activityType != ''">
                 AND f.activity_type = #{activityType}
             </if>
-            <if test="activityDate != null and activityDate != ''">
-                AND f.activity_date = #{activityDate}
+            <if test="activityDate != null">
+                AND DATE(f.activity_date) = DATE(#{activityDate})
+            </if>
+            <!-- 可选：补充 batchId 筛选（如果前端需要传批次ID） -->
+            <if test="batchId != null and batchId != ''">
+                AND f.batch_id = #{batchId}
+            </if>
+            <!-- 新增：workflowStatus 筛选条件 -->
+            <if test="workflowStatus != null and workflowStatus != ''">
+                AND f.workflow_status = #{workflowStatus}
+            </if>
+            <!-- 新增：排除指定状态（用于审核列表页面，不显示S0和S3） -->
+            <if test="excludeStatuses != null and excludeStatuses != ''">
+                AND f.workflow_status NOT IN
+                <foreach collection="excludeStatuses.split(',')" item="status" open="(" separator="," close=")">
+                    #{status}
+                </foreach>
             </if>
         </where>
         order by f.activity_date desc, f.create_time desc
     </select>
-
     <select id="selectFarmingRecordById" parameterType="String" resultMap="FarmingRecordResult">
         <include refid="selectFarmingRecordVo"/>
         where f.farming_id = #{farmingId} and f.is_deleted = 0
@@ -60,6 +83,16 @@
         where plot_id = #{plotId}
         and is_deleted = 0
         and farming_record_id like CONCAT(#{plotId}, '-F%')
+    </select>
+
+    <select id="getIrrigationCountByPlot" resultType="map">
+        SELECT
+            plot_id as plotId,
+            COUNT(*) as count
+        FROM farming_record
+        WHERE activity_type = 'irrigation'
+          AND is_deleted = 0
+        GROUP BY plot_id
     </select>
 
 </mapper>

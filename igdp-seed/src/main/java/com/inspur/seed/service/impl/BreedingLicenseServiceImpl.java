@@ -1,7 +1,6 @@
 package com.inspur.seed.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,19 +10,21 @@ import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.dto.BreedingLicenseDTO;
 import com.inspur.seed.domain.dto.BreedingLicenseQueryDTO;
-import com.inspur.seed.domain.entity.BreedingDataset;
+import com.inspur.seed.breeding.breedingDataset.domain.entity.BreedingDataset;
 import com.inspur.seed.domain.entity.BreedingLicense;
 import com.inspur.seed.domain.entity.BreedingVarietyTraits;
 import com.inspur.seed.domain.vo.BreedingLicenseVO;
-import com.inspur.seed.mapper.BreedingDatasetMapper;
+import com.inspur.seed.breeding.breedingDataset.mapper.BreedingDatasetMapper;
 import com.inspur.seed.mapper.BreedingLicenseMapper;
 import com.inspur.seed.mapper.BreedingVarietyTraitsMapper;
 import com.inspur.seed.service.IBreedingLicenseService;
+import com.inspur.seed.service.IEnterpriseCertifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -45,6 +46,9 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
     @Autowired
     private BreedingDatasetMapper datasetMapper;
+
+    @Autowired
+    private IEnterpriseCertifyService enterpriseCertifyService;
 
     /**
      * 获取许可列表(分页)
@@ -68,7 +72,13 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
 
             // 许可状态
             if (StrUtil.isNotBlank(queryDTO.getLicenseStatus())) {
-                wrapper.eq(BreedingLicense::getLicenseStatus, queryDTO.getLicenseStatus());
+                // 如果查询状态为"expired"（已过期），需要筛选有效期结束日期小于当前日期的数据
+                if ("expired".equals(queryDTO.getLicenseStatus())) {
+                    wrapper.lt(BreedingLicense::getValidEndDate, LocalDate.now());
+                }
+               /* else {
+                    wrapper.eq(BreedingLicense::getLicenseStatus, queryDTO.getLicenseStatus());
+                }*/
             }
 
             // 批次ID
@@ -326,12 +336,14 @@ public class BreedingLicenseServiceImpl implements IBreedingLicenseService {
             traitsMapper.insert(traits);
 
             log.info("新增许可成功,ID: {}", license.getId());
+
             return AjaxResult.success("License added successfully", license.getId());
         } catch (Exception e) {
             log.error("新增许可失败", e);
             return AjaxResult.error("Failed to add license: " + e.getMessage());
         }
     }
+
 
     /**
      * 修改许可(包含物种特性)

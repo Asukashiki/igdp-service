@@ -26,25 +26,21 @@ public class FarmerDemandUpdateDTO {
     /**
      * Version (Optimistic Lock)
      */
-    @NotNull(message = "Version cannot be empty")
     private Integer version;
 
     /**
      * Farmer ID
      */
-    @NotBlank(message = "Farmer ID cannot be empty")
     private String farmerId;
 
     /**
      * Farmer Name
      */
-    @NotBlank(message = "Farmer name cannot be empty")
     private String farmerName;
 
     /**
      * Farmer ID Number
      */
-    @NotBlank(message = "Farmer ID number cannot be empty")
     private String farmerIdNumber;
 
     /**
@@ -60,19 +56,32 @@ public class FarmerDemandUpdateDTO {
     /**
      * Woreda
      */
-    @NotBlank(message = "Woreda cannot be empty")
+
     private String woreda;
 
     /**
      * Kebele
      */
-    @NotBlank(message = "Kebele cannot be empty")
     private String kebele;
+
+    /**
+     * Zone Name
+     */
+    private String zoneName;
+
+    /**
+     * Woreda Name
+     */
+    private String woredaName;
+
+    /**
+     * Kebele Name
+     */
+    private String kebeleName;
 
     /**
      * Village
      */
-    @NotBlank(message = "Village cannot be empty")
     private String village;
 
     /**
@@ -86,6 +95,13 @@ public class FarmerDemandUpdateDTO {
     private String remark;
 
     /**
+     * Year
+     */
+    private String year;
+
+    private String status;
+
+    /**
      * Input Items
      */
     @NotEmpty(message = "Input items cannot be empty")
@@ -95,20 +111,24 @@ public class FarmerDemandUpdateDTO {
     public static class InputItemDTO {
         /**
          * Input Category (seed/fertilizer/pesticide)
+         *
+         *
          */
-        @NotBlank(message = "Input category cannot be empty")
+        private String id;
+
+
         private String inputCategory;
 
         /**
          * Input Type
          */
-        @NotBlank(message = "Input type cannot be empty")
+
         private String inputType;
 
         /**
          * Variety
          */
-        @NotBlank(message = "Variety cannot be empty")
+
         private String variety;
 
         /**
@@ -119,13 +139,28 @@ public class FarmerDemandUpdateDTO {
         /**
          * Unit
          */
-        @NotBlank(message = "Unit cannot be empty")
+
         private String unit;
 
         /**
          * Quantity
          */
-        @NotNull(message = "Quantity cannot be empty")
+
         private BigDecimal quantity;
+
+        /**
+         * Season
+         */
+        private String season;
+
+        /**
+         * Crop Land (hectare)
+         */
+        private BigDecimal cropLand;
+
+        /**
+         * Fertilizer Amount
+         */
+        private double fertilizerAmount;
     }
 }

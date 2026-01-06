@@ -67,6 +67,21 @@ public class FarmerDemandDetailVO {
     private String kebele;
 
     /**
+     * Zone Name
+     */
+    private String zoneName;
+
+    /**
+     * Woreda Name
+     */
+    private String woredaName;
+
+    /**
+     * Kebele Name
+     */
+    private String kebeleName;
+
+    /**
      * Village
      */
     private String village;
@@ -143,6 +158,8 @@ public class FarmerDemandDetailVO {
      */
     private List<AuditRecordVO> auditRecords;
 
+    private String year;
+
     @Data
     public static class InputItemVO {
         /**
@@ -184,6 +201,12 @@ public class FarmerDemandDetailVO {
          * Quantity
          */
         private BigDecimal quantity;
+
+        private String season;
+
+        private BigDecimal cropLand;
+
+        private double fertilizerAmount;
     }
 
     @Data
@@ -228,5 +251,6 @@ public class FarmerDemandDetailVO {
          * Audit Opinion
          */
         private String auditOpinion;
+
     }
 }

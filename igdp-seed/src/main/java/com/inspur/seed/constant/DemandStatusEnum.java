@@ -9,29 +9,29 @@ package com.inspur.seed.constant;
 public enum DemandStatusEnum {
 
     /**
-     * Draft
+     * Draft (0)
      */
-    DRAFT("draft", "Draft"),
+    DRAFT("0", "Draft"),
 
     /**
-     * Submitted
+     * Submitted (1)
      */
-    SUBMITTED("submitted", "Submitted"),
+    SUBMITTED("1", "Submitted"),
 
     /**
-     * Approved
+     * Approved (2)
      */
-    APPROVED("approved", "Approved"),
+    APPROVED("2", "Approved"),
 
     /**
-     * Rejected
+     * Rejected (3)
      */
-    REJECTED("rejected", "Rejected"),
+    REJECTED("3", "Rejected"),
 
     /**
-     * Locked
+     * Locked (4)
      */
-    LOCKED("locked", "Locked");
+    LOCKED("4", "Locked");
 
     private final String code;
     private final String message;

@@ -48,8 +48,18 @@ public class InboundOrderDTO {
     @NotBlank(message = "经办人不能为空")
     private String operator;
 
-    /** 备注 */
+    /** 审批意见 */
     private String remark;
+
+    /** 备注 */
+    private String formRemark;
+
+    /** 供应商名称 */
+    private String supplierName;
+    /** 供应商联系人 */
+    private String supplierContact;
+    /** 供应商电话 */
+    private String supplierPhone;
 
     /** 入库明细列表 */
     @NotEmpty(message = "入库明细不能为空")
@@ -69,12 +79,18 @@ public class InboundOrderDTO {
         @NotBlank(message = "投入品ID不能为空")
         private String materialId;
 
-        /** 投入品批次ID */
-        private String materialBatchId;
+        /** 投入品批次号 */
+        private String batchNo;
 
         /** 投入品类型 */
         @NotBlank(message = "投入品类型不能为空")
         private String materialType;
+
+        /** 投入品品类 */
+        private String agriculturalInputType;
+
+        /** 品种 */
+        private String variety;
 
         /** 数量 */
         @NotNull(message = "数量不能为空")
@@ -85,6 +101,10 @@ public class InboundOrderDTO {
 
         /** 计量单位 */
         private String unitOfMeasure;
+
+        /** 生产批次 */
+        private String productionBatchNo;
+
 
         /** 过期日期 */
         @NotNull(message = "过期日期不能为空")

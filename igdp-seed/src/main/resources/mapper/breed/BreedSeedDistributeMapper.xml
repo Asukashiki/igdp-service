@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.breed.BreedSeedDistributeMapper">
+<mapper namespace="com.inspur.seed.breeding.seedDistribution.mapper.BreedSeedDistributeMapper">
 
-    <resultMap id="BreedSeedDistributeVOResult" type="com.inspur.seed.vo.breed.BreedSeedDistributeVO">
+    <resultMap id="BreedSeedDistributeVOResult" type="com.inspur.seed.breeding.seedDistribution.domain.vo.BreedSeedDistributeVO">
         <id property="distributeId" column="distribute_id"/>
+        <result property="distributeName" column="distribute_name"/>
+        <result property="fromSeedLevel" column="from_seed_level"/>
+        <result property="toSeedLevel" column="to_seed_level"/>
         <result property="oseId" column="ose_id"/>
         <result property="oseName" column="ose_name"/>
         <result property="time" column="time"/>
@@ -14,13 +17,16 @@
         <result property="distributeStatus" column="distribute_status"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
-        <collection property="detailList" ofType="com.inspur.seed.vo.breed.BreedSeedDistributeVO$DistributeDetailVO"
-                    column="distribute_id" select="com.inspur.seed.mapper.breed.BreedSeedDistributeDetailMapper.selectDetailsByDistributeId"/>
+        <collection property="detailList" ofType="com.inspur.seed.breeding.seedDistribution.domain.vo.BreedSeedDistributeVO$DistributeDetailVO"
+                    column="distribute_id" select="com.inspur.seed.breeding.seedDistribution.mapper.BreedSeedDistributeDetailMapper.selectDetailsByDistributeId"/>
     </resultMap>
 
     <sql id="selectDistributeVo">
         SELECT
             m.distribute_id,
+            m.distribute_name,
+            m.from_seed_level,
+            m.to_seed_level,
             m.ose_id,
             m.ose_name,
             m.time,
@@ -37,11 +43,11 @@
     <select id="selectDistributeList" resultMap="BreedSeedDistributeVOResult">
         <include refid="selectDistributeVo"/>
         <where>
-            <if test="query.breedSeedProduceBatchId != null and query.breedSeedProduceBatchId != ''">
+            <if test="query.produceBatchId != null and query.produceBatchId != ''">
                 AND EXISTS (
                     SELECT 1 FROM breed_seed_distribute_detail d
                     WHERE d.distribute_id = m.distribute_id
-                    AND d.breed_seed_produce_batch_id = #{query.breedSeedProduceBatchId}
+                    AND d.produce_batch_id = #{produceBatchId}
                 )
             </if>
             <if test="query.cropType != null and query.cropType != ''">
@@ -54,7 +60,7 @@
             <if test="query.varietyId != null and query.varietyId != ''">
                 AND EXISTS (
                     SELECT 1 FROM breed_seed_distribute_detail d
-                    INNER JOIN breed_seed_produce p ON d.breed_seed_produce_batch_id = p.breed_seed_produce_batch_id
+                    INNER JOIN breed_seed_produce p ON d.produce_batch_id = p.produce_batch_id
                     WHERE d.distribute_id = m.distribute_id
                     AND p.variety_id = #{query.varietyId}
                 )

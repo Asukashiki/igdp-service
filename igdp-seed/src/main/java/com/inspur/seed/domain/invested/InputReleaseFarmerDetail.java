@@ -49,6 +49,16 @@ public class InputReleaseFarmerDetail extends BaseEntity {
     private String variety;
 
     /**
+     * 投入品类型
+     */
+    private String inputType;
+
+    /**
+     * 投入品类别
+     */
+    private String inputCategory;
+
+    /**
      * 投入品ID
      */
     private String inputId;

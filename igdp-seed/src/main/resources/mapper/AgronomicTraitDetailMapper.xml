@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.breeding.agronomicTrait.mapper.AgronomicTraitDetailMapper">
+
+    <!-- 根据主记录ID查询明细列表 -->
+    <select id="selectDetailsByRecordId" resultType="com.inspur.seed.breeding.agronomicTrait.domain.entity.AgronomicTraitDetail">
+        SELECT * FROM agronomic_trait_detail
+        WHERE record_id = #{recordId} AND is_deleted = 0
+        ORDER BY sort_order ASC, create_time ASC
+    </select>
+
+    <!-- 批量插入明细 -->
+    <insert id="batchInsertDetails">
+        INSERT INTO agronomic_trait_detail (
+            detail_id, record_id, trait_code, trait_name, trait_value, unit, sort_order,
+            create_by, create_time, update_by, update_time, is_deleted
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.detailId}, #{item.recordId}, #{item.traitCode}, #{item.traitName},
+                #{item.traitValue}, #{item.unit}, #{item.sortOrder},
+                #{item.createBy}, #{item.createTime}, #{item.updateBy}, #{item.updateTime}, 0
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据主记录ID删除明细（逻辑删除） -->
+    <update id="deleteDetailsByRecordId">
+        UPDATE agronomic_trait_detail
+        SET is_deleted = 1, update_time = NOW()
+        WHERE record_id = #{recordId} AND is_deleted = 0
+    </update>
+
+    <!-- 生成明细序号（查询所有记录，包括已删除的，避免主键冲突） -->
+    <select id="generateDetailSequence" resultType="java.lang.Integer">
+        SELECT IFNULL(MAX(CAST(SUBSTRING_INDEX(detail_id, '-D', -1) AS UNSIGNED)), 0) + 1
+        FROM agronomic_trait_detail
+        WHERE record_id = #{recordId}
+    </select>
+
+</mapper>

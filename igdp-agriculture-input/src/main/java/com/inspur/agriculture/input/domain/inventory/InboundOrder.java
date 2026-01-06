@@ -67,6 +67,21 @@ public class InboundOrder implements Serializable {
     private String supplierId;
 
     /**
+     * 供应商名称
+     */
+    private String supplierName;
+
+    /**
+     * 供应商联系人
+     */
+    private String supplierContact;
+
+    /**
+     * 供应商电话
+     */
+    private String supplierPhone;
+
+    /**
      * 入库员
      */
     private String inboundUser;
@@ -120,4 +135,10 @@ public class InboundOrder implements Serializable {
      * 备注
      */
     private String remark;
+    
+    /**
+     * 表单备注
+     */
+    private String formRemark;
+
 }

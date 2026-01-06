@@ -1,17 +1,17 @@
 package com.inspur.agriculture.input.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 农业投入品对象 agri_input
+ * 农业投入品实体类
  *
  * @author igdp
  */
@@ -20,15 +20,24 @@ import java.util.Date;
 public class AgriInput implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 投入品ID */
+    /** 主键ID（自增） */
     @TableId(type = IdType.AUTO)
     private Long inputId;
+
+    /** 业务ID（规则：IN_类型代码_品类代码_年度_6位自增数） */
+    private String inputBizId;
 
     /** 投入品名称 */
     private String inputName;
 
-    /** 类型(pesticide-农药/fertilizer-化肥/seed-种子/other-其他) */
+    /** 类型（pesticide-农药/fertilizer-化肥/seed-种子/other-其他） */
     private String type;
+
+    /** 农资类型 */
+    private String agriculturalInputType;
+
+    /** 品种 */
+    private String variety;
 
     /** 唯一产品标识码/SKU */
     private String inputSku;
@@ -51,7 +60,7 @@ public class AgriInput implements Serializable {
     /** 生产企业地址 */
     private String producerAddress;
 
-    /** 状态(active-正常/inactive-停用) */
+    /** 状态（active-正常/inactive-停用） */
     private String status;
 
     /** 创建人 */
@@ -68,18 +77,33 @@ public class AgriInput implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
-    /** 删除标志(0-正常/2-删除) */
+    /** 删除标识（0-正常/2-删除） */
     private String delFlag;
 
-    /** 农药特性 */
-    @TableField(exist = false)
-    private PesticideProperties pesticideProperties;
+    /** 规格型号 */
+    private String specificationModel;
 
-    /** 化肥特性 */
-    @TableField(exist = false)
-    private FertilizerProperties fertilizerProperties;
+    /** 计量单位 */
+    private String unit;
 
-    /** 种子特性 */
-    @TableField(exist = false)
-    private SeedProperties seedProperties;
+    /** 参考价格 */
+    private BigDecimal referencePrice;
+
+    /** 图片地址 */
+    private String imageUrl;
+
+    /** 描述信息 */
+    private String description;
+
+    /** 是否进口（1-是/0-否） */
+    private Integer isImport;
+
+    /** 育种者(审定单位) */
+    private String breeder;
+
+    /** 品种来源 */
+    private String varietySource;
+
+    /** 作物/防治对象 */
+    private String cropControlObject;
 }

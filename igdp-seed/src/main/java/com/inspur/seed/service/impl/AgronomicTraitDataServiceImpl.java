@@ -7,9 +7,11 @@ import com.inspur.seed.domain.dto.AgronomicTraitDataDTO;
 import com.inspur.seed.domain.entity.AgronomicTraitData;
 import com.inspur.seed.domain.vo.AgronomicTraitDataVO;
 import com.inspur.seed.mapper.AgronomicTraitDataMapper;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.service.IAgronomicTraitDataService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,12 +51,18 @@ public class AgronomicTraitDataServiceImpl extends ServiceImpl<AgronomicTraitDat
     public int insertAgronomicTraitData(AgronomicTraitDataDTO dto) {
         AgronomicTraitData entity = BeanUtil.copyProperties(dto, AgronomicTraitData.class);
         entity.setDelFlag("0");
+        // 填充创建人信息（BaseEntity 字段）
+        entity.setCreateTime(LocalDateTime.now());
+        entity.setCreateBy(SecurityUtils.getUserId().toString());
         return this.save(entity) ? 1 : 0;
     }
 
     @Override
     public int updateAgronomicTraitData(AgronomicTraitDataDTO dto) {
         AgronomicTraitData entity = BeanUtil.copyProperties(dto, AgronomicTraitData.class);
+        // 填充修改人信息（BaseEntity 字段）
+        entity.setUpdateTime(LocalDateTime.now());
+        entity.setUpdateBy(SecurityUtils.getUserId().toString());
         return this.updateById(entity) ? 1 : 0;
     }
 

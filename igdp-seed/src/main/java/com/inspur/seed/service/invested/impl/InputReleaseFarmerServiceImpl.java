@@ -81,6 +81,10 @@ public class InputReleaseFarmerServiceImpl extends ServiceImpl<InputReleaseFarme
         // 保存主表
         InputReleaseFarmerMain main = new InputReleaseFarmerMain();
         BeanUtils.copyProperties(dto, main);
+        // 将LocalDate转换为LocalDateTime
+        if (dto.getReleaseDate() != null) {
+            main.setReleaseDate(LocalDateTime.of(dto.getReleaseDate(), LocalTime.MIN));
+        }
         main.setId(IdUtils.fastSimpleUUID());
         main.setReleaseId(releaseId);
         main.setOperateBy("admin"); // TODO: 从登录用户获取
@@ -114,7 +118,11 @@ public class InputReleaseFarmerServiceImpl extends ServiceImpl<InputReleaseFarme
             throw new ServiceException("分发单不存在");
         }
 
-        BeanUtils.copyProperties(dto, main, "id", "releaseId", "createTime", "createBy");
+        BeanUtils.copyProperties(dto, main, "id", "releaseId", "createTime", "createBy", "releaseDate");
+        // 将LocalDate转换为LocalDateTime
+        if (dto.getReleaseDate() != null) {
+            main.setReleaseDate(LocalDateTime.of(dto.getReleaseDate(), LocalTime.MIN));
+        }
         main.setOperateBy("admin"); // TODO: 从登录用户获取
         main.setOperateTime(LocalDateTime.now());
         main.setUpdateTime(LocalDateTime.now());
@@ -188,5 +196,16 @@ public class InputReleaseFarmerServiceImpl extends ServiceImpl<InputReleaseFarme
 
             detailMapper.insert(detail);
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean confirmReceive(String id) {
+        InputReleaseFarmerMain main = getById(id);
+        if (main == null) {
+            return false;
+        }
+        main.setReceiveStatus("received");
+        return updateById(main);
     }
 }

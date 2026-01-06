@@ -47,11 +47,17 @@ public class LandInfoServiceImpl implements ILandInfoService {
         wrapper.eq(LandInfo::getStatus, "1");
 
         // 条件查询
-        if (StrUtil.isNotBlank(landInfo.getLandName())) {
-            wrapper.like(LandInfo::getLandName, landInfo.getLandName());
-        }
-        if (StrUtil.isNotBlank(landInfo.getLandId())) {
-            wrapper.eq(LandInfo::getLandId, landInfo.getLandId());
+        // 关键字模糊查询 (同时匹配地块名称、地块编码)
+        if (StrUtil.isNotBlank(landInfo.getSearchValue())) {
+            wrapper.and(w -> w.like(LandInfo::getLandName, landInfo.getSearchValue())
+                    .or().like(LandInfo::getLandId, landInfo.getSearchValue()));
+        } else {
+            if (StrUtil.isNotBlank(landInfo.getLandName())) {
+                wrapper.like(LandInfo::getLandName, landInfo.getLandName());
+            }
+            if (StrUtil.isNotBlank(landInfo.getLandId())) {
+                wrapper.eq(LandInfo::getLandId, landInfo.getLandId());
+            }
         }
         if (StrUtil.isNotBlank(landInfo.getFarmerId())) {
             wrapper.eq(LandInfo::getFarmerId, landInfo.getFarmerId());
@@ -82,7 +88,7 @@ public class LandInfoServiceImpl implements ILandInfoService {
     public LandInfo selectLandInfoByLandId(String landId) {
         LambdaQueryWrapper<LandInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LandInfo::getLandId, landId)
-               .eq(LandInfo::getStatus, "1");
+                .eq(LandInfo::getStatus, "1");
         return landInfoMapper.selectOne(wrapper);
     }
 
@@ -160,7 +166,7 @@ public class LandInfoServiceImpl implements ILandInfoService {
         // 更新数据
         LambdaUpdateWrapper<LandInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(LandInfo::getLandId, landId)
-               .eq(LandInfo::getStatus, "1");
+                .eq(LandInfo::getStatus, "1");
 
         int rows = landInfoMapper.update(landInfo, wrapper);
 
@@ -192,8 +198,8 @@ public class LandInfoServiceImpl implements ILandInfoService {
         // 逻辑删除
         LambdaUpdateWrapper<LandInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(LandInfo::getLandId, landId)
-               .eq(LandInfo::getStatus, "1")
-               .set(LandInfo::getStatus, "0");
+                .eq(LandInfo::getStatus, "1")
+                .set(LandInfo::getStatus, "0");
 
         try {
             String username = SecurityUtils.getUsername();
@@ -243,7 +249,7 @@ public class LandInfoServiceImpl implements ILandInfoService {
         // 查询农民信息
         LambdaQueryWrapper<FarmerInfo> farmerWrapper = new LambdaQueryWrapper<>();
         farmerWrapper.eq(FarmerInfo::getFarmerId, farmerId)
-                     .eq(FarmerInfo::getStatus, "1");
+                .eq(FarmerInfo::getStatus, "1");
         FarmerInfo farmer = farmerInfoMapper.selectOne(farmerWrapper);
 
         if (farmer == null) {
@@ -253,11 +259,11 @@ public class LandInfoServiceImpl implements ILandInfoService {
         // 更新土地关联信息
         LambdaUpdateWrapper<LandInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(LandInfo::getLandId, landId)
-               .eq(LandInfo::getStatus, "1")
-               .set(LandInfo::getFarmerId, farmerId)
-               .set(LandInfo::getFarmerName, farmer.getFarmerName())
-               .set(LandInfo::getFarmerIdCard, farmer.getIdCard())
-               .set(LandInfo::getFarmerPhone, farmer.getPhone());
+                .eq(LandInfo::getStatus, "1")
+                .set(LandInfo::getFarmerId, farmerId)
+                .set(LandInfo::getFarmerName, farmer.getFarmerName())
+                .set(LandInfo::getFarmerIdCard, farmer.getIdCard())
+                .set(LandInfo::getFarmerPhone, farmer.getPhone());
 
         try {
             String username = SecurityUtils.getUsername();
@@ -290,11 +296,11 @@ public class LandInfoServiceImpl implements ILandInfoService {
         // 解除关联
         LambdaUpdateWrapper<LandInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(LandInfo::getLandId, landId)
-               .eq(LandInfo::getStatus, "1")
-               .set(LandInfo::getFarmerId, null)
-               .set(LandInfo::getFarmerName, null)
-               .set(LandInfo::getFarmerIdCard, null)
-               .set(LandInfo::getFarmerPhone, null);
+                .eq(LandInfo::getStatus, "1")
+                .set(LandInfo::getFarmerId, null)
+                .set(LandInfo::getFarmerName, null)
+                .set(LandInfo::getFarmerIdCard, null)
+                .set(LandInfo::getFarmerPhone, null);
 
         try {
             String username = SecurityUtils.getUsername();
@@ -317,8 +323,8 @@ public class LandInfoServiceImpl implements ILandInfoService {
     public List<LandInfo> selectLandListByFarmerId(String farmerId) {
         LambdaQueryWrapper<LandInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LandInfo::getFarmerId, farmerId)
-               .eq(LandInfo::getStatus, "1")
-               .orderByDesc(LandInfo::getCreateTime);
+                .eq(LandInfo::getStatus, "1")
+                .orderByDesc(LandInfo::getCreateTime);
         return landInfoMapper.selectList(wrapper);
     }
 
@@ -348,11 +354,13 @@ public class LandInfoServiceImpl implements ILandInfoService {
         Map<String, Map<String, Object>> byTypeMap = new HashMap<>();
         for (LandInfo land : allLands) {
             String type = land.getLandType();
-            byTypeMap.putIfAbsent(type, new HashMap<String, Object>() {{
-                put("type", type);
-                put("count", 0);
-                put("area", BigDecimal.ZERO);
-            }});
+            byTypeMap.putIfAbsent(type, new HashMap<String, Object>() {
+                {
+                    put("type", type);
+                    put("count", 0);
+                    put("area", BigDecimal.ZERO);
+                }
+            });
 
             Map<String, Object> typeStats = byTypeMap.get(type);
             typeStats.put("count", (Integer) typeStats.get("count") + 1);
@@ -363,11 +371,13 @@ public class LandInfoServiceImpl implements ILandInfoService {
         Map<String, Map<String, Object>> byStatusMap = new HashMap<>();
         for (LandInfo land : allLands) {
             String status = land.getCurrentStatus();
-            byStatusMap.putIfAbsent(status, new HashMap<String, Object>() {{
-                put("status", status);
-                put("count", 0);
-                put("area", BigDecimal.ZERO);
-            }});
+            byStatusMap.putIfAbsent(status, new HashMap<String, Object>() {
+                {
+                    put("status", status);
+                    put("count", 0);
+                    put("area", BigDecimal.ZERO);
+                }
+            });
 
             Map<String, Object> statusStats = byStatusMap.get(status);
             statusStats.put("count", (Integer) statusStats.get("count") + 1);
@@ -401,7 +411,7 @@ public class LandInfoServiceImpl implements ILandInfoService {
     private void fillFarmerInfo(LandInfo landInfo) {
         LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FarmerInfo::getFarmerId, landInfo.getFarmerId())
-               .eq(FarmerInfo::getStatus, "1");
+                .eq(FarmerInfo::getStatus, "1");
         FarmerInfo farmer = farmerInfoMapper.selectOne(wrapper);
 
         if (farmer != null) {

@@ -49,9 +49,24 @@ public class InputReleaseDetail extends BaseEntity {
     private String variety;
 
     /**
-     * 投入品ID
+     * 投入品ID (已弃用，请使用inputType和inputCategory进行匹配)
      */
-    private String inputId;
+    private Long inputId;
+
+    /**
+     * 投入品类型
+     */
+    private String inputType;
+
+    /**
+     * 投入品类别
+     */
+    private String inputCategory;
+
+    /**
+     * 需求数量
+     */
+    private BigDecimal required;
 
     /**
      * 分发数量

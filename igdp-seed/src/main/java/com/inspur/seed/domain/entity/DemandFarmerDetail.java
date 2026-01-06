@@ -67,6 +67,21 @@ public class DemandFarmerDetail implements Serializable {
     private String kebele;
 
     /**
+     * Zone Name
+     */
+    private String zoneName;
+
+    /**
+     * Woreda Name
+     */
+    private String woredaName;
+
+    /**
+     * Kebele Name
+     */
+    private String kebeleName;
+
+    /**
      * Village
      */
     private String village;
@@ -150,4 +165,6 @@ public class DemandFarmerDetail implements Serializable {
      * Remark
      */
     private String remark;
+
+    private String year;
 }

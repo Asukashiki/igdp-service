@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.inspur.seed.mapper.ose.OseInfoMapper">
+<mapper namespace="com.inspur.seed.Institution.ose.mapper.OseInfoMapper">
 
-    <resultMap id="OseInfoVOResult" type="com.inspur.seed.vo.ose.OseInfoVO">
+    <resultMap id="OseInfoVOResult" type="com.inspur.seed.Institution.ose.domain.vo.OseInfoVO">
         <id property="oseId" column="ose_id"/>
         <result property="oseCode" column="ose_code"/>
         <result property="oseName" column="ose_name"/>

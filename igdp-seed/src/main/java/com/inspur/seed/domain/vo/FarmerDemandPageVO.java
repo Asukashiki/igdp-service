@@ -51,6 +51,21 @@ public class FarmerDemandPageVO {
     private String woreda;
 
     /**
+     * Zone Name
+     */
+    private String zoneName;
+
+    /**
+     * Woreda Name
+     */
+    private String woredaName;
+
+    /**
+     * Kebele Name
+     */
+    private String kebeleName;
+
+    /**
      * Village
      */
     private String village;
@@ -85,4 +100,6 @@ public class FarmerDemandPageVO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createdTime;
+
+    private String year;
 }
