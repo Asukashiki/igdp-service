@@ -186,7 +186,7 @@ public class SysLoginService {
                 userService.insertUser(sysUser);
             }else {
                 // 更新用户
-                userService.updateUser(sysUser);
+                userService.updateById(sysUser);
             }
         }
     }

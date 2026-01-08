@@ -12,13 +12,16 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.inspur.common.config.SsoConfig;
 import com.inspur.common.constant.Constants;
+import com.inspur.common.constant.UserConstants;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.domain.entity.SysDept;
 import com.inspur.common.core.domain.entity.SysMenu;
 import com.inspur.common.core.domain.entity.SysUser;
 import com.inspur.common.core.domain.model.LoginUser;
 import com.inspur.common.core.domain.model.SsoInfo;
+import com.inspur.common.exception.user.UserNotExistsException;
 import com.inspur.common.utils.LoginHelper;
+import com.inspur.common.utils.MessageUtils;
 import com.inspur.framework.manager.AsyncManager;
 import com.inspur.framework.manager.factory.AsyncFactory;
 import com.inspur.framework.web.service.SysLoginService;
@@ -314,7 +317,14 @@ public class BspAuthStrategy implements IAuthStrategy {
         LoginHelper.login(currentUser, saLoginModel);
         // 更新创建或更新用户信息
         sysLoginService.syncThirdUser(currentUser.getUser());
-        sysLoginService.recordLoginInfo(currentUser.getUserId());
+        // 生成本地的登陆和token
+        String username = currentUser.getUsername();
+        SysUser sysUser = userService.selectUserByUserName(username);
+
+        String userId = sysUser.getUserId();
+        sysLoginService.recordLoginInfo(userId);
+        // 生成token
+        LoginHelper.login(sysLoginService.buildLoginUser(sysUser), new SaLoginModel());
     }
 
     private TokenDto handleFromOauth2(String tokenData) {
