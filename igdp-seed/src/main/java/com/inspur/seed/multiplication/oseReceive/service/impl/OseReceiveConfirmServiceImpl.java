@@ -133,6 +133,18 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
         return confirmList.stream().map(this::convertToVO).collect(Collectors.toList());
     }
 
+    @Override
+    public OseReceiveConfirmVO getReceiveConfirmDetail(String receiveConfirmId) {
+        // 根据ID查询接收确认记录
+        OseBreedSeedReceiveConfirm confirm = receiveConfirmMapper.selectById(receiveConfirmId);
+        if (confirm == null) {
+            throw new ServiceException("接收确认记录不存在");
+        }
+
+        // 转换为VO对象并返回
+        return convertToVO(confirm);
+    }
+
     /**
      * 根据生产批次ID获取分发ID列表
      */
