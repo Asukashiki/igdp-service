@@ -36,6 +36,15 @@ public class OseReceiveConfirmController extends BaseController {
     }
 
     /**
+     * 根据ID查询接收确认详情
+     */
+    @GetMapping("/confirm/{receiveConfirmId}")
+    public AjaxResult getDetail(@PathVariable("receiveConfirmId") String receiveConfirmId) {
+        OseReceiveConfirmVO detail = oseReceiveConfirmService.getReceiveConfirmDetail(receiveConfirmId);
+        return success(detail);
+    }
+
+    /**
      * 确认接收
      */
     @PutMapping("/confirm/{receiveConfirmId}")
