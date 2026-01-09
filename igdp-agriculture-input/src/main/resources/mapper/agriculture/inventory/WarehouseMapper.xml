@@ -28,10 +28,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="warehouseArea" column="warehouse_area"/>
         <result property="usedWarehouseArea" column="used_warehouse_area"/>
         <result property="siteCertificate" column="site_certificate"/>
+        <result property="isFlag" column="is_flag"/>
     </resultMap>
 
     <sql id="selectWarehouseVo">
-        select w.warehouse_id, w.warehouse_code, w.warehouse_name, w.warehouse_type,
+        select w.warehouse_id, w.warehouse_code, w.warehouse_name, w.warehouse_type,w.is_flag,
                CASE w.warehouse_type
                    WHEN 'normal' THEN '普通仓库'
                    WHEN 'cold' THEN '冷藏仓库'
