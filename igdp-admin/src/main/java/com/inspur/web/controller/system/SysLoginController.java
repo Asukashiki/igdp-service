@@ -119,6 +119,7 @@ public class SysLoginController {
         SysUser user = loginUser.getUser();
         // 角色集合
         Set<String> roles = loginUser.getRoles();
+        Set<String> roleKeys = loginUser.getRoleKeys();
         // 权限集合
         Set<String> permissions = loginUser.getPermissions();
         AjaxResult ajax = AjaxResult.success();
@@ -129,6 +130,7 @@ public class SysLoginController {
         }
         ajax.put("user", user);
         ajax.put("roles", roles);
+        ajax.put("roleKeys", roleKeys);
         ajax.put("permissions", permissions);
         // 构建区划路径链
         ajax.put("deptPath", buildDeptPath(user.getDeptId()));

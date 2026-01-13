@@ -73,6 +73,8 @@ public class LoginUser implements Serializable {
 
     private Set<String> roles;
 
+    private Set<String> roleKeys;
+
     /**
      * 权限列表
      */

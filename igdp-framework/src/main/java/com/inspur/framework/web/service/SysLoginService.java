@@ -170,6 +170,8 @@ public class SysLoginService {
         loginUser.setDeptName(ObjectUtils.isEmpty(sysUser.getDept()) ? "" : sysUser.getDept().getDeptName());
         if (null != sysUser.getRoles()) {
             loginUser.setRoles(sysUser.getRoles().stream().map(SysRole::getRoleId).collect(Collectors.toSet()));
+            loginUser.setRoleKeys(sysUser.getRoles().stream().map(SysRole::getRoleKey).collect(Collectors.toSet()));
+            loginUser.setRoleList(sysUser.getRoles());
         }
         return loginUser;
     }
