@@ -261,6 +261,7 @@ public class SysUserServiceImpl extends MPJBaseServiceImpl<SysUserMapper, SysUse
             if (StrUtil.isNotEmpty(user.getDeptId())) {
                 SysDept sysDept = sysDeptMapper.selectDeptById(user.getDeptId());
                 user.setDept(sysDept);
+                user.setDeptName(sysDept.getDeptName());
             }
 
         }
