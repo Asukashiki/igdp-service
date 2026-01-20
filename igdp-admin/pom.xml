@@ -144,6 +144,12 @@
             <artifactId>igdp-agriculture-input</artifactId>
         </dependency>
 
+        <!-- 离线数据同步模块 -->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-offline</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.snmp4j</groupId>
             <artifactId>snmp4j</artifactId>
