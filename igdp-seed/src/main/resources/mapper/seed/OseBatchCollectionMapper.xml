@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.OseBatchCollectionMapper">
+
+    <resultMap type="com.inspur.seed.domain.OseBatchCollection" id="OseBatchCollectionResult">
+        <id property="id" column="id"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="breedingBatchId" column="breeding_batch_id"/>
+        <result property="parentalSeedSource" column="parental_seed_source"/>
+        <result property="varietyName" column="variety_name"/>
+        <result property="cropType" column="crop_type"/>
+        <result property="breedingLevel" column="breeding_level"/>
+        <result property="toMultiplyQuantity" column="to_multiply_quantity"/>
+        <result property="collectionDate" column="collection_date"/>
+        <result property="operator" column="operator"/>
+        <result property="remark" column="remark"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+</mapper>

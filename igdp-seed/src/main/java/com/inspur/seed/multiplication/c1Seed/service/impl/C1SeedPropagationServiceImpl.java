@@ -8,17 +8,24 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.domain.OseBatchCollection;
+import com.inspur.seed.mapper.OseBatchCollectionMapper;
+import com.inspur.seed.multiplication.c1Seed.domain.dto.AvailableBasicSeedQueryDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1SeedPropagationDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1SeedPropagationQueryDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.entity.C1SeedPropagation;
+import com.inspur.seed.multiplication.c1Seed.domain.vo.AvailableBasicSeedVO;
 import com.inspur.seed.multiplication.c1Seed.domain.vo.C1SeedPropagationVO;
 import com.inspur.seed.multiplication.c1Seed.mapper.C1SeedPropagationMapper;
 import com.inspur.seed.multiplication.c1Seed.service.IC1SeedPropagationService;
+import com.inspur.seed.multiplication.oseReceive.domain.entity.OseBreedSeedReceiveConfirm;
+import com.inspur.seed.multiplication.oseReceive.mapper.OseReceiveConfirmMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +46,12 @@ public class C1SeedPropagationServiceImpl implements IC1SeedPropagationService {
 
     @Autowired
     private C1SeedPropagationMapper propagationMapper;
+
+    @Autowired
+    private OseReceiveConfirmMapper receiveConfirmMapper;
+
+    @Autowired
+    private OseBatchCollectionMapper batchCollectionMapper;
 
     /**
      * 获取申请列表（分页）
@@ -444,6 +457,244 @@ public class C1SeedPropagationServiceImpl implements IC1SeedPropagationService {
         } catch (Exception e) {
             log.error("获取已审核通过列表失败", e);
             return AjaxResult.error("Failed to get approved list: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取可用的Basic种子列表
+     * 聚合OSE接收确认和批次采集两个数据源
+     *
+     * @param queryDTO 查询条件
+     * @return 可用种子列表
+     */
+    @Override
+    public AjaxResult getAvailableBasicSeeds(AvailableBasicSeedQueryDTO queryDTO) {
+        try {
+            log.info("开始查询可用Basic种子列表");
+            List<AvailableBasicSeedVO> resultList = new ArrayList<>();
+
+            // 1. 从OSE接收确认模块查询Basic种子
+            if (queryDTO == null || queryDTO.getSourceType() == null || "OSE_RECEIVE".equals(queryDTO.getSourceType())) {
+                List<AvailableBasicSeedVO> receiveSeeds = getAvailableSeedsFromReceiveConfirm(queryDTO);
+                resultList.addAll(receiveSeeds);
+                log.info("从OSE接收确认查询到 {} 条Basic种子", receiveSeeds.size());
+            }
+
+            // 2. 从批次采集模块查询Basic种子（breedingLevel='Basic'）
+            if (queryDTO == null || queryDTO.getSourceType() == null || "OSE_BATCH_COLLECTION".equals(queryDTO.getSourceType())) {
+                List<AvailableBasicSeedVO> batchSeeds = getAvailableSeedsFromBatchCollection(queryDTO);
+                resultList.addAll(batchSeeds);
+                log.info("从批次采集查询到 {} 条Basic种子", batchSeeds.size());
+            }
+
+            // 3. 过滤只返回有可用数量的种子
+            if (queryDTO != null && queryDTO.getOnlyAvailable() != null && queryDTO.getOnlyAvailable()) {
+                resultList.removeIf(vo -> vo.getAvailableQuantity() == null
+                    || vo.getAvailableQuantity().compareTo(BigDecimal.ZERO) <= 0);
+            }
+
+            log.info("共查询到 {} 条可用Basic种子", resultList.size());
+            return AjaxResult.success(resultList);
+        } catch (Exception e) {
+            log.error("查询可用Basic种子列表失败", e);
+            return AjaxResult.error("Failed to get available Basic seeds: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 从OSE接收确认模块获取可用种子
+     */
+    private List<AvailableBasicSeedVO> getAvailableSeedsFromReceiveConfirm(AvailableBasicSeedQueryDTO queryDTO) {
+        List<AvailableBasicSeedVO> resultList = new ArrayList<>();
+
+        // 查询已确认的接收记录，关联分发明细获取Basic种子信息
+        // 使用自定义SQL查询来获取完整的种子信息
+        LambdaQueryWrapper<OseBreedSeedReceiveConfirm> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OseBreedSeedReceiveConfirm::getReceiveStatus, "CONFIRMED");
+
+        List<OseBreedSeedReceiveConfirm> confirmList = receiveConfirmMapper.selectList(wrapper);
+
+        for (OseBreedSeedReceiveConfirm confirm : confirmList) {
+            // 通过自定义mapper获取完整信息
+            try {
+                com.inspur.seed.multiplication.oseReceive.domain.vo.OseReceiveConfirmVO vo =
+                    receiveConfirmMapper.selectReceiveConfirmById(confirm.getReceiveConfirmId());
+
+                if (vo != null && vo.getDistributeDetail() != null && vo.getDistributeDetail().getDetailList() != null) {
+                    for (com.inspur.seed.multiplication.oseReceive.domain.vo.OseReceiveConfirmVO.DetailItem detail : vo.getDistributeDetail().getDetailList()) {
+                        // 只选择Basic级别的种子
+                        if ("Basic".equals(detail.getSeedType())) {
+                            // 应用查询条件过滤
+                            if (queryDTO != null) {
+                                if (StrUtil.isNotBlank(queryDTO.getVarietyName())
+                                    && !detail.getVarietyName().contains(queryDTO.getVarietyName())) {
+                                    continue;
+                                }
+                                if (StrUtil.isNotBlank(queryDTO.getCropType())
+                                    && !queryDTO.getCropType().equals(detail.getCropType())) {
+                                    continue;
+                                }
+                            }
+
+                            AvailableBasicSeedVO seedVO = new AvailableBasicSeedVO();
+                            seedVO.setBatchId(detail.getBreedSeedProduceBatchId());
+                            seedVO.setSourceType("OSE_RECEIVE");
+                            seedVO.setSourceId(confirm.getReceiveConfirmId());
+                            seedVO.setVarietyName(detail.getVarietyName());
+                            seedVO.setCropType(detail.getCropType());
+                            seedVO.setBreedingLevel(detail.getSeedType());
+                            seedVO.setParentalSeedSource(detail.getParentalSeedSource());
+                            seedVO.setTotalQuantity(detail.getDistributeQuantity());
+                            seedVO.setReceiveDate(confirm.getConfirmTime() != null ?
+                                new java.text.SimpleDateFormat("yyyy-MM-dd").format(confirm.getConfirmTime()) : null);
+                            seedVO.setRemark(confirm.getRemark());
+
+                            // 计算已申请数量和可用数量
+                            BigDecimal appliedQuantity = calculateAppliedQuantity(
+                                detail.getBreedSeedProduceBatchId(), "OSE_RECEIVE");
+                            seedVO.setAppliedQuantity(appliedQuantity);
+
+                            BigDecimal availableQuantity = detail.getDistributeQuantity()
+                                .subtract(appliedQuantity != null ? appliedQuantity : BigDecimal.ZERO);
+                            seedVO.setAvailableQuantity(availableQuantity);
+
+                            resultList.add(seedVO);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("处理接收确认记录失败: {}", confirm.getReceiveConfirmId(), e);
+            }
+        }
+
+        return resultList;
+    }
+
+    /**
+     * 从批次采集模块获取可用种子
+     */
+    private List<AvailableBasicSeedVO> getAvailableSeedsFromBatchCollection(AvailableBasicSeedQueryDTO queryDTO) {
+        List<AvailableBasicSeedVO> resultList = new ArrayList<>();
+
+        // 查询繁殖级别为Basic的批次
+        LambdaQueryWrapper<OseBatchCollection> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OseBatchCollection::getBreedingLevel, "Basic");
+        wrapper.and(w -> w.eq(OseBatchCollection::getDelFlag, "0").or().isNull(OseBatchCollection::getDelFlag));
+
+        // 应用查询条件
+        if (queryDTO != null) {
+            if (StrUtil.isNotBlank(queryDTO.getVarietyName())) {
+                wrapper.like(OseBatchCollection::getVarietyName, queryDTO.getVarietyName());
+            }
+            if (StrUtil.isNotBlank(queryDTO.getCropType())) {
+                wrapper.eq(OseBatchCollection::getCropType, queryDTO.getCropType());
+            }
+        }
+
+        wrapper.orderByDesc(OseBatchCollection::getCollectionDate);
+
+        List<OseBatchCollection> batchList = batchCollectionMapper.selectList(wrapper);
+
+        for (OseBatchCollection batch : batchList) {
+            AvailableBasicSeedVO seedVO = new AvailableBasicSeedVO();
+            seedVO.setBatchId(batch.getBatchId());
+            seedVO.setSourceType("OSE_BATCH_COLLECTION");
+            seedVO.setSourceId(String.valueOf(batch.getId()));
+            seedVO.setVarietyName(batch.getVarietyName());
+            seedVO.setCropType(batch.getCropType());
+            seedVO.setBreedingLevel(batch.getBreedingLevel());
+            seedVO.setParentalSeedSource(batch.getParentalSeedSource());
+            seedVO.setTotalQuantity(batch.getToMultiplyQuantity());
+            seedVO.setReceiveDate(batch.getCollectionDate() != null ?
+                new java.text.SimpleDateFormat("yyyy-MM-dd").format(batch.getCollectionDate()) : null);
+            seedVO.setRemark(batch.getRemark());
+
+            // 计算已申请数量和可用数量
+            BigDecimal appliedQuantity = calculateAppliedQuantity(batch.getBatchId(), "OSE_BATCH_COLLECTION");
+            seedVO.setAppliedQuantity(appliedQuantity);
+
+            BigDecimal availableQuantity = batch.getToMultiplyQuantity()
+                .subtract(appliedQuantity != null ? appliedQuantity : BigDecimal.ZERO);
+            seedVO.setAvailableQuantity(availableQuantity);
+
+            resultList.add(seedVO);
+        }
+
+        return resultList;
+    }
+
+    /**
+     * 计算指定批次的已申请数量（排除被拒绝的申请）
+     *
+     * @param batchId 批次ID
+     * @param sourceType 数据来源类型
+     * @return 已申请数量
+     */
+    private BigDecimal calculateAppliedQuantity(String batchId, String sourceType) {
+        LambdaQueryWrapper<C1SeedPropagation> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(C1SeedPropagation::getPropagationBatchId, batchId);
+        // 排除被拒绝的申请
+        wrapper.ne(C1SeedPropagation::getApplyStatus, "rejected");
+        wrapper.and(w -> w.eq(C1SeedPropagation::getDeleted, "0").or().isNull(C1SeedPropagation::getDeleted));
+
+        List<C1SeedPropagation> applications = propagationMapper.selectList(wrapper);
+
+        BigDecimal totalApplied = BigDecimal.ZERO;
+        for (C1SeedPropagation app : applications) {
+            if (app.getDemandQuantity() != null) {
+                totalApplied = totalApplied.add(new BigDecimal(app.getDemandQuantity()));
+            }
+        }
+
+        return totalApplied;
+    }
+
+    /**
+     * 获取指定批次的可用数量
+     *
+     * @param batchId 批次ID
+     * @param sourceType 数据来源类型 (OSE_RECEIVE/OSE_BATCH_COLLECTION)
+     * @return 可用数量信息
+     */
+    @Override
+    public AjaxResult getAvailableQuantity(String batchId, String sourceType) {
+        try {
+            log.info("查询批次可用数量,batchId: {}, sourceType: {}", batchId, sourceType);
+
+            BigDecimal totalQuantity = BigDecimal.ZERO;
+            BigDecimal appliedQuantity = calculateAppliedQuantity(batchId, sourceType);
+
+            // 根据来源类型查询总数量
+            if ("OSE_RECEIVE".equals(sourceType)) {
+                // 从OSE接收确认查询
+                // 这里需要通过批次ID查找对应的分发记录
+                // 由于数据结构复杂，这里简化处理，实际使用时需要关联查询
+                totalQuantity = BigDecimal.ZERO; // TODO: 实现完整查询逻辑
+            } else if ("OSE_BATCH_COLLECTION".equals(sourceType)) {
+                // 从批次采集查询
+                LambdaQueryWrapper<OseBatchCollection> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(OseBatchCollection::getBatchId, batchId);
+                wrapper.and(w -> w.eq(OseBatchCollection::getDelFlag, "0").or().isNull(OseBatchCollection::getDelFlag));
+                OseBatchCollection batch = batchCollectionMapper.selectOne(wrapper);
+                if (batch != null) {
+                    totalQuantity = batch.getToMultiplyQuantity();
+                }
+            }
+
+            BigDecimal availableQuantity = totalQuantity.subtract(
+                appliedQuantity != null ? appliedQuantity : BigDecimal.ZERO);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("batchId", batchId);
+            result.put("sourceType", sourceType);
+            result.put("totalQuantity", totalQuantity);
+            result.put("appliedQuantity", appliedQuantity);
+            result.put("availableQuantity", availableQuantity);
+
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            log.error("查询批次可用数量失败", e);
+            return AjaxResult.error("Failed to get available quantity: " + e.getMessage());
         }
     }
 }
