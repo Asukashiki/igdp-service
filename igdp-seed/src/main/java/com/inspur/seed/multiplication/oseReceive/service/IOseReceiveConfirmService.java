@@ -24,6 +24,14 @@ public interface IOseReceiveConfirmService extends IService<OseBreedSeedReceiveC
     List<OseReceiveConfirmVO> getReceiveConfirmList(OseReceiveConfirmQueryDTO queryDTO);
 
     /**
+     * 根据ID查询接收确认详情
+     *
+     * @param receiveConfirmId 接收确认ID
+     * @return 接收确认详情
+     */
+    OseReceiveConfirmVO getReceiveConfirmDetail(String receiveConfirmId);
+
+    /**
      * 确认接收
      *
      * @param receiveConfirmId 接收确认ID

@@ -232,4 +232,9 @@ public class ChengDuTuiYiAuthStrategy implements IAuthStrategy {
         }
         return headers;
     }
+
+    @Override
+    public AjaxResult syncOrganization() {
+        return null;
+    }
 }

@@ -1,6 +1,7 @@
 package com.inspur.seed.multiplication.c1Seed.service;
 
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.seed.multiplication.c1Seed.domain.dto.AvailableBasicSeedQueryDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1SeedPropagationDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1SeedPropagationQueryDTO;
 
@@ -74,4 +75,22 @@ public interface IC1SeedPropagationService {
      * @return 列表结果
      */
     AjaxResult getApprovedList();
+
+    /**
+     * 获取可用的Basic种子列表
+     * 聚合OSE接收确认和批次采集两个数据源
+     *
+     * @param queryDTO 查询条件
+     * @return 可用种子列表
+     */
+    AjaxResult getAvailableBasicSeeds(AvailableBasicSeedQueryDTO queryDTO);
+
+    /**
+     * 获取指定批次的可用数量
+     *
+     * @param batchId 批次ID
+     * @param sourceType 数据来源类型 (OSE_RECEIVE/OSE_BATCH_COLLECTION)
+     * @return 可用数量信息
+     */
+    AjaxResult getAvailableQuantity(String batchId, String sourceType);
 }

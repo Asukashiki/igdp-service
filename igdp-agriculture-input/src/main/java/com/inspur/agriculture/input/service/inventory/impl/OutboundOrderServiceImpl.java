@@ -189,9 +189,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             List<OutboundOrderDetail> details = outboundOrderDetailMapper.selectList(detailWrapper);
 
             BigDecimal totalOutboundQuantity = BigDecimal.ZERO;
-            // 累计出库的总容量(KG)和总容积(L)，用于更新仓库已用容量/容积
+            // 累计出库的总容量(KG)，用于更新仓库已用容量
+            // 所有单位（包括L/ml）都转换为KG存储
             BigDecimal totalOutboundCapacityKg = BigDecimal.ZERO;
-            BigDecimal totalOutboundVolumeL = BigDecimal.ZERO;
 
             // 处理每个明细
             for (OutboundOrderDetail detail : details) {
@@ -215,9 +215,10 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     totalAvailable = totalAvailable.add(stock.getQuantity());
                 }
 
-                if (totalAvailable.compareTo(requiredQuantity) < 0) {
+                /*  不判断库存数量,只判断总数kg是否充足
+             if (totalAvailable.compareTo(requiredQuantity) < 0) {
                     throw new ServiceException("Materials[" + detail.getMaterialId() + "]Insufficient inventory，Needed：" + requiredQuantity + "，Available：" + totalAvailable);
-                }
+                }*/
 
                 // 校验批次是否过期
                 Date now = new Date();
@@ -268,36 +269,41 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                         remainingRequired = remainingRequired.subtract(outboundQuantity);
                     }
 
-                    // 计算要扣减的容量(KG)和容积(L)
+                    // 计算要扣减的容量(KG) - 所有单位都转换为KG
+                    // 容积(L/ml)按 1L = 1KG 转换
                     BigDecimal outboundCapacityKg = BigDecimal.ZERO;
-                    BigDecimal outboundVolumeL = BigDecimal.ZERO;
                     
                     if (StringUtils.isNotEmpty(detail.getUnitOfMeasure())) {
-                        // 根据计量单位计算要扣减的容量/容积
+                        // 根据计量单位计算要扣减的容量（统一为KG）
                         UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(detail.getUnitOfMeasure(), outboundQuantity);
                         if (parseResult.isSuccess()) {
-                            if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(parseResult.getUnitType())) {
-                                outboundCapacityKg = parseResult.getConvertedValue();
-                                // 累加到总出库容量
-                                totalOutboundCapacityKg = totalOutboundCapacityKg.add(outboundCapacityKg);
-                            } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(parseResult.getUnitType())) {
-                                outboundVolumeL = parseResult.getConvertedValue();
-                                // 累加到总出库容积
-                                totalOutboundVolumeL = totalOutboundVolumeL.add(outboundVolumeL);
-                            }
+                            // 所有单位类型都转换为KG
+                            outboundCapacityKg = parseResult.getConvertedValue();
+                            // 累加到总出库容量
+                            totalOutboundCapacityKg = totalOutboundCapacityKg.add(outboundCapacityKg);
                         }
                     }
 
-                    // 计算扣减后的容量和容积
+                    // 计算扣减后的容量
                     BigDecimal currentCapacity = lockedStock.getCapacity() != null ? lockedStock.getCapacity() : BigDecimal.ZERO;
-                    BigDecimal currentVolume = lockedStock.getWarehouseArea() != null ? lockedStock.getWarehouseArea() : BigDecimal.ZERO;
                     BigDecimal afterCapacity = currentCapacity.subtract(outboundCapacityKg).max(BigDecimal.ZERO);
-                    BigDecimal afterVolume = currentVolume.subtract(outboundVolumeL).max(BigDecimal.ZERO);
 
-                    // 更新库存（数量、容量、容积）
-                    lockedStock.setQuantity(afterQuantity);
+                    // 处理库存数量与容量的一致性
+                    // 规则：如果容量还有剩余(>0)，但数量扣成了0，则将数量设为 (容量/100) 的绝对值，向上取整，不允许小数和负数
+                    // 只有当容量为0时，数量才能为0
+                    BigDecimal finalQuantity = afterQuantity;
+                    if (afterCapacity.compareTo(BigDecimal.ZERO) > 0 && afterQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+                        // 计算 容量/100，向上取整，取绝对值
+                        finalQuantity = afterCapacity.divide(new BigDecimal("100"), 0, java.math.RoundingMode.CEILING).abs();
+                        // 确保至少为1
+                        if (finalQuantity.compareTo(BigDecimal.ONE) < 0) {
+                            finalQuantity = BigDecimal.ONE;
+                        }
+                    }
+
+                    // 更新库存（数量、容量）- 不再更新容积
+                    lockedStock.setQuantity(finalQuantity);
                     lockedStock.setCapacity(afterCapacity);
-                    lockedStock.setWarehouseArea(afterVolume);
                     lockedStock.setOutboundQuantity(
                             (lockedStock.getOutboundQuantity() != null ? lockedStock.getOutboundQuantity() : BigDecimal.ZERO)
                                     .add(outboundQuantity)
@@ -308,13 +314,13 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     lockedStock.setUpdatedAt(new Date());
                     stockMapper.updateById(lockedStock);
 
-                    // 记录批次拆分
+                    // 记录批次拆分（使用实际扣减后的数量）
                     OutboundBatchSplit split = new OutboundBatchSplit();
                     split.setId(UUID.randomUUID().toString().replace("-", ""));
                     split.setOutboundDetailId(detail.getDetailId());
                     split.setInboundBatchId(lockedStock.getMaterialBatchId());
                     split.setSplitQuantity(outboundQuantity);
-                    split.setRemainingQuantity(afterQuantity);
+                    split.setRemainingQuantity(finalQuantity);
                     split.setCreatedAt(new Date());
                     outboundBatchSplitMapper.insert(split);
 
@@ -328,7 +334,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     // 出库为负数
                     stockLog.setChangeQuantity(outboundQuantity.negate());
                     stockLog.setBeforeQuantity(stockQuantity);
-                    stockLog.setAfterQuantity(afterQuantity);
+                    stockLog.setAfterQuantity(finalQuantity); // 使用处理后的最终数量
                     stockLog.setReferenceOrderId(outboundOrderId);
                     stockLog.setOperator(auditUser);
                     stockLog.setCreatedAt(new Date());
@@ -343,14 +349,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 }
             }
 
-            // 更新仓库已用容量（KG）- 减少
+            // 更新仓库已用容量（KG）- 减少（所有单位都转换为KG）
             if (totalOutboundCapacityKg.compareTo(BigDecimal.ZERO) > 0) {
                 warehouseMapper.updateUsedCapacity(Long.valueOf(outboundOrder.getWarehouseId()), totalOutboundCapacityKg.negate());
-            }
-
-            // 更新仓库已用容积（L）- 减少
-            if (totalOutboundVolumeL.compareTo(BigDecimal.ZERO) > 0) {
-                warehouseMapper.updateUsedWarehouseArea(Long.valueOf(outboundOrder.getWarehouseId()), totalOutboundVolumeL.negate());
             }
 
             // 审批通过后，更新关联的分发单状态和确认接收单状态
@@ -368,9 +369,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
         } else {
             outboundOrder.setOutboundStatus("rejected");
-        }
-
-        return outboundOrderMapper.updateById(outboundOrder) > 0;
+        }        return outboundOrderMapper.updateById(outboundOrder) > 0;
     }
 
     @Override
@@ -635,6 +634,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
     /**
      * 校验库存（支持计量单位转换）
+     * 所有单位（包括L/ml）都转换为KG来校验
      * 
      * @param warehouseId 仓库ID
      * @param materialId 物料ID
@@ -663,10 +663,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 return result;
             }
 
-            // 如果提供了计量单位，则计算实际需要的容量（KG或L）
-            BigDecimal requiredCapacity = BigDecimal.ZERO;
-            BigDecimal requiredVolume = BigDecimal.ZERO;
-            String unitType = null;
+            // 如果提供了计量单位，则计算实际需要的容量（统一转换为KG）
+            // L/ml 按 1L = 1KG 转换
+            BigDecimal requiredCapacityKg = BigDecimal.ZERO;
             
             if (StringUtils.isNotEmpty(unitOfMeasure)) {
                 UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(unitOfMeasure, quantity);
@@ -675,13 +674,8 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     result.put("message", "Unit of measure parsing failed: " + parseResult.getMessage());
                     return result;
                 }
-                
-                unitType = parseResult.getUnitType();
-                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
-                    requiredCapacity = parseResult.getConvertedValue();
-                } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(unitType)) {
-                    requiredVolume = parseResult.getConvertedValue();
-                }
+                // 所有单位类型都转换为KG
+                requiredCapacityKg = parseResult.getConvertedValue();
             }
 
             // 查询可用库存（FIFO）
@@ -692,22 +686,17 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 result.put("message", "Insufficient inventory");
                 result.put("available_quantity", BigDecimal.ZERO);
                 result.put("available_capacity_kg", BigDecimal.ZERO);
-                result.put("available_volume_l", BigDecimal.ZERO);
                 return result;
             }
 
-            // 计算总可用库存数量和容量
+            // 计算总可用库存数量和容量（KG）
             BigDecimal totalAvailableQuantity = BigDecimal.ZERO;
             BigDecimal totalAvailableCapacity = BigDecimal.ZERO;
-            BigDecimal totalAvailableVolume = BigDecimal.ZERO;
             
             for (Stock stock : availableStocks) {
                 totalAvailableQuantity = totalAvailableQuantity.add(stock.getQuantity());
                 if (stock.getCapacity() != null) {
                     totalAvailableCapacity = totalAvailableCapacity.add(stock.getCapacity());
-                }
-                if (stock.getWarehouseArea() != null) {
-                    totalAvailableVolume = totalAvailableVolume.add(stock.getWarehouseArea());
                 }
             }
 
@@ -715,30 +704,17 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             boolean isValid;
             String message;
             
-            if (StringUtils.isNotEmpty(unitOfMeasure) && unitType != null) {
-                // 基于容量/容积校验
-                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
-                    isValid = totalAvailableCapacity.compareTo(requiredCapacity) >= 0;
-                    if (!isValid) {
-                        message = "Inventory capacity(KG) is insufficient，Needed：" + requiredCapacity + " KG，Available：" + totalAvailableCapacity + " KG";
-                        result.put("shortage_kg", requiredCapacity.subtract(totalAvailableCapacity));
-                    } else {
-                        message = "Inventory capacity(KG) is sufficient";
-                    }
-                    result.put("required_capacity_kg", requiredCapacity);
-                    result.put("available_capacity_kg", totalAvailableCapacity);
+            if (StringUtils.isNotEmpty(unitOfMeasure)) {
+                // 基于容量(KG)校验
+                isValid = totalAvailableCapacity.compareTo(requiredCapacityKg) >= 0;
+                if (!isValid) {
+                    message = "Inventory capacity(KG) is insufficient，Needed：" + requiredCapacityKg + " KG，Available：" + totalAvailableCapacity + " KG";
+                    result.put("shortage_kg", requiredCapacityKg.subtract(totalAvailableCapacity));
                 } else {
-                    isValid = totalAvailableVolume.compareTo(requiredVolume) >= 0;
-                    if (!isValid) {
-                        message = "Inventory volume(L) is insufficient，Needed：" + requiredVolume + " L，Available：" + totalAvailableVolume + " L";
-                        result.put("shortage_l", requiredVolume.subtract(totalAvailableVolume));
-                    } else {
-                        message = "Inventory volume(L) is sufficient";
-                    }
-                    result.put("required_volume_l", requiredVolume);
-                    result.put("available_volume_l", totalAvailableVolume);
+                    message = "Inventory capacity(KG) is sufficient";
                 }
-                result.put("unit_type", unitType);
+                result.put("required_capacity_kg", requiredCapacityKg);
+                result.put("available_capacity_kg", totalAvailableCapacity);
             } else {
                 // 基于数量校验（兼容旧逻辑）
                 isValid = totalAvailableQuantity.compareTo(quantity) >= 0;
@@ -765,11 +741,12 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
     /**
      * 校验库存（支持计量单位转换和投入品品类）
+     * 所有单位（包括L/ml）都转换为KG来校验
      * 
      * 计算逻辑：
      * 1. 根据计量单位字典值解析出单位规格（如 Package/50kg = 50kg/包）
      * 2. 计算所需总容量 = 单位规格 * 出库数量（如 50kg * 50 = 2500kg）
-     * 3. 根据投入品品类查询库存中该品类的总容量(KG)或容积(L)
+     * 3. 根据投入品品类查询库存中该品类的总容量(KG)
      * 4. 比较所需容量与库存容量，判断是否满足出库需求
      * 
      * @param warehouseId 仓库ID
@@ -797,10 +774,9 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 return result;
             }
 
-            // 如果提供了计量单位，则计算实际需要的容量（KG或L）
-            BigDecimal requiredCapacity = BigDecimal.ZERO;
-            BigDecimal requiredVolume = BigDecimal.ZERO;
-            String unitType = null;
+            // 如果提供了计量单位，则计算实际需要的容量（统一转换为KG）
+            // L/ml 按 1L = 1KG 转换
+            BigDecimal requiredCapacityKg = BigDecimal.ZERO;
             
             if (StringUtils.isNotEmpty(unitOfMeasure)) {
                 UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(unitOfMeasure, quantity);
@@ -809,13 +785,8 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                     result.put("message", "Unit of measure parsing failed: " + parseResult.getMessage());
                     return result;
                 }
-                
-                unitType = parseResult.getUnitType();
-                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
-                    requiredCapacity = parseResult.getConvertedValue();
-                } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(unitType)) {
-                    requiredVolume = parseResult.getConvertedValue();
-                }
+                // 所有单位类型都转换为KG
+                requiredCapacityKg = parseResult.getConvertedValue();
             }
 
             // 查询可用库存 - 优先使用materialId，否则使用投入品类型和品类
@@ -831,7 +802,6 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 result.put("message", "Material ID or input type and category are required");
                 result.put("available_quantity", BigDecimal.ZERO);
                 result.put("available_capacity_kg", BigDecimal.ZERO);
-                result.put("available_volume_l", BigDecimal.ZERO);
                 return result;
             }
 
@@ -840,23 +810,18 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 result.put("message", "Insufficient inventory");
                 result.put("available_quantity", BigDecimal.ZERO);
                 result.put("available_capacity_kg", BigDecimal.ZERO);
-                result.put("available_volume_l", BigDecimal.ZERO);
                 result.put("max_available_by_unit", BigDecimal.ZERO);
                 return result;
             }
 
-            // 计算总可用库存数量和容量
+            // 计算总可用库存数量和容量（KG）
             BigDecimal totalAvailableQuantity = BigDecimal.ZERO;
             BigDecimal totalAvailableCapacity = BigDecimal.ZERO;
-            BigDecimal totalAvailableVolume = BigDecimal.ZERO;
             
             for (Stock stock : availableStocks) {
                 totalAvailableQuantity = totalAvailableQuantity.add(stock.getQuantity());
                 if (stock.getCapacity() != null) {
                     totalAvailableCapacity = totalAvailableCapacity.add(stock.getCapacity());
-                }
-                if (stock.getWarehouseArea() != null) {
-                    totalAvailableVolume = totalAvailableVolume.add(stock.getWarehouseArea());
                 }
             }
 
@@ -866,49 +831,29 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             BigDecimal maxAvailableByUnit = BigDecimal.ZERO; // 按计量单位计算的最大可用数量
             BigDecimal unitValue = BigDecimal.ONE; // 单位规格值（如 Package/50kg 的 50）
             
-            if (StringUtils.isNotEmpty(unitOfMeasure) && unitType != null) {
+            if (StringUtils.isNotEmpty(unitOfMeasure)) {
                 // 获取单位规格值（如 Package/50kg 的 50）
                 UnitConversionUtil.UnitParseResult unitParseResult = UnitConversionUtil.parseUnitFromDict(unitOfMeasure);
                 if (unitParseResult.isSuccess()) {
                     unitValue = unitParseResult.getConvertedValue();
                 }
                 
-                // 基于容量/容积校验
-                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
-                    // 计算按计量单位的最大可用数量 = 库存容量(KG) / 单位规格(KG)
-                    // 例如：库存2500KG，单位规格50KG/包 → 最大可用 = 2500/50 = 50包
-                    if (unitValue.compareTo(BigDecimal.ZERO) > 0) {
-                        maxAvailableByUnit = totalAvailableCapacity.divide(unitValue, 0, java.math.RoundingMode.FLOOR);
-                    }
-                    
-                    isValid = totalAvailableCapacity.compareTo(requiredCapacity) >= 0;
-                    if (!isValid) {
-                        message = "Inventory capacity (KG) is insufficient. Required: " + requiredCapacity + " KG, Available: " + totalAvailableCapacity + " KG";
-                        result.put("shortage_kg", requiredCapacity.subtract(totalAvailableCapacity));
-                    } else {
-                        message = "Inventory capacity is sufficient";
-                    }
-                    result.put("required_capacity_kg", requiredCapacity);
-                    result.put("available_capacity_kg", totalAvailableCapacity);
-                } else {
-                    // 计算按计量单位的最大可用数量 = 库存容积(L) / 单位规格(L)
-                    // 例如：库存500L，单位规格0.5L/瓶 → 最大可用 = 500/0.5 = 1000瓶
-                    if (unitValue.compareTo(BigDecimal.ZERO) > 0) {
-                        maxAvailableByUnit = totalAvailableVolume.divide(unitValue, 0, java.math.RoundingMode.FLOOR);
-                    }
-                    
-                    isValid = totalAvailableVolume.compareTo(requiredVolume) >= 0;
-                    if (!isValid) {
-                        message = "Inventory volume (L) is insufficient. Required: " + requiredVolume + " L, Available: " + totalAvailableVolume + " L";
-                        result.put("shortage_l", requiredVolume.subtract(totalAvailableVolume));
-                    } else {
-                        message = "Inventory volume is sufficient";
-                    }
-                    result.put("required_volume_l", requiredVolume);
-                    result.put("available_volume_l", totalAvailableVolume);
+                // 基于容量(KG)校验
+                // 计算按计量单位的最大可用数量 = 库存容量(KG) / 单位规格(KG)
+                if (unitValue.compareTo(BigDecimal.ZERO) > 0) {
+                    maxAvailableByUnit = totalAvailableCapacity.divide(unitValue, 0, java.math.RoundingMode.FLOOR);
                 }
-                result.put("unit_type", unitType);
-                result.put("unit_value", unitValue); // 单位规格值
+                
+                isValid = totalAvailableCapacity.compareTo(requiredCapacityKg) >= 0;
+                if (!isValid) {
+                    message = "Inventory capacity (KG) is insufficient. Required: " + requiredCapacityKg + " KG, Available: " + totalAvailableCapacity + " KG";
+                    result.put("shortage_kg", requiredCapacityKg.subtract(totalAvailableCapacity));
+                } else {
+                    message = "Inventory capacity is sufficient";
+                }
+                result.put("required_capacity_kg", requiredCapacityKg);
+                result.put("available_capacity_kg", totalAvailableCapacity);
+                result.put("unit_value", unitValue);
                 result.put("max_available_by_unit", maxAvailableByUnit);
             } else {
                 // 基于数量校验（兼容旧逻辑）
@@ -938,17 +883,17 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
 
     /**
      * 通过批次号校验库存容量
+     * 所有单位（包括L/ml）都转换为KG来校验
      *
      * 数据库字段说明：
-     * - capacity: 存储的是该批次的总容量，单位是 KG
-     * - warehouse_area: 存储的是该批次的总容积，单位是 L
+     * - capacity: 存储的是该批次的总容量，单位是 KG（所有单位都转换为KG存储）
      *
      * 计算逻辑：
-     * 1. 根据批次号查询库存记录，获取该批次的容量(capacity/KG)或容积(warehouse_area/L)
-     * 2. 根据计量单位字典值解析出单位规格（如 Package/50kg = 50kg/包）
+     * 1. 根据批次号查询库存记录，获取该批次的容量(capacity/KG)
+     * 2. 根据计量单位字典值解析出单位规格（如 Package/50kg = 50kg/包，Bottle/500ml = 0.5KG/瓶）
      * 3. 计算所需总容量 = 单位规格 * 出库数量（如 50kg * 50 = 2500kg）
      * 4. 比较所需容量与库存容量，判断是否满足出库需求
-     * 5. 计算最大可用数量 = 库存容量(KG或L) / 单位规格(KG或L)
+     * 5. 计算最大可用数量 = 库存容量(KG) / 单位规格(KG)
      *
      * 示例：
      * - 库存容量: 4016 KG
@@ -998,48 +943,38 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 result.put("message", "Stock record not found for batch: " + materialBatchId);
                 result.put("available_quantity", BigDecimal.ZERO);
                 result.put("available_capacity_kg", BigDecimal.ZERO);
-                result.put("available_volume_l", BigDecimal.ZERO);
                 result.put("max_available_by_unit", BigDecimal.ZERO);
                 return result;
             }
 
             // 获取库存信息
-            // capacity: 该批次的总容量(KG)
-            // warehouseArea: 该批次的总容积(L)
+            // capacity: 该批次的总容量(KG) - 所有单位都转换为KG存储
             String materialName = stock.getMaterialName();
             BigDecimal availableQuantity = stock.getQuantity() != null ? stock.getQuantity() : BigDecimal.ZERO;
             BigDecimal availableCapacityKg = stock.getCapacity() != null ? stock.getCapacity() : BigDecimal.ZERO;
-            BigDecimal availableVolumeL = stock.getWarehouseArea() != null ? stock.getWarehouseArea() : BigDecimal.ZERO;
 
             result.put("material_name", materialName);
             result.put("available_quantity", availableQuantity);
 
-            // 解析计量单位，计算所需容量
+            // 解析计量单位，计算所需容量（统一转换为KG）
             BigDecimal requiredCapacityKg = BigDecimal.ZERO;
-            BigDecimal requiredVolumeL = BigDecimal.ZERO;
-            String unitType = null;
-            BigDecimal unitValueKgOrL = BigDecimal.ONE; // 单位规格值(KG或L)
+            BigDecimal unitValueKg = BigDecimal.ONE; // 单位规格值(KG)
 
             if (StringUtils.isNotEmpty(unitOfMeasure)) {
-                // calculateTotalAmount: 计算 单位规格 * 出库数量 = 所需总容量
+                // calculateTotalAmount: 计算 单位规格 * 出库数量 = 所需总容量(KG)
                 UnitConversionUtil.UnitParseResult parseResult = UnitConversionUtil.calculateTotalAmount(unitOfMeasure, quantity);
                 if (!parseResult.isSuccess()) {
                     result.put("valid", false);
                     result.put("message", "Unit of measure parsing failed: " + parseResult.getMessage());
                     return result;
                 }
+                // 所有单位类型都转换为KG
+                requiredCapacityKg = parseResult.getConvertedValue();
 
-                unitType = parseResult.getUnitType();
-                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
-                    requiredCapacityKg = parseResult.getConvertedValue(); // 所需总容量(KG)
-                } else if (UnitConversionUtil.UNIT_TYPE_VOLUME.equals(unitType)) {
-                    requiredVolumeL = parseResult.getConvertedValue(); // 所需总容积(L)
-                }
-
-                // 获取单位规格值(KG或L)，用于计算最大可用数量
+                // 获取单位规格值(KG)，用于计算最大可用数量
                 UnitConversionUtil.UnitParseResult unitParseResult = UnitConversionUtil.parseUnitFromDict(unitOfMeasure);
                 if (unitParseResult.isSuccess()) {
-                    unitValueKgOrL = unitParseResult.getConvertedValue(); // 如 Package/50kg = 50
+                    unitValueKg = unitParseResult.getConvertedValue(); // 如 Package/50kg = 50
                 }
             }
 
@@ -1048,42 +983,23 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
             String message;
             BigDecimal maxAvailableByUnit = BigDecimal.ZERO;
 
-            if (StringUtils.isNotEmpty(unitOfMeasure) && unitType != null) {
-                if (UnitConversionUtil.UNIT_TYPE_WEIGHT.equals(unitType)) {
-                    // 重量类型：比较 KG
-                    // 最大可用数量 = 库存容量(KG) / 单位规格(KG)
-                    if (unitValueKgOrL.compareTo(BigDecimal.ZERO) > 0) {
-                        maxAvailableByUnit = availableCapacityKg.divide(unitValueKgOrL, 0, java.math.RoundingMode.FLOOR);
-                    }
-
-                    isValid = availableCapacityKg.compareTo(requiredCapacityKg) >= 0;
-                    if (!isValid) {
-                        message = "Inventory capacity (KG) is insufficient. Required: " + requiredCapacityKg + " KG, Available: " + availableCapacityKg + " KG";
-                        result.put("shortage_kg", requiredCapacityKg.subtract(availableCapacityKg));
-                    } else {
-                        message = "Inventory capacity is sufficient";
-                    }
-                    result.put("required_capacity_kg", requiredCapacityKg);
-                    result.put("available_capacity_kg", availableCapacityKg);
-                } else {
-                    // 容积类型：比较 L
-                    // 最大可用数量 = 库存容积(L) / 单位规格(L)
-                    if (unitValueKgOrL.compareTo(BigDecimal.ZERO) > 0) {
-                        maxAvailableByUnit = availableVolumeL.divide(unitValueKgOrL, 0, java.math.RoundingMode.FLOOR);
-                    }
-
-                    isValid = availableVolumeL.compareTo(requiredVolumeL) >= 0;
-                    if (!isValid) {
-                        message = "Inventory volume (L) is insufficient. Required: " + requiredVolumeL + " L, Available: " + availableVolumeL + " L";
-                        result.put("shortage_l", requiredVolumeL.subtract(availableVolumeL));
-                    } else {
-                        message = "Inventory volume is sufficient";
-                    }
-                    result.put("required_volume_l", requiredVolumeL);
-                    result.put("available_volume_l", availableVolumeL);
+            if (StringUtils.isNotEmpty(unitOfMeasure)) {
+                // 基于容量(KG)校验
+                // 最大可用数量 = 库存容量(KG) / 单位规格(KG)
+                if (unitValueKg.compareTo(BigDecimal.ZERO) > 0) {
+                    maxAvailableByUnit = availableCapacityKg.divide(unitValueKg, 0, java.math.RoundingMode.FLOOR);
                 }
-                result.put("unit_type", unitType);
-                result.put("unit_value", unitValueKgOrL);
+
+                isValid = availableCapacityKg.compareTo(requiredCapacityKg) >= 0;
+                if (!isValid) {
+                    message = "Inventory capacity (KG) is insufficient. Required: " + requiredCapacityKg + " KG, Available: " + availableCapacityKg + " KG";
+                    result.put("shortage_kg", requiredCapacityKg.subtract(availableCapacityKg));
+                } else {
+                    message = "Inventory capacity is sufficient";
+                }
+                result.put("required_capacity_kg", requiredCapacityKg);
+                result.put("available_capacity_kg", availableCapacityKg);
+                result.put("unit_value", unitValueKg);
                 result.put("max_available_by_unit", maxAvailableByUnit);
             } else {
                 // 无计量单位时，基于数量校验（兼容旧逻辑）

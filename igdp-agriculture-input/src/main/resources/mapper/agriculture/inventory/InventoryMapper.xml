@@ -24,10 +24,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime" column="create_time"/>
         <result property="updatePeople" column="update_people"/>
         <result property="updateTime" column="update_time"/>
+        <result property="isFlag" column="is_flag"/>
     </resultMap>
 
     <sql id="selectInventoryVo">
-        select inv.inventory_id, inv.input_id,
+        select inv.inventory_id, inv.input_id,inv.is_flag,
                ai.input_name, ai.input_sku as input_sku, ai.type as input_type,
                CASE ai.type
                    WHEN 'pesticide' THEN '农药'
@@ -138,6 +139,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select w.warehouse_id as warehouseId,
                w.warehouse_name as warehouseName,
                w.warehouse_type as warehouseType,
+               w.is_flag as isFlag,
                CASE w.warehouse_type
                    WHEN 'normal' THEN '普通仓库'
                    WHEN 'cold' THEN '冷藏仓库'
@@ -201,6 +203,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select inv.batch_no as batchNo,
                inv.current_quantity as currentQuantity,
                inv.in_date as inDate,
+               inv.is_flag as isFlag,
                inv.expired_date as expiredDate,
                inv.stock_status as stockStatus,
                CASE inv.stock_status

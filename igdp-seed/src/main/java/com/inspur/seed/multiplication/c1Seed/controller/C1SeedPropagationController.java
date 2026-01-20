@@ -1,6 +1,7 @@
 package com.inspur.seed.multiplication.c1Seed.controller;
 
 import com.inspur.common.core.domain.AjaxResult;
+import com.inspur.seed.multiplication.c1Seed.domain.dto.AvailableBasicSeedQueryDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1SeedPropagationDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1SeedPropagationQueryDTO;
 import com.inspur.seed.multiplication.c1Seed.service.IC1SeedPropagationService;
@@ -82,5 +83,33 @@ public class C1SeedPropagationController {
     public AjaxResult delete(@RequestBody String[] ids) {
         log.info("删除C1繁殖申请,数量: {}", ids.length);
         return propagationService.delete(ids);
+    }
+
+    /**
+     * 获取可用的Basic种子列表
+     * 聚合OSE接收确认和批次采集两个数据源
+     *
+     * @param queryDTO 查询条件
+     * @return 可用种子列表
+     */
+    @PostMapping("/available-seeds")
+    public AjaxResult getAvailableBasicSeeds(@RequestBody(required = false) AvailableBasicSeedQueryDTO queryDTO) {
+        log.info("获取可用Basic种子列表,查询条件: {}", queryDTO);
+        return propagationService.getAvailableBasicSeeds(queryDTO);
+    }
+
+    /**
+     * 获取指定批次的可用数量
+     *
+     * @param batchId 批次ID
+     * @param sourceType 数据来源类型 (OSE_RECEIVE/OSE_BATCH_COLLECTION)
+     * @return 可用数量信息
+     */
+    @GetMapping("/available-quantity/{batchId}")
+    public AjaxResult getAvailableQuantity(
+            @PathVariable("batchId") String batchId,
+            @RequestParam(value = "sourceType", required = false) String sourceType) {
+        log.info("获取批次可用数量,batchId: {}, sourceType: {}", batchId, sourceType);
+        return propagationService.getAvailableQuantity(batchId, sourceType);
     }
 }

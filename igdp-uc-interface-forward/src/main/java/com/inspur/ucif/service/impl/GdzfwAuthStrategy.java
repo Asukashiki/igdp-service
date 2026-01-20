@@ -199,4 +199,9 @@ public class GdzfwAuthStrategy implements IAuthStrategy {
         loginUser.setUser(sysUser);
         return loginUser;
     }
+
+    @Override
+    public AjaxResult syncOrganization() {
+        return null;
+    }
 }

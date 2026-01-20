@@ -58,6 +58,8 @@ public class SysLoginController {
     private IAccountStrategy accountStrategy;
     @Autowired
     private ISysDeptService deptService;
+    @Autowired
+    private ISysMenuService sysMenuService;
 
     /**
      * 登录方法
@@ -117,6 +119,7 @@ public class SysLoginController {
         SysUser user = loginUser.getUser();
         // 角色集合
         Set<String> roles = loginUser.getRoles();
+        Set<String> roleKeys = loginUser.getRoleKeys();
         // 权限集合
         Set<String> permissions = loginUser.getPermissions();
         AjaxResult ajax = AjaxResult.success();
@@ -127,6 +130,7 @@ public class SysLoginController {
         }
         ajax.put("user", user);
         ajax.put("roles", roles);
+        ajax.put("roleKeys", roleKeys);
         ajax.put("permissions", permissions);
         // 构建区划路径链
         ajax.put("deptPath", buildDeptPath(user.getDeptId()));
@@ -170,9 +174,9 @@ public class SysLoginController {
      */
     @GetMapping("/getRouters")
     public AjaxResult getRouters() {
-        String token = StpUtil.getTokenValue();
-        List<SysMenu> menus = accountStrategy.getInstance(SystemConfig.getAccountSelectType()).getMenuTree(token);
-        return AjaxResult.success(menuService.buildMenus(menus));
+        String userId = LoginHelper.getUserId();
+        List<SysMenu> sysMenus = sysMenuService.selectMenuTreeByUserId(userId);
+        return AjaxResult.success(menuService.buildMenus(sysMenus));
     }
 
 

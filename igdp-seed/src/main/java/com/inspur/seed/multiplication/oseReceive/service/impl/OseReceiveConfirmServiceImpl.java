@@ -13,6 +13,10 @@ import com.inspur.seed.multiplication.oseReceive.domain.dto.OseReceiveConfirmDTO
 import com.inspur.seed.multiplication.oseReceive.domain.dto.OseReceiveConfirmQueryDTO;
 import com.inspur.seed.breeding.seedDistribution.mapper.BreedSeedDistributeDetailMapper;
 import com.inspur.seed.breeding.seedDistribution.mapper.BreedSeedDistributeMapper;
+import com.inspur.seed.domain.basic.BasicSeedProduceResult;
+import com.inspur.seed.domain.prebasic.PrebasicSeedProduceResult;
+import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper;
+import com.inspur.seed.mapper.basic.BasicSeedProduceResultMapper;
 import com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceMapper;
 import com.inspur.seed.mapper.oauth.PubOrganMapper;
 import com.inspur.seed.Institution.ose.mapper.OseInfoMapper;
@@ -52,6 +56,12 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
 
     @Autowired
     private BreedSeedProduceMapper breedSeedProduceMapper;
+
+    @Autowired
+    private PrebasicSeedProduceResultMapper prebasicSeedProduceResultMapper;
+
+    @Autowired
+    private BasicSeedProduceResultMapper basicSeedProduceResultMapper;
 
     @Autowired
     private PubOrganMapper pubOrganMapper;
@@ -121,6 +131,18 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
 
         // 转换为VO对象
         return confirmList.stream().map(this::convertToVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public OseReceiveConfirmVO getReceiveConfirmDetail(String receiveConfirmId) {
+        // 根据ID查询接收确认记录
+        OseBreedSeedReceiveConfirm confirm = receiveConfirmMapper.selectById(receiveConfirmId);
+        if (confirm == null) {
+            throw new ServiceException("接收确认记录不存在");
+        }
+
+        // 转换为VO对象并返回
+        return convertToVO(confirm);
     }
 
     /**
@@ -210,10 +232,16 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
             // 获取种子类型 (toSeedLevel)
             String produceBatchId = detail.getProduceBatchId();
             if (produceBatchId != null && !produceBatchId.isEmpty()) {
-                BreedSeedProduce produce = breedSeedProduceMapper.selectById(produceBatchId);
+                PrebasicSeedProduceResult produce = prebasicSeedProduceResultMapper.selectResultByProduceBatchId(produceBatchId);
                 if (produce != null) {
                     item.setSeedType(produce.getToSeedLevel());
                     item.setCropType(produce.getCropType());
+                }else{
+                    BasicSeedProduceResult basicProduce = basicSeedProduceResultMapper.selectResultByProduceBatchId(produceBatchId);
+                    if (basicProduce != null) {
+                        item.setSeedType(basicProduce.getToSeedLevel());
+                        item.setCropType(basicProduce.getCropType());
+                    }
                 }
             }
 

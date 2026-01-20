@@ -443,8 +443,9 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
                     .collect(java.util.stream.Collectors.toList());
         }
         
-        // 查询库存数量
+        // 查询库存数量和容量
         BigDecimal quantity = BigDecimal.ZERO;
+        BigDecimal totalCapacity = BigDecimal.ZERO;
         
         if (inputCategory != null && !inputCategory.isEmpty() && !warehouseIds.isEmpty()) {
             // 根据投入品类别和仓库查询库存
@@ -455,18 +456,22 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             List<Stock> stockList = stockMapper.selectList(stockWrapper);
             
             for (Stock stock : stockList) {
-                if (stock.getQuantity() != null) {
-                    quantity = quantity.add(stock.getQuantity());
+                // 计算库存数量
+//                if (stock.getQuantity() != null) {
+//                    quantity = quantity.add(stock.getQuantity());
+//                }
+                // 计算库存容量(KG)
+                if (stock.getCapacity() != null && stock.getQuantity().compareTo(BigDecimal.ZERO) > 0   ) {
+                    quantity = quantity.add(stock.getCapacity());
                 }
             }
         }
         
         result.put("availableStock", quantity);
+//        result.put("totalCapacity", totalCapacity);
         result.put("inputCategory", inputCategory);
         result.put("organCode", organCode);
         
         return result;
     }
 }
-
-

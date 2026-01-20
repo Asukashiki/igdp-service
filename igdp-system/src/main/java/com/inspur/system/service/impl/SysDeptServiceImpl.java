@@ -1,10 +1,9 @@
 package com.inspur.system.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.yulichang.base.MPJBaseServiceImpl;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.inspur.common.annotation.DataScope;
@@ -343,6 +342,18 @@ public class SysDeptServiceImpl extends MPJBaseServiceImpl<SysDeptMapper, SysDep
         //return deptMapper.insertDept(dept);
         return 1;
     }
+
+    /**
+     * 批量新增保存部门信息
+     */
+    @Override
+    public boolean saveDept(SysDept dept) {
+
+        // 校验是否存在，如果存在则进行更新
+        saveOrUpdate(dept);
+        return true; 
+    }
+
 
     /**
      * 修改保存部门信息

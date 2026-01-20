@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.inspur.seed.breeding.breederSeed.domain.dto.BreedSeedProduceResultQueryDTO;
 import com.inspur.seed.breeding.breederSeed.domain.vo.BreedSeedProduceResultVO;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Date;
 
@@ -34,6 +35,12 @@ public class BreedSeedProduceResultServiceImpl extends ServiceImpl<BreedSeedProd
         if (result.getCollectionDate() == null) {
             result.setCollectionDate(new Date());
         }
+        
+        // 初始化剩余量等于生产量
+        if (result.getRemainingQuantity() == null) {
+            result.setRemainingQuantity(result.getProducedAmount());
+        }
+        
         boolean saveResult = this.save(result);
         if (!saveResult) {
             return false;
