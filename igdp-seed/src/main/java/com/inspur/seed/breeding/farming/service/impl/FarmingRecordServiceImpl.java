@@ -1,5 +1,6 @@
 package com.inspur.seed.breeding.farming.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.IdUtil;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
@@ -37,24 +38,42 @@ public class FarmingRecordServiceImpl implements IFarmingRecordService {
     @Override
     public String insertFarmingRecord(FarmingRecord farmingRecord) {
         // 生成主键
-        String farmingId = IdUtil.simpleUUID();
-        farmingRecord.setFarmingId(farmingId);
+        if (StrUtil.isBlank(farmingRecord.getFarmingId())) {
+            String farmingId = IdUtil.simpleUUID();
+            farmingRecord.setFarmingId(farmingId);
+        }
 
         // 生成农事记录ID: {plot_id}-F{record_no}
-        String farmingRecordId = generateFarmingRecordId(farmingRecord.getPlotId());
-        farmingRecord.setFarmingRecordId(farmingRecordId);
+        // 如果已存在（如离线同步手动输入），则不重新生成
+        if (StrUtil.isBlank(farmingRecord.getFarmingRecordId())) {
+            String farmingRecordId = generateFarmingRecordId(farmingRecord.getPlotId());
+            farmingRecord.setFarmingRecordId(farmingRecordId);
+        }
 
         // 设置创建信息（写入用户名，便于前端显示 Creator）
         farmingRecord.setCreateTime(LocalDateTime.now());
         farmingRecord.setUpdateTime(LocalDateTime.now());
         farmingRecord.setAuditTime(new Date());
-        farmingRecord.setCreateBy(SecurityUtils.getUsername());
-        farmingRecord.setUpdateBy(SecurityUtils.getUsername());
-        farmingRecord.setAuditBy(SecurityUtils.getUsername());
+        
+        try {
+            String username = SecurityUtils.getUsername();
+            farmingRecord.setCreateBy(username);
+            farmingRecord.setUpdateBy(username);
+            farmingRecord.setAuditBy(username);
+        } catch (Exception e) {
+            // 离线同步等场景可能无SecurityContext，使用默认值或从对象中获取（如果已设置）
+            if (StrUtil.isBlank(farmingRecord.getCreateBy())) {
+                farmingRecord.setCreateBy("system");
+            }
+            if (StrUtil.isBlank(farmingRecord.getUpdateBy())) {
+                farmingRecord.setUpdateBy("system");
+            }
+        }
+        
         farmingRecord.setWorkflowStatus("S0");
 
         farmingRecordMapper.insert(farmingRecord);
-        return farmingId;
+        return farmingRecord.getFarmingId();
     }
 
     @Override

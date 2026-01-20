@@ -8,6 +8,8 @@ import com.inspur.farmland.service.IFarmerInfoService;
 import com.inspur.farmland.service.ILandInfoService;
 import com.inspur.offline.domain.OfflineSyncRequest;
 import com.inspur.offline.service.IOfflineSyncService;
+import com.inspur.seed.breeding.farming.domain.entity.FarmingRecord;
+import com.inspur.seed.breeding.farming.service.IFarmingRecordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
 
     @Autowired
     private ILandInfoService landInfoService;
+
+    @Autowired
+    private IFarmingRecordService farmingRecordService;
 
     @Override
     public AjaxResult syncFarmer(OfflineSyncRequest request) {
@@ -101,6 +106,43 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
 
         } catch (Exception e) {
             log.error("同步土地数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public AjaxResult syncFarmingRecord(OfflineSyncRequest request) {
+        try {
+            Map<String, Object> formData = request.getFormData();
+            log.info("开始处理农事记录同步请求: {}", formData);
+
+            if (formData == null || formData.isEmpty()) {
+                return AjaxResult.error("表单数据不能为空");
+            }
+            
+            // 转换为FarmingRecord对象
+            FarmingRecord farmingRecord = convertToFarmingRecord(formData);
+            log.info("转换后的FarmingRecord对象: {}", farmingRecord);
+            
+            // 数据校验
+            String validationError = validateFarmingRecord(farmingRecord);
+            if (StrUtil.isNotBlank(validationError)) {
+                log.warn("农事记录数据校验失败: {}", validationError);
+                return AjaxResult.error(validationError);
+            }
+            
+            // 保存数据
+            String id = farmingRecordService.insertFarmingRecord(farmingRecord);
+            
+            // 返回结果
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("id", id);
+            result.put("farmingRecordId", farmingRecord.getFarmingRecordId());
+            
+            log.info("农事记录数据同步成功: farmingId={}", id);
+            return AjaxResult.success("同步成功", result);
+        } catch (Exception e) {
+            log.error("同步农事记录数据失败", e);
             return AjaxResult.error("同步失败: " + e.getMessage());
         }
     }
@@ -304,6 +346,84 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         // 详细地址必填校验
         if (StrUtil.isBlank(landInfo.getAddress())) {
             return "详细地址不能为空";
+        }
+
+        return null;
+    }
+
+    /**
+     * 将表单数据转换为FarmingRecord对象
+     */
+    private FarmingRecord convertToFarmingRecord(Map<String, Object> formData) {
+        FarmingRecord farmingRecord = new FarmingRecord();
+
+        farmingRecord.setFarmingRecordId(getString(formData, "farmingRecordId"));
+        farmingRecord.setPlotId(getString(formData, "plotId"));
+        farmingRecord.setTrialId(getString(formData, "trialId"));
+        farmingRecord.setBatchId(getString(formData, "batchId"));
+        
+        // 日期处理
+        Object activityDateObj = formData.get("activityDate");
+        if (activityDateObj != null) {
+            try {
+                if (activityDateObj instanceof String) {
+                    String dateStr = (String) activityDateObj;
+                    if (dateStr.length() >= 10) {
+                        dateStr = dateStr.substring(0, 10);
+                        farmingRecord.setActivityDate(java.sql.Date.valueOf(dateStr));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("日期解析失败: {}", activityDateObj, e);
+            }
+        }
+
+        farmingRecord.setActivityType(getString(formData, "activityType"));
+        farmingRecord.setInputName(getString(formData, "inputName"));
+
+        // 数量处理
+        Object quantityObj = formData.get("quantity");
+        if (quantityObj != null) {
+            try {
+                if (quantityObj instanceof Number) {
+                    farmingRecord.setQuantity(new BigDecimal(quantityObj.toString()));
+                } else if (quantityObj instanceof String) {
+                    String quantityStr = (String) quantityObj;
+                    if (StrUtil.isNotBlank(quantityStr)) {
+                        farmingRecord.setQuantity(new BigDecimal(quantityStr));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("数量解析失败: {}", quantityObj, e);
+            }
+        }
+
+        farmingRecord.setUnit(getString(formData, "unit"));
+        farmingRecord.setOperatorId(getString(formData, "operatorId"));
+        farmingRecord.setOperationDesc(getString(formData, "operationDesc"));
+
+        return farmingRecord;
+    }
+
+    /**
+     * 校验农事记录数据
+     */
+    private String validateFarmingRecord(FarmingRecord farmingRecord) {
+        // 必填字段校验
+        if (StrUtil.isBlank(farmingRecord.getPlotId())) {
+            return "地块ID不能为空";
+        }
+
+        if (StrUtil.isBlank(farmingRecord.getActivityType())) {
+            return "农事活动类型不能为空";
+        }
+        
+        if (farmingRecord.getActivityDate() == null) {
+            return "活动日期不能为空";
+        }
+
+        if (StrUtil.isBlank(farmingRecord.getOperatorId())) {
+            return "操作员ID不能为空";
         }
 
         return null;
