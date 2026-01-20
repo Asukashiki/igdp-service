@@ -44,7 +44,7 @@ public class EnvironmentDataServiceImpl implements IEnvironmentDataService {
     public String insertEnvironmentData(EnvironmentData environmentData) {
         // 生成主键
         String envId = IdUtil.simpleUUID();
-        environmentData.setEnvId(envId);
+        environmentData.setEnvRecordId(envId);
 
         // 设置创建信息
         environmentData.setCreateTime(LocalDateTime.now());

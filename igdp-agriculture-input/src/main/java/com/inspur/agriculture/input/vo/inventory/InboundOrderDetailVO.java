@@ -30,11 +30,17 @@ public class InboundOrderDetailVO {
     /** 投入品名称 */
     private String materialName;
 
-    /** 投入品批次ID */
-    private String materialBatchId;
+    /** 投入品批次号 */
+    private String batchNo;
 
     /** 投入品类型 */
     private String materialType;
+
+    /** 农资类型 */
+    private String agriculturalInputType;
+
+    /** 品种 */
+    private String variety;
 
     /** 规格型号 */
     private String specModel;

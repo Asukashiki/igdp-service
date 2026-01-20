@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.inspur.agriculture.input.domain.inventory.Warehouse;
 import com.inspur.agriculture.input.dto.inventory.WarehouseQueryDTO;
 import com.inspur.agriculture.input.vo.inventory.WarehouseVO;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
@@ -15,6 +16,7 @@ import java.util.List;
  * @author inspur
  * @date 2025-11-26
  */
+@Mapper
 public interface WarehouseMapper extends BaseMapper<Warehouse> {
 
     /**
@@ -52,4 +54,14 @@ public interface WarehouseMapper extends BaseMapper<Warehouse> {
      */
     int updateUsedCapacity(@Param("warehouseId") Long warehouseId,
                            @Param("capacityChange") BigDecimal capacityChange);
+
+    /**
+     * 更新仓库已用容积（L）
+     *
+     * @param warehouseId        仓库ID
+     * @param warehouseAreaChange 容积变化(正数为增加,负数为减少)
+     * @return 影响行数
+     */
+    int updateUsedWarehouseArea(@Param("warehouseId") Long warehouseId,
+                                 @Param("warehouseAreaChange") BigDecimal warehouseAreaChange);
 }

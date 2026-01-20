@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 
+import static cn.hutool.core.util.RandomUtil.randomString;
+
 /**
  * Demand Collection Batch Service Implementation
  * 需求采集批次管理服务实现
@@ -27,24 +29,24 @@ public class DemandCollectionBatchServiceImpl extends ServiceImpl<DemandCollecti
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public DemandCollectionBatch getOrCreateBatchByYear(Integer year) {
+    public DemandCollectionBatch getOrCreateBatchByYear(String batchNo,Integer year) {
         if (year == null) {
             throw new ServiceException("Year cannot be empty");
         }
 
-        // 查询当前年份的批次
-        LambdaQueryWrapper<DemandCollectionBatch> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(DemandCollectionBatch::getYear, year);
-        wrapper.eq(DemandCollectionBatch::getIsDeleted, 0);
-        wrapper.last("LIMIT 1");
-
-        DemandCollectionBatch batch = this.getOne(wrapper);
+//        // 查询当前年份的批次
+//        LambdaQueryWrapper<DemandCollectionBatch> wrapper = new LambdaQueryWrapper<>();
+//        wrapper.eq(DemandCollectionBatch::getYear, year);
+//        wrapper.eq(DemandCollectionBatch::getIsDeleted, 0);
+//        wrapper.last("LIMIT 1");
+//
+//        DemandCollectionBatch batch = this.getOne(wrapper);
 
         // 如果不存在，则自动创建
-        if (batch == null) {
-            batch = new DemandCollectionBatch();
+//        if (batch == null) {
+            DemandCollectionBatch batch = new DemandCollectionBatch();
             batch.setBatchName(year + "年度农民需求采集");
-            batch.setBatchNo("BATCH-" + year);
+            batch.setBatchNo(batchNo);
             batch.setYear(year);
             batch.setStatus(BatchStatusEnum.COLLECTING.getCode());
 
@@ -60,13 +62,10 @@ public class DemandCollectionBatchServiceImpl extends ServiceImpl<DemandCollecti
             batch.setCreatedTime(new Date());
             // TODO: Get current user ID from security context
             batch.setCreatedBy("system");
-
             if (!this.save(batch)) {
                 throw new ServiceException("Failed to create batch for year: " + year);
             }
-
             log.info("Auto-created demand collection batch for year {}: {}", year, batch.getId());
-        }
 
         return batch;
     }

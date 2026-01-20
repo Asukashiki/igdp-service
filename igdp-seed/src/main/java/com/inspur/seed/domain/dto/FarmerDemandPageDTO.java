@@ -80,4 +80,14 @@ public class FarmerDemandPageDTO {
      * Created Time End
      */
     private String createdTimeEnd;
+
+    /**
+     * 排序字段
+     */
+    private String orderByColumn;
+
+    /**
+     * 排序方向 (asc/desc)
+     */
+    private String isAsc;
 }

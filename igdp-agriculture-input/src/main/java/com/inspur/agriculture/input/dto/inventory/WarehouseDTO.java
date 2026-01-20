@@ -24,6 +24,10 @@ public class WarehouseDTO {
     @NotBlank(message = "仓库名称不能为空")
     private String warehouseName;
 
+    /** 仓库名称 */
+    @NotBlank(message = "仓库编号不能为空")
+    private String warehouseCode;
+
     /** 仓库类型: normal-普通仓库/cold-冷藏仓库/dangerous-危险品仓库 */
     @NotBlank(message = "仓库类型不能为空")
     private String warehouseType;

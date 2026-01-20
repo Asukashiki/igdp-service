@@ -142,4 +142,18 @@ public class DaInfoController extends BaseController {
         List<Map<String, Object>> options = daInfoService.selectDaOptions(kebeleCode);
         return AjaxResult.success(options);
     }
+
+    /**
+     * 检查账号是否可用
+     * @param account 账号
+     * @param excludeDaId 排除的DA编码（编辑时使用）
+     * @return true-可用，false-已存在
+     */
+    @GetMapping("/checkAccount")
+    public AjaxResult checkAccount(
+            @RequestParam String account,
+            @RequestParam(required = false) String excludeDaId) {
+        boolean unique = daInfoService.checkAccountUnique(account, excludeDaId);
+        return AjaxResult.success(unique);
+    }
 }

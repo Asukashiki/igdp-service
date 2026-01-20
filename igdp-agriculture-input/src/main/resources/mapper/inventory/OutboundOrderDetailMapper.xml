@@ -11,6 +11,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="materialId" column="material_id"/>
         <result property="materialBatchId" column="material_batch_id"/>
         <result property="materialType" column="material_type"/>
+        <result property="agriculturalInputType" column="agricultural_input_type"/>
         <result property="specModel" column="spec_model"/>
         <result property="unitOfMeasure" column="unit_of_measure"/>
         <result property="quantity" column="quantity"/>
@@ -24,11 +25,29 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <sql id="selectOutboundDetailVo">
         select ood.id, ood.detail_id, ood.outbound_order_id,
                ood.material_id, ood.material_batch_id, ood.material_type,
+               ood.agricultural_input_type,
                ood.spec_model, ood.unit_of_measure, ood.quantity,
                ood.outbound_time, ood.operator,
                ood.created_at, ood.updated_at, ood.remark
         from outbound_order_detail ood
     </sql>
+
+    <insert id="batchInsert">
+        insert into outbound_order_detail (
+            id, detail_id, outbound_order_id, material_id, material_batch_id,
+            material_type, agricultural_input_type, material_name, spec_model, unit_of_measure, quantity,
+            outbound_time, operator, remark
+        ) values
+        <foreach collection="details" item="item" separator=",">
+            (
+                #{item.id}, #{item.detailId}, #{item.outboundOrderId},
+                #{item.materialId}, #{item.materialBatchId}, #{item.materialType}, #{item.agriculturalInputType},
+                #{item.materialName},
+                #{item.specModel}, #{item.unitOfMeasure}, #{item.quantity},
+                #{item.outboundTime}, #{item.operator}, #{item.remark}
+            )
+        </foreach>
+    </insert>
 
     <select id="selectDetailsByOrderId" resultType="map">
         <include refid="selectOutboundDetailVo"/>
@@ -40,22 +59,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectOutboundDetailVo"/>
         where ood.detail_id = #{detailId}
     </select>
-
-    <insert id="batchInsert">
-        insert into outbound_order_detail (
-            id, detail_id, outbound_order_id, material_id, material_batch_id,
-            material_type,material_name,spec_model, unit_of_measure, quantity,
-            outbound_time, operator, remark
-        ) values
-        <foreach collection="details" item="item" separator=",">
-            (
-                #{item.id}, #{item.detailId}, #{item.outboundOrderId},
-                #{item.materialId}, #{item.materialBatchId}, #{item.materialType},#{item.materialName},
-                #{item.specModel}, #{item.unitOfMeasure}, #{item.quantity},
-                #{item.outboundTime}, #{item.operator}, #{item.remark}
-            )
-        </foreach>
-    </insert>
 
     <select id="selectByMaterialId" resultType="map">
         <include refid="selectOutboundDetailVo"/>
@@ -102,7 +105,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectDetailsWithBatchSplits" resultType="map">
         select ood.detail_id, ood.material_id, ood.material_batch_id,
                ood.material_type,ood.material_name, ood.spec_model, ood.unit_of_measure,
-               ood.quantity, ood.outbound_time, ood.operator,ood.spec_model,
+               ood.quantity, ood.outbound_time, ood.operator,ood.spec_model,ood.agricultural_input_type,
                obs.id as split_id, obs.inbound_batch_id,
                obs.split_quantity, obs.remaining_quantity
         from outbound_order_detail ood

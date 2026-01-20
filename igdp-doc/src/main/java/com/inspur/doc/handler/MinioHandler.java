@@ -27,6 +27,7 @@ import javax.xml.ws.WebServiceException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,6 +47,10 @@ public class MinioHandler {
     String bucketName;
 
     private final MinioClient minioClient;
+
+
+    @Value("${sys.doc.minio.eip:}")
+    String eip;
 
     /**
      * description: 判断bucket是否存在，不存在则创建
@@ -219,6 +224,11 @@ public class MinioHandler {
         String url = null;
         try {
             url = minioClient.getPresignedObjectUrl(build);
+            if(StrUtil.isNotBlank(url) && StrUtil.isNotBlank(eip)){
+                // 替换ip和端口
+                URI uri = new URI(url);
+                url = eip + uri.getPath();
+            }
         } catch (Exception e) {
             log.info("预览文件失败", e);
         }

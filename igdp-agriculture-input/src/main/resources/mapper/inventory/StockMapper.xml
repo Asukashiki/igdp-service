@@ -17,16 +17,27 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="status" column="status"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="materialName" column="material_name"/>
+        <result property="materialType" column="material_type"/>
+        <result property="agriculturalInputType" column="agricultural_input_type"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="variety" column="variety"/>
+        <result property="capacity" column="capacity"/>
+        <result property="warehouseArea" column="warehouse_area"/>
     </resultMap>
 
     <sql id="selectStockVo">
         select s.id, s.warehouse_id, w.warehouse_name,
-               s.material_id, s.material_batch_id,s.material_name,
+               s.material_id, s.material_batch_id, s.material_name,
                s.quantity, s.inbound_quantity, s.outbound_quantity,
                s.expiry_date, s.qr_code, s.status,
-               s.created_at, s.updated_at
+               s.created_at, s.updated_at,
+               iod.material_type, iod.agricultural_input_type, iod.variety, iod.batch_no,
+               s.capacity, s.warehouse_area
         from stock s
         left join inv_warehouse w on s.warehouse_id = w.warehouse_id and w.del_flag = '0'
+        left join inbound_order_detail iod on s.material_batch_id = iod.batch_no
     </sql>
 
     <select id="selectStockList" resultType="map">
@@ -41,6 +52,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="params.materialBatchId != null and params.materialBatchId != ''">
                 and s.material_batch_id = #{params.materialBatchId}
             </if>
+            <if test="params.materialType != null and params.materialType != ''">
+                and iod.material_type = #{params.materialType}
+            </if>
+            <if test="params.agriculturalInputType != null and params.agriculturalInputType != ''">
+                and iod.agricultural_input_type = #{params.agriculturalInputType}
+            </if>
             <if test="params.status != null and params.status != ''">
                 and s.status = #{params.status}
             </if>
@@ -49,6 +66,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
             <if test="params.maxQuantity != null">
                 and s.quantity &lt;= #{params.maxQuantity}
+            </if>
+            <if test="params.organCode != null and params.organCode != ''">
+                and w.organ_code = #{params.organCode}
             </if>
         </where>
         order by s.created_at desc
@@ -163,4 +183,57 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by created_at
     </select>
 
+    <select id="selectByBatchForUpdate" resultMap="StockResult">
+        select * from stock
+        where warehouse_id = #{warehouseId}
+          and material_id = #{materialId}
+          and material_batch_id = #{materialBatchId}
+        for update
+    </select>
+
+    <select id="selectStockSummary" resultType="map">
+        SELECT
+            iod.material_type as material_type,
+            iod.agricultural_input_type as agricultural_input_type,
+            SUM(s.quantity) as total_quantity,
+            CASE
+            WHEN iod.material_type = 'seed' THEN 'kg'
+            WHEN iod.material_type = 'fertilizer' THEN 'kg'
+            WHEN iod.material_type = 'pesticide' THEN 'L'
+            ELSE 'unit'
+            END as unit
+        FROM stock s
+        LEFT JOIN inv_warehouse w ON s.warehouse_id = w.warehouse_id AND w.del_flag = '0'
+        LEFT JOIN inbound_order_detail iod ON s.material_batch_id = iod.batch_no
+        <where>
+            <if test="params.warehouseId != null and params.warehouseId != ''">
+                AND s.warehouse_id = #{params.warehouseId}
+            </if>
+            <if test="params.materialType != null and params.materialType != ''">
+                AND iod.material_type = #{params.materialType}
+            </if>
+            <if test="params.agriculturalInputType != null and params.agriculturalInputType != ''">
+                AND iod.agricultural_input_type = #{params.agriculturalInputType}
+            </if>
+            <if test="params.organCode != null and params.organCode != ''">
+                AND w.organ_code = #{params.organCode}
+            </if>
+            <if test="params.minQuantity != null">
+                AND s.quantity &gt;= #{params.minQuantity}
+            </if>
+        </where>
+        GROUP BY iod.material_type, iod.agricultural_input_type
+    </select>
+    
+    <select id="selectAvailableStockByTypeAndCategory" resultMap="StockResult">
+        SELECT s.* 
+        FROM stock s
+        WHERE s.warehouse_id = #{warehouseId}
+          AND s.material_type = #{inputType}
+          AND s.agricultural_input_type = #{agriculturalInputType}
+          AND s.quantity > 0
+          AND s.status = '0'
+          AND (s.expiry_date is null or s.expiry_date > curdate())
+        ORDER BY s.created_at
+    </select>
 </mapper>

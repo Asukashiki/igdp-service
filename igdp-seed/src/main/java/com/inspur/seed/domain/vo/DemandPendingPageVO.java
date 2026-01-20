@@ -65,4 +65,6 @@ public class DemandPendingPageVO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date submitTime;
+
+    private String status;
 }

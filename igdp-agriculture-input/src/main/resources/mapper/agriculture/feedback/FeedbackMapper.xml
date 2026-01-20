@@ -28,6 +28,8 @@
         <result property="updateTime" column="update_time"/>
         <result property="updateBy" column="update_by"/>
         <result property="delFlag" column="del_flag"/>
+        <result property="inputCategory" column="input_category"/>
+        <result property="inputType" column="input_type"/>
     </resultMap>
 
     <resultMap type="com.inspur.agriculture.input.vo.feedback.FeedbackVO" id="FeedbackVOResult">
@@ -57,12 +59,14 @@
         <result property="updateTime" column="update_time"/>
         <result property="updateBy" column="update_by"/>
         <result property="processingHours" column="processing_hours"/>
+        <result property="inputCategory" column="input_category"/>
+        <result property="inputType" column="input_type"/>
     </resultMap>
 
     <sql id="selectFeedbackVo">
         SELECT
             f.feedback_id, f.feedback_no, f.feedback_type, f.title, f.content,
-            f.input_id, f.input_name, f.supplier_id, f.supplier_name,
+            f.input_id, f.input_name, f.supplier_id, f.supplier_name,f.input_category, f.input_type,
             f.contact_name, f.contact_phone, f.contact_email,
             f.status,
             f.handler_id, f.handle_time, f.handle_result, f.handle_remark,

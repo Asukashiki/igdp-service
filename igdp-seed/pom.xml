@@ -16,5 +16,9 @@
             <groupId>com.inspur</groupId>
             <artifactId>igdp-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-agriculture-input</artifactId>
+        </dependency>
     </dependencies>
 </project>

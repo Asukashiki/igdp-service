@@ -14,6 +14,7 @@ import com.inspur.seed.service.IBreedingLabTestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -92,6 +93,11 @@ public class BreedingLabTestServiceImpl implements IBreedingLabTestService {
             queryWrapper.eq("pass_fail_flag", dto.getPassFailFlag());
         }
 
+        // 审核状态（流程状态）
+        if (StrUtil.isNotBlank(dto.getWorkflowStatus())) {
+            queryWrapper.eq("workflow_status", dto.getWorkflowStatus());
+        }
+
         // 检测日期范围
         if (dto.getTestDateStart() != null) {
             queryWrapper.ge("test_date", dto.getTestDateStart());
@@ -120,9 +126,44 @@ public class BreedingLabTestServiceImpl implements IBreedingLabTestService {
         entity.setCreatedTime(LocalDateTime.now());
         try {
             entity.setCreatedBy(SecurityUtils.getUsername());
+            // createdByName 回退为 createdBy（避免依赖不可用的 getLoginUser() 方法）
+            if (StrUtil.isBlank(entity.getCreatedByName())) {
+                entity.setCreatedByName(entity.getCreatedBy());
+            }
         } catch (Exception e) {
             // 如果获取用户失败，使用默认值
             entity.setCreatedBy("system");
+            if (StrUtil.isBlank(entity.getCreatedByName())) {
+                entity.setCreatedByName("system");
+            }
+        }
+
+        // 默认流程状态（如前端未传，则给默认草稿/待审核状态）
+        if (StrUtil.isBlank(entity.getWorkflowStatus())) {
+            entity.setWorkflowStatus("S1"); // 默认：待提交/待审核（请根据flow_status实际值调整）
+        }
+
+        // 后端兜底：检测人员、检测机构、检测日期（避免前端遗漏）
+        if (StrUtil.isBlank(entity.getTesterName())) {
+            // 优先使用创建人姓名，其次创建人账号，最后 system
+            if (StrUtil.isNotBlank(entity.getCreatedByName())) {
+                entity.setTesterName(entity.getCreatedByName());
+            } else if (StrUtil.isNotBlank(entity.getCreatedBy())) {
+                entity.setTesterName(entity.getCreatedBy());
+            } else {
+                entity.setTesterName("system");
+            }
+        }
+        if (StrUtil.isBlank(entity.getTestOrganization())) {
+            // 若存在创建机构名称则使用；否则置空字符串
+            if (StrUtil.isNotBlank(entity.getCreatedOrgName())) {
+                entity.setTestOrganization(entity.getCreatedOrgName());
+            } else {
+                entity.setTestOrganization("");
+            }
+        }
+        if (entity.getTestDate() == null) {
+            entity.setTestDate(LocalDate.now());
         }
 
         return breedingLabTestMapper.insert(entity);
@@ -140,6 +181,21 @@ public class BreedingLabTestServiceImpl implements IBreedingLabTestService {
         } catch (Exception e) {
             // 如果获取用户失败，使用默认值
             entity.setUpdatedBy("system");
+        }
+
+        // 如果未传流程状态，保留原值；若为新增编辑场景也可设置默认
+        if (StrUtil.isBlank(entity.getWorkflowStatus())) {
+            // 查询原始记录以保留workflowStatus
+            try {
+                BreedingLabTest old = breedingLabTestMapper.selectById(entity.getId());
+                if (old != null) {
+                    entity.setWorkflowStatus(old.getWorkflowStatus());
+                } else {
+                    entity.setWorkflowStatus("S1");
+                }
+            } catch (Exception ignore) {
+                entity.setWorkflowStatus("S1");
+            }
         }
 
         return breedingLabTestMapper.updateById(entity);

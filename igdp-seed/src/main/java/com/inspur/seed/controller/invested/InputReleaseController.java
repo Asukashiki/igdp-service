@@ -41,12 +41,13 @@ public class InputReleaseController extends BaseController {
      */
     @GetMapping("/list")
     public TableDataInfo list(
-            @RequestParam(required = false) String unionName,
+            @RequestParam(required = true) String releaseType,
+            @RequestParam(required = false) String releaseName,
             @RequestParam(required = false) String inputType,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
         startPage();
-        List<InputReleaseMain> list = releaseService.queryReleaseList(unionName, inputType, startTime, endTime);
+        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime);
         return getDataTable(list);
     }
 
@@ -90,6 +91,19 @@ public class InputReleaseController extends BaseController {
     }
 
     /**
+     * 根据releaseId查询分发单详情
+     */
+    @GetMapping("/detailByReleaseId/{releaseId}")
+    public AjaxResult getDetailByReleaseId(@PathVariable String releaseId) {
+        try {
+            Map<String, Object> detail = releaseService.queryReleaseDetailByReleaseId(releaseId);
+            return AjaxResult.success("查询成功", detail);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
      * 删除分发单
      */
     @DeleteMapping("/delete/{ids}")
@@ -102,4 +116,38 @@ public class InputReleaseController extends BaseController {
             return AjaxResult.error(e.getMessage());
         }
     }
+
+    /**
+     * 查询分发单出入库状态
+     * @param releaseIds 逗号分隔的分发单ID列表
+     */
+    @GetMapping("/stockStatus")
+    public AjaxResult getStockStatus(@RequestParam String releaseIds) {
+        try {
+            List<String> idList = Arrays.asList(releaseIds.split(","));
+            Map<String, String> statusMap = releaseService.queryStockStatus(idList);
+            return AjaxResult.success("查询成功", statusMap);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 查询可用库存
+     * @param inputCategory 投入品类别
+     * @param organCode 用户组织编码
+     */
+    @GetMapping("/availableStock")
+    public AjaxResult getAvailableStock(
+            @RequestParam String inputType,
+            @RequestParam String inputCategory,
+            @RequestParam String organCode) {
+        try {
+            Map<String, Object> result = releaseService.queryAvailableStock(inputCategory, organCode);
+            return AjaxResult.success("查询成功", result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
 }
+

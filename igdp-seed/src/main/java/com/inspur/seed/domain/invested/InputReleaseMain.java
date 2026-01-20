@@ -8,6 +8,7 @@ import com.inspur.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -38,6 +39,11 @@ public class InputReleaseMain extends BaseEntity {
     private String releaseName;
 
     /**
+     * zoneId
+     */
+    private String zoneId;
+
+    /**
      * 分发对象ID（UnionID）
      */
     private String targetId;
@@ -60,13 +66,13 @@ public class InputReleaseMain extends BaseEntity {
     /**
      * 分发年度
      */
-    private Integer releaseYear;
+    private String releaseYear;
 
     /**
      * 分发日期
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime releaseDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate releaseDate;
 
     /**
      * 分发人
@@ -93,6 +99,11 @@ public class InputReleaseMain extends BaseEntity {
      * 分发类型（OSE_TO_UNION: OSE分发到Union, UNION_TO_WOREDA: Union分发到Woreda）
      */
     private String releaseType;
+
+    /**
+     * 分发单状态：已分发distributed、已完成completed、未出库notDelivery
+     */
+    private String status;
 
     /**
      * 操作人

@@ -36,6 +36,12 @@ public class StockInVO {
     /** 供应商名称 */
     private String supplierName;
 
+    /** 供应商联系人 */
+    private String supplierContact;
+
+    /** 供应商电话 */
+    private String supplierPhone;
+
     /** 入库类型 */
     private String type;
 
@@ -109,5 +115,11 @@ public class StockInVO {
 
         /** 备注 */
         private String remarks;
+
+        /** 生产批次 */
+        private String productionBatchNo;
+
+        /** 投入品品类 */
+        private String agriculturalInputType;
     }
 }

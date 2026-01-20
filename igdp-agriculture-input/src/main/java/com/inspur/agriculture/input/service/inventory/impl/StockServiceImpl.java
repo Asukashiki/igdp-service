@@ -286,4 +286,9 @@ public class StockServiceImpl implements IStockService {
 
         return totalStock.compareTo(quantity) >= 0;
     }
+
+    @Override
+    public List<Map<String, Object>> selectStockSummary(Map<String, Object> params) {
+        return stockMapper.selectStockSummary(params);
+    }
 }

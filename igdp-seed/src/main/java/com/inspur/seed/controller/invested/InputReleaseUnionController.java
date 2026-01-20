@@ -33,12 +33,14 @@ public class InputReleaseUnionController extends BaseController {
      * 查询Union分发到Woreda列表
      */
     @GetMapping("/list")
-    public TableDataInfo list(@RequestParam(required = false) String woredaName,
+    public TableDataInfo list(
+            @RequestParam(required = true) String releaseType,
+            @RequestParam(required = false) String releaseName,
                                @RequestParam(required = false) String inputType,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
         startPage();
-        List<InputReleaseMain> list = releaseService.queryReleaseList(woredaName, inputType, startTime, endTime);
+        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime);
         return getDataTable(list);
     }
 
@@ -66,6 +68,15 @@ public class InputReleaseUnionController extends BaseController {
     @GetMapping("/detail/{id}")
     public AjaxResult detail(@PathVariable String id) {
         Map<String, Object> result = releaseService.queryReleaseDetail(id);
+        return AjaxResult.success(result);
+    }
+
+    /**
+     * 根据releaseId查询Union分发单详情
+     */
+    @GetMapping("/detailByReleaseId/{releaseId}")
+    public AjaxResult detailByReleaseId(@PathVariable String releaseId) {
+        Map<String, Object> result = releaseService.queryReleaseDetailByReleaseId(releaseId);
         return AjaxResult.success(result);
     }
 

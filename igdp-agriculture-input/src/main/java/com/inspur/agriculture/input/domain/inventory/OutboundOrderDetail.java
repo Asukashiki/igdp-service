@@ -52,6 +52,11 @@ public class OutboundOrderDetail implements Serializable {
     private String materialType;
 
     /**
+     * 农资类型
+     */
+    private String agriculturalInputType;
+
+    /**
      * 规格型号
      */
     private String specModel;

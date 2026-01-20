@@ -57,4 +57,8 @@ public class FeedbackDTO {
     private Integer supplierId;
 
     private String supplierName;
+
+    private String inputCategory;
+
+    private String inputType;
 }

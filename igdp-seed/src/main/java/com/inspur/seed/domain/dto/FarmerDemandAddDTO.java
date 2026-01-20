@@ -63,9 +63,23 @@ public class FarmerDemandAddDTO {
     private String kebele;
 
     /**
+     * Zone Name
+     */
+    private String zoneName;
+
+    /**
+     * Woreda Name
+     */
+    private String woredaName;
+
+    /**
+     * Kebele Name
+     */
+    private String kebeleName;
+
+    /**
      * Village
      */
-    @NotBlank(message = "Village cannot be empty")
     private String village;
 
     /**
@@ -74,9 +88,20 @@ public class FarmerDemandAddDTO {
     private BigDecimal landArea;
 
     /**
+     * Year of demand collection
+     */
+    private String year;
+
+    /**
      * Remark
      */
     private String remark;
+
+    private String daUserId;
+
+    private String daUserName;
+
+    private String createBy;
 
     /**
      * Input Items
@@ -120,5 +145,16 @@ public class FarmerDemandAddDTO {
          */
         @NotNull(message = "Quantity cannot be empty")
         private BigDecimal quantity;
+
+        private String year;
+
+        private String season;
+
+        private BigDecimal cropLand;
+
+        private double fertilizerAmount;
+
+
+
     }
 }

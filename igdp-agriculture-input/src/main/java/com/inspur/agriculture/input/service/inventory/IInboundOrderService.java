@@ -109,4 +109,22 @@ public interface IInboundOrderService {
      * @return 统计结果
      */
     List<Map<String, Object>> countByType(String startDate, String endDate);
+
+    /**
+     * 查询分发单列表（用于关联单号下拉框）
+     * 返回格式：release_id, release_name, display_text (格式: "分发单名称 (分发单编号)")
+     *
+     * @return 分发单列表
+     */
+    List<Map<String, Object>> selectReleaseOrderList();
+    
+    /**
+     * 根据分发单ID获取分发投入品明细并匹配库存
+     * 匹配规则：根据投入品类型和品类匹配库存中的投入品
+     *
+     * @param releaseId   分发单ID
+     * @param warehouseId 仓库ID
+     * @return 分发投入品明细及匹配的库存信息
+     */
+    Map<String, Object> matchReleaseStock(String releaseId, String warehouseId);
 }

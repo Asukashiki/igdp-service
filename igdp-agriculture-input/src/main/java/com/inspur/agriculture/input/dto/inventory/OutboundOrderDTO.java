@@ -30,7 +30,6 @@ public class OutboundOrderDTO {
     private String relatedOrderNo;
 
     /** 出库对象ID */
-    @NotBlank(message = "出库对象ID不能为空")
     private String outboundObjectId;
 
     private String outboundObjectName;
@@ -80,5 +79,7 @@ public class OutboundOrderDTO {
         private String materialName;
 
         private String materialBatchId;
+
+        private String agriculturalInputType;
     }
 }

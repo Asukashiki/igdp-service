@@ -44,8 +44,15 @@ public class C1BreedingTrackingServiceImpl extends ServiceImpl<C1BreedingTrackin
 
     @Override
     public boolean add(C1BreedingTracking entity) {
-        // 生成跟踪编号
-        String trackingId = "C1T-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) 
+        // 根据种子级别生成不同的跟踪编号前缀
+        String prefix;
+        if ("Basic".equalsIgnoreCase(entity.getSeedClass())) {
+            prefix = "BT"; // Breeder seed Tracking
+        } else {
+            prefix = "C1T"; // C1 Tracking
+        }
+
+        String trackingId = prefix + "-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                 + "-" + String.format("%04d", (int)(Math.random() * 10000));
         entity.setTrackingId(trackingId);
         entity.setTestCount(0);

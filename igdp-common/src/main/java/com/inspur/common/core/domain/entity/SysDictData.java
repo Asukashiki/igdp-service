@@ -31,26 +31,21 @@ public class SysDictData extends BaseEntity {
      * 字典编码
      */
     @TableId(type = IdType.ASSIGN_ID)
-    // 字典编码
-    @Excel(name = "Dictionary Code", cellType = ColumnType.NUMERIC)
+    @Excel(name = "字典编码", cellType = ColumnType.NUMERIC)
     private String dictCode;
 
     /**
      * 字典排序
      */
     @OrderBy()
-    // 字典排序
-    @Excel(name = "Dictionary Sort", cellType = ColumnType.NUMERIC)
+    @Excel(name = "字典排序", cellType = ColumnType.NUMERIC)
     private Long dictSort;
 
     /**
      * 字典标签
      */
-    // 字典标签
-    @Excel(name = "Dictionary Label")
-    // 字典标签不能为空
+    @Excel(name = "字典标签")
     @NotBlank(message = "Dictionary label cannot be empty")
-    // 字典标签长度不能超过100个字符
     @Size(min = 0, max = 100, message = "Dictionary label length cannot exceed 100 characters")
     private String dictLabel;
 
@@ -65,30 +60,23 @@ public class SysDictData extends BaseEntity {
     /**
      * 字典键值
      */
-    // 字典键值
-    @Excel(name = "Dictionary Value")
-    // 字典键值不能为空
-    @NotBlank(message = "Dictionary key value cannot be empty")
-    // 字典键值长度不能超过100个字符
-    @Size(min = 0, max = 100, message = "Dictionary key value length cannot exceed 100 characters")
+    @Excel(name = "字典键值")
+    @NotBlank(message = "Dictionary key cannot be empty")
+    @Size(min = 0, max = 100, message = "Dictionary key length cannot exceed 100 characters")
     private String dictValue;
 
     /**
      * 字典类型
      */
-    // 字典类型
-    @Excel(name = "Dictionary Type")
-    // 字典类型不能为空
+    @Excel(name = "字典类型")
     @NotBlank(message = "Dictionary type cannot be empty")
-    // 字典类型长度不能超过100个字符
     @Size(min = 0, max = 100, message = "Dictionary type length cannot exceed 100 characters")
     private String dictType;
 
     /**
      * 样式属性（其他样式扩展）
      */
-    // 样式属性长度不能超过100个字符
-    @Size(min = 0, max = 100, message = "Style attribute length cannot exceed 100 characters")
+    @Size(min = 0, max = 100, message = "Style property length cannot exceed 100 characters")
     private String cssClass;
 
     /**
@@ -99,23 +87,26 @@ public class SysDictData extends BaseEntity {
     /**
      * 是否默认（Y是 N否）
      */
-    // 是否默认
-    // 是否默认（Y是 N否）
-    @Excel(name = "Is Default", readConverterExp = "Y=Yes,N=No")
+    @Excel(name = "是否默认", readConverterExp = "Y=是,N=否")
     private String isDefault;
 
     /**
      * 状态（0正常 1停用）
      */
-    // 状态
-    // 状态（0正常 1停用）
-    @Excel(name = "Status", readConverterExp = "0=Normal,1=Disabled")
+    @Excel(name = "状态", readConverterExp = "0=正常,1=停用")
     private String status;
 
     /**
      * 备注
      */
     private String remark;
+
+    /**
+     * 实际值
+     */
+    @Excel(name = "实际值")
+    @Size(min = 0, max = 200, message = "Actual value length cannot exceed 200 characters")
+    private String actualValue;
 
     public static final String STATUS_VALID = "0";
     public static final String STATUS_INVALID = "1";
@@ -131,7 +122,7 @@ public class SysDictData extends BaseEntity {
         if (this.dictLabel != null && this.dictLabel.startsWith("{")) {
             try {
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                this.dictLabelObject = mapper.readValue(this.dictLabel,
+                this.dictLabelObject = mapper.readValue(this.dictLabel, 
                     new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {});
                 return this.dictLabelObject;
             } catch (Exception e) {

@@ -31,6 +31,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 农民编码（业务主键）
      */
+    @Excel(name = "Farmer Code", sort = 0)
     private String farmerId;
 
     /**
@@ -48,7 +49,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 性别：M-男 F-女
      */
-    @Excel(name = "Gender", readConverterExp = "M=Male,F=Female,MALE=Male,FEMALE=Female", sort = 3)
+    @Excel(name = "Gender", readConverterExp = "M=Male,F=Female,MALE=Male,FEMALE=Female", combo = {"M", "F", "MALE", "FEMALE"}, sort = 3)
     private String gender;
 
     /**
@@ -73,7 +74,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 青年类别：1-是 0-否
      */
-    @Excel(name = "Youth Category", readConverterExp = "1=Yes,0=No", sort = 7)
+    @Excel(name = "Youth Category", readConverterExp = "1=Yes,0=No", combo = {"1", "0"}, sort = 7)
     private String youthCategory;
 
     /**
@@ -85,6 +86,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 所属Union名称
      */
+    @Excel(name = "Union Name", sort = 16)
     private String unionName;
 
     /**
@@ -96,6 +98,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 所属Cooperative名称
      */
+    @Excel(name = "Cooperative Name", sort = 17)
     private String cooperativeName;
 
     /**
@@ -107,6 +110,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 州名称
      */
+    @Excel(name = "Region Name", sort = 18)
     private String regionName;
 
     /**
@@ -118,6 +122,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 区名称
      */
+    @Excel(name = "Zone Name", sort = 19)
     private String zoneName;
 
     /**
@@ -129,6 +134,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 镇名称
      */
+    @Excel(name = "Woreda Name", sort = 20)
     private String woredaName;
 
     /**
@@ -140,6 +146,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 村名称
      */
+    @Excel(name = "Kebele Name", sort = 21)
     private String kebeleName;
 
     /**
@@ -151,11 +158,13 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 总土地面积（公顷）
      */
+    @Excel(name = "Total Land Area", sort = 23)
     private BigDecimal totalLandArea;
 
     /**
      * 地块数量
      */
+    @Excel(name = "Land Count", sort = 24)
     private Integer landCount;
 
     /**
@@ -167,6 +176,7 @@ public class FarmerInfo extends BaseEntity {
     /**
      * 负责DA姓名
      */
+    @Excel(name = "DA Name", sort = 22)
     private String daName;
 
     /**

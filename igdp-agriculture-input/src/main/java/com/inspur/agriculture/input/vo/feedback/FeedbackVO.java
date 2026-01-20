@@ -116,4 +116,8 @@ public class FeedbackVO {
 
     /** 回复列表 */
     private List<FeedbackReplyVO> replies;
+
+    private String inputCategory;
+
+    private String inputType;
 }
