@@ -31,6 +31,10 @@
             <groupId>com.inspur</groupId>
             <artifactId>igdp-farmland</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-seed</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

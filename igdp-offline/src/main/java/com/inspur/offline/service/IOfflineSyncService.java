@@ -25,4 +25,28 @@ public interface IOfflineSyncService {
      * @return 同步结果
      */
     AjaxResult syncLand(OfflineSyncRequest request);
+
+    /**
+     * 同步农艺性状数据
+     *
+     * @param request 同步请求
+     * @return 同步结果
+     */
+    AjaxResult syncTrait(OfflineSyncRequest request);
+
+    /**
+     * 同步环境监测数据
+     *
+     * @param request 同步请求
+     * @return 同步结果
+     */
+    AjaxResult syncEnvironment(OfflineSyncRequest request);
+
+    /**
+     * 同步田间检验数据
+     *
+     * @param request 同步请求
+     * @return 同步结果
+     */
+    AjaxResult syncYield(OfflineSyncRequest request);
 }

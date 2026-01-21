@@ -95,4 +95,109 @@ public class OfflineSyncController extends BaseController {
             return AjaxResult.error("同步失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 同步农艺性状数据
+     * 兼容两种格式：
+     * 1. OfflineSyncRequest格式：{"businessType":"trait","formCode":"trait-data","formData":{...}}
+     * 2. 直接formData格式：{"plotId":"xxx","observationDate":"2024-01-01 12:00:00",...}
+     */
+    @PostMapping("/trait")
+    public AjaxResult syncTrait(@RequestBody Map<String, Object> requestBody) {
+        try {
+            log.info("收到农艺性状数据同步请求: {}", requestBody);
+            
+            // 判断是OfflineSyncRequest格式还是直接formData格式
+            OfflineSyncRequest request;
+            if (requestBody.containsKey("formData")) {
+                // OfflineSyncRequest格式
+                request = new OfflineSyncRequest();
+                request.setBusinessType((String) requestBody.get("businessType"));
+                request.setFormCode((String) requestBody.get("formCode"));
+                request.setFormData((Map<String, Object>) requestBody.get("formData"));
+                request.setClientRecordId((String) requestBody.get("clientRecordId"));
+            } else {
+                // 直接formData格式，包装成OfflineSyncRequest
+                request = new OfflineSyncRequest();
+                request.setBusinessType("trait");
+                request.setFormCode("trait-data");
+                request.setFormData(requestBody);
+            }
+            
+            return offlineSyncService.syncTrait(request);
+        } catch (Exception e) {
+            log.error("同步农艺性状数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 同步环境监测数据
+     * 兼容两种格式：
+     * 1. OfflineSyncRequest格式：{"businessType":"environment","formCode":"environment-data","formData":{...}}
+     * 2. 直接formData格式：{"stationId":"xxx","timestamp":"2024-01-01",...}
+     */
+    @PostMapping("/environment")
+    public AjaxResult syncEnvironment(@RequestBody Map<String, Object> requestBody) {
+        try {
+            log.info("收到环境监测数据同步请求: {}", requestBody);
+            
+            // 判断是OfflineSyncRequest格式还是直接formData格式
+            OfflineSyncRequest request;
+            if (requestBody.containsKey("formData")) {
+                // OfflineSyncRequest格式
+                request = new OfflineSyncRequest();
+                request.setBusinessType((String) requestBody.get("businessType"));
+                request.setFormCode((String) requestBody.get("formCode"));
+                request.setFormData((Map<String, Object>) requestBody.get("formData"));
+                request.setClientRecordId((String) requestBody.get("clientRecordId"));
+            } else {
+                // 直接formData格式，包装成OfflineSyncRequest
+                request = new OfflineSyncRequest();
+                request.setBusinessType("environment");
+                request.setFormCode("environment-data");
+                request.setFormData(requestBody);
+            }
+            
+            return offlineSyncService.syncEnvironment(request);
+        } catch (Exception e) {
+            log.error("同步环境监测数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 同步田间检验数据
+     * 兼容两种格式：
+     * 1. OfflineSyncRequest格式：{"businessType":"yield","formCode":"yield-inspection","formData":{...}}
+     * 2. 直接formData格式：{"plotId":"xxx","inspectionDate":"2024-01-01",...}
+     */
+    @PostMapping("/yield")
+    public AjaxResult syncYield(@RequestBody Map<String, Object> requestBody) {
+        try {
+            log.info("收到田间检验数据同步请求: {}", requestBody);
+            
+            // 判断是OfflineSyncRequest格式还是直接formData格式
+            OfflineSyncRequest request;
+            if (requestBody.containsKey("formData")) {
+                // OfflineSyncRequest格式
+                request = new OfflineSyncRequest();
+                request.setBusinessType((String) requestBody.get("businessType"));
+                request.setFormCode((String) requestBody.get("formCode"));
+                request.setFormData((Map<String, Object>) requestBody.get("formData"));
+                request.setClientRecordId((String) requestBody.get("clientRecordId"));
+            } else {
+                // 直接formData格式，包装成OfflineSyncRequest
+                request = new OfflineSyncRequest();
+                request.setBusinessType("yield");
+                request.setFormCode("yield-inspection");
+                request.setFormData(requestBody);
+            }
+            
+            return offlineSyncService.syncYield(request);
+        } catch (Exception e) {
+            log.error("同步田间检验数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
 }
