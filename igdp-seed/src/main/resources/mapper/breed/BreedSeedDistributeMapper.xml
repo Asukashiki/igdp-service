@@ -71,6 +71,9 @@
             <if test="query.endTime != null">
                 AND DATE(m.time) &lt;= #{query.endTime}
             </if>
+            <if test="query.oseName != null and query.oseName != ''">
+                AND m.ose_name LIKE concat('%', #{query.oseName}, '%')
+            </if>
         </where>
         ORDER BY m.create_time DESC
     </select>
