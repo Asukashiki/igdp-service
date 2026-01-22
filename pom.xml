@@ -287,6 +287,13 @@
                 <artifactId>igdp-farmland</artifactId>
                 <version>${igdp.version}</version>
             </dependency>
+
+            <!-- 离线数据同步模块-->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-offline</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -305,6 +312,7 @@
         <!-- <module>igdp-farmland-management</module> -->
         <module>igdp-seed</module>
         <module>igdp-farmland</module>
+        <module>igdp-offline</module>
     </modules>
     <packaging>pom</packaging>
 

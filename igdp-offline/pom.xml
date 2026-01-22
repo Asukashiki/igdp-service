@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.inspur</groupId>
+        <artifactId>igdp</artifactId>
+        <version>3.8.7</version>
+    </parent>
+
+    <artifactId>igdp-offline</artifactId>
+    <version>3.8.7</version>
+
+    <name>igdp-offline</name>
+    <description>离线数据同步模块</description>
+
+    <dependencies>
+        <!-- igdp-common -->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-agriculture-input</artifactId>
+        </dependency>
+        <!-- igdp-farmland 依赖，用于调用农民和土地服务 -->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-farmland</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-seed</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
