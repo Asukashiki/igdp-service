@@ -31,6 +31,7 @@
             <groupId>com.inspur</groupId>
             <artifactId>igdp-farmland</artifactId>
         </dependency>
+        <!-- igdp-seed 依赖，用于调用繁育田间检测服务和农户需求服务 -->
         <dependency>
             <groupId>com.inspur</groupId>
             <artifactId>igdp-seed</artifactId>

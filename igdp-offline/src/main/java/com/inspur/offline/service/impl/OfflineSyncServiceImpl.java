@@ -15,6 +15,11 @@ import com.inspur.seed.breeding.environment.domain.entity.EnvironmentNewData;
 import com.inspur.seed.breeding.environment.service.IEnvironmentNewDataService;
 import com.inspur.seed.breeding.fieldInspection.domain.dto.BreedingYieldDataDTO;
 import com.inspur.seed.breeding.fieldInspection.service.IBreedingYieldDataService;
+import com.inspur.seed.domain.dto.FarmerDemandAddDTO;
+import com.inspur.seed.domain.entity.C1BreedingTracking;
+import com.inspur.seed.domain.vo.FarmerDemandDetailVO;
+import com.inspur.seed.service.IC1BreedingTrackingService;
+import com.inspur.seed.service.IFarmerDemandService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +58,12 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
 
     @Autowired
     private IBreedingYieldDataService breedingYieldDataService;
+
+    @Autowired
+    private IC1BreedingTrackingService c1BreedingTrackingService;
+
+    @Autowired
+    private IFarmerDemandService farmerDemandService;
 
     @Override
     public AjaxResult syncFarmer(OfflineSyncRequest request) {
@@ -773,5 +784,396 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             return null;
         }
         return value.toString().trim();
+    }
+
+    @Override
+    public AjaxResult syncC1BreedingTracking(OfflineSyncRequest request) {
+        try {
+            Map<String, Object> formData = request.getFormData();
+            if (formData == null || formData.isEmpty()) {
+                return AjaxResult.error("表单数据不能为空");
+            }
+
+            // 转换为C1BreedingTracking对象
+            C1BreedingTracking trackingData = convertToC1BreedingTracking(formData);
+
+            // 数据校验
+            String validationError = validateC1BreedingTracking(trackingData);
+            if (StrUtil.isNotBlank(validationError)) {
+                return AjaxResult.error(validationError);
+            }
+
+            // 离线数据的ID是手动输入的，需要判断是否已存在防止重复提交
+            String offlineId = getString(formData, "id");
+            String resultId;
+
+            if (StrUtil.isNotBlank(offlineId)) {
+                // 检查数据库中是否已存在该ID
+                C1BreedingTracking existingRecord = c1BreedingTrackingService.getDetailById(offlineId);
+                if (existingRecord != null) {
+                    // 已存在则返回已同步的信息，避免重复提交
+                    log.info("繁育田间检测数据已存在，跳过同步: id={}", offlineId);
+                    Map<String, Object> result = new java.util.HashMap<>();
+                    result.put("id", offlineId);
+                    result.put("trackingId", existingRecord.getTrackingId());
+                    result.put("alreadyExists", true);
+                    return AjaxResult.success("数据已同步", result);
+                }
+                // 不存在则使用离线ID进行新增
+                trackingData.setId(offlineId);
+            }
+
+            // 新增数据
+            boolean addResult = c1BreedingTrackingService.add(trackingData);
+            if (!addResult) {
+                return AjaxResult.error("新增繁育田间检测数据失败");
+            }
+            resultId = trackingData.getId();
+            log.info("繁育田间检测数据同步成功: id={}, trackingId={}", resultId, trackingData.getTrackingId());
+
+            // 返回结果
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("id", resultId);
+            result.put("trackingId", trackingData.getTrackingId());
+            result.put("alreadyExists", false);
+
+            return AjaxResult.success("同步成功", result);
+
+        } catch (Exception e) {
+            log.error("同步繁育田间检测数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 将表单数据转换为C1BreedingTracking对象
+     */
+    private C1BreedingTracking convertToC1BreedingTracking(Map<String, Object> formData) {
+        C1BreedingTracking tracking = new C1BreedingTracking();
+
+        // 基本信息
+        tracking.setTrackingId(getString(formData, "trackingId"));
+        tracking.setBatchId(getString(formData, "batchId"));
+        tracking.setStageName(getString(formData, "stageName"));
+        tracking.setLocation(getString(formData, "location"));
+        tracking.setTrackingResult(getString(formData, "trackingResult"));
+        tracking.setTrackingDesc(getString(formData, "trackingDesc"));
+
+        // 种子相关
+        tracking.setSeedClass(getString(formData, "seedClass"));
+        tracking.setLotId(getString(formData, "lotId"));
+        tracking.setStage(getString(formData, "stage"));
+        tracking.setScore(getString(formData, "score"));
+        tracking.setInspectionValue(getString(formData, "inspectionValue"));
+
+        // 测试次数
+        Object testCountObj = formData.get("testCount");
+        if (testCountObj != null) {
+            try {
+                if (testCountObj instanceof Number) {
+                    tracking.setTestCount(((Number) testCountObj).intValue());
+                } else if (testCountObj instanceof String) {
+                    String testCountStr = (String) testCountObj;
+                    if (StrUtil.isNotBlank(testCountStr)) {
+                        tracking.setTestCount(Integer.parseInt(testCountStr));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("测试次数解析失败: {}", testCountObj, e);
+            }
+        }
+
+        tracking.setOperator(getString(formData, "operator"));
+        tracking.setCreatedBy(getString(formData, "createdBy"));
+        tracking.setUpdatedBy(getString(formData, "updatedBy"));
+
+        // 日期处理
+        Object startDateObj = formData.get("startDate");
+        if (startDateObj != null) {
+            try {
+                if (startDateObj instanceof String) {
+                    String dateStr = (String) startDateObj;
+                    if (dateStr.length() >= 10) {
+                        dateStr = dateStr.substring(0, 10);
+                        tracking.setStartDate(LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("开始日期解析失败: {}", startDateObj, e);
+            }
+        }
+
+        Object endDateObj = formData.get("endDate");
+        if (endDateObj != null) {
+            try {
+                if (endDateObj instanceof String) {
+                    String dateStr = (String) endDateObj;
+                    if (dateStr.length() >= 10) {
+                        dateStr = dateStr.substring(0, 10);
+                        tracking.setEndDate(LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("结束日期解析失败: {}", endDateObj, e);
+            }
+        }
+
+        return tracking;
+    }
+
+    /**
+     * 校验繁育田间检测数据
+     */
+    private String validateC1BreedingTracking(C1BreedingTracking tracking) {
+        // 批次ID必填校验
+        if (StrUtil.isBlank(tracking.getBatchId())) {
+            return "批次ID不能为空";
+        }
+
+        // 种子级别必填校验
+        if (StrUtil.isBlank(tracking.getSeedClass())) {
+            return "种子级别不能为空";
+        }
+
+        // 检测阶段必填校验
+        if (StrUtil.isBlank(tracking.getStage())) {
+            return "检测阶段不能为空";
+        }
+
+        return null;
+    }
+
+    @Override
+    public AjaxResult syncFarmerDemand(OfflineSyncRequest request) {
+        try {
+            Map<String, Object> formData = request.getFormData();
+            if (formData == null || formData.isEmpty()) {
+                return AjaxResult.error("表单数据不能为空");
+            }
+
+            // 转换为FarmerDemandAddDTO对象
+            FarmerDemandAddDTO dto = convertToFarmerDemandAddDTO(formData);
+
+            // 数据校验
+            String validationError = validateFarmerDemand(dto);
+            if (StrUtil.isNotBlank(validationError)) {
+                return AjaxResult.error(validationError);
+            }
+
+            // 离线数据的ID是手动输入的，需要判断是否已存在防止重复提交
+            String offlineId = getString(formData, "id");
+
+            if (StrUtil.isNotBlank(offlineId)) {
+                // 检查数据库中是否已存在该ID
+                FarmerDemandDetailVO existingRecord = farmerDemandService.getFarmerDemandDetail(offlineId);
+                if (existingRecord != null) {
+                    // 已存在则返回已同步的信息，避免重复提交
+                    log.info("农户需求数据已存在，跳过同步: id={}", offlineId);
+                    Map<String, Object> result = new java.util.HashMap<>();
+                    result.put("id", offlineId);
+                    result.put("alreadyExists", true);
+                    return AjaxResult.success("数据已同步", result);
+                }
+            }
+
+            // 新增数据 - 使用服务层的addFarmerDemand方法
+            String demandId = farmerDemandService.addFarmerDemand(dto);
+            
+            // 检查是否因为重复年份而失败
+            if ("1".equals(demandId)) {
+                return AjaxResult.error("该农户在当前年份已存在需求数据");
+            }
+            
+            log.info("农户需求数据同步成功: id={}, farmerId={}", demandId, dto.getFarmerId());
+
+            // 返回结果
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("id", demandId);
+            result.put("alreadyExists", false);
+
+            return AjaxResult.success("同步成功", result);
+
+        } catch (Exception e) {
+            log.error("同步农户需求数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 将表单数据转换为FarmerDemandAddDTO对象
+     */
+    @SuppressWarnings("unchecked")
+    private FarmerDemandAddDTO convertToFarmerDemandAddDTO(Map<String, Object> formData) {
+        FarmerDemandAddDTO dto = new FarmerDemandAddDTO();
+
+        // 基本信息
+        dto.setBatchId(getString(formData, "batchId"));
+        dto.setFarmerId(getString(formData, "farmerId"));
+        dto.setFarmerName(getString(formData, "farmerName"));
+        dto.setFarmerIdNumber(getString(formData, "farmerIdNumber"));
+
+        // 地区信息
+        dto.setRegion(getString(formData, "region"));
+        dto.setZone(getString(formData, "zone"));
+        dto.setWoreda(getString(formData, "woreda"));
+        dto.setKebele(getString(formData, "kebele"));
+        dto.setZoneName(getString(formData, "zoneName"));
+        dto.setWoredaName(getString(formData, "woredaName"));
+        dto.setKebeleName(getString(formData, "kebeleName"));
+        dto.setVillage(getString(formData, "village"));
+
+        // 土地面积
+        Object landAreaObj = formData.get("landArea");
+        if (landAreaObj != null) {
+            try {
+                if (landAreaObj instanceof Number) {
+                    dto.setLandArea(new BigDecimal(landAreaObj.toString()));
+                } else if (landAreaObj instanceof String) {
+                    String areaStr = (String) landAreaObj;
+                    if (StrUtil.isNotBlank(areaStr)) {
+                        dto.setLandArea(new BigDecimal(areaStr));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("土地面积解析失败: {}", landAreaObj, e);
+            }
+        }
+
+        // 其他信息
+        dto.setYear(getString(formData, "year"));
+        dto.setRemark(getString(formData, "remark"));
+        dto.setDaUserId(getString(formData, "daUserId"));
+        dto.setDaUserName(getString(formData, "daUserName"));
+        dto.setCreateBy(getString(formData, "createBy"));
+
+        // 处理inputItems嵌套列表
+        Object inputItemsObj = formData.get("inputItems");
+        if (inputItemsObj instanceof List) {
+            List<Map<String, Object>> itemsList = (List<Map<String, Object>>) inputItemsObj;
+            List<FarmerDemandAddDTO.InputItemDTO> inputItems = new ArrayList<>();
+            
+            for (Map<String, Object> itemMap : itemsList) {
+                FarmerDemandAddDTO.InputItemDTO item = new FarmerDemandAddDTO.InputItemDTO();
+                item.setInputCategory(getString(itemMap, "inputCategory"));
+                item.setInputType(getString(itemMap, "inputType"));
+                item.setVariety(getString(itemMap, "variety"));
+                item.setSpecification(getString(itemMap, "specification"));
+                item.setUnit(getString(itemMap, "unit"));
+                item.setYear(getString(itemMap, "year"));
+                item.setSeason(getString(itemMap, "season"));
+
+                // 数量
+                Object quantityObj = itemMap.get("quantity");
+                if (quantityObj != null) {
+                    try {
+                        if (quantityObj instanceof Number) {
+                            item.setQuantity(new BigDecimal(quantityObj.toString()));
+                        } else if (quantityObj instanceof String) {
+                            String quantityStr = (String) quantityObj;
+                            if (StrUtil.isNotBlank(quantityStr)) {
+                                item.setQuantity(new BigDecimal(quantityStr));
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.warn("数量解析失败: {}", quantityObj, e);
+                    }
+                }
+
+                // 作物用地面积
+                Object cropLandObj = itemMap.get("cropLand");
+                if (cropLandObj != null) {
+                    try {
+                        if (cropLandObj instanceof Number) {
+                            item.setCropLand(new BigDecimal(cropLandObj.toString()));
+                        } else if (cropLandObj instanceof String) {
+                            String cropLandStr = (String) cropLandObj;
+                            if (StrUtil.isNotBlank(cropLandStr)) {
+                                item.setCropLand(new BigDecimal(cropLandStr));
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.warn("作物用地面积解析失败: {}", cropLandObj, e);
+                    }
+                }
+
+                // 化肥用量
+                Object fertilizerAmountObj = itemMap.get("fertilizerAmount");
+                if (fertilizerAmountObj != null) {
+                    try {
+                        if (fertilizerAmountObj instanceof Number) {
+                            item.setFertilizerAmount(((Number) fertilizerAmountObj).doubleValue());
+                        } else if (fertilizerAmountObj instanceof String) {
+                            String fertilizerAmountStr = (String) fertilizerAmountObj;
+                            if (StrUtil.isNotBlank(fertilizerAmountStr)) {
+                                item.setFertilizerAmount(Double.parseDouble(fertilizerAmountStr));
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.warn("化肥用量解析失败: {}", fertilizerAmountObj, e);
+                    }
+                }
+
+                inputItems.add(item);
+            }
+            dto.setInputItems(inputItems);
+        }
+
+        return dto;
+    }
+
+    /**
+     * 校验农户需求数据
+     */
+    private String validateFarmerDemand(FarmerDemandAddDTO dto) {
+        // 农户ID必填校验
+        if (StrUtil.isBlank(dto.getFarmerId())) {
+            return "农户ID不能为空";
+        }
+
+        // 农户姓名必填校验
+        if (StrUtil.isBlank(dto.getFarmerName())) {
+            return "农户姓名不能为空";
+        }
+
+        // 农户身份证号必填校验
+        if (StrUtil.isBlank(dto.getFarmerIdNumber())) {
+            return "农户身份证号不能为空";
+        }
+
+        // Woreda必填校验
+        if (StrUtil.isBlank(dto.getWoreda())) {
+            return "Woreda不能为空";
+        }
+
+        // Kebele必填校验
+        if (StrUtil.isBlank(dto.getKebele())) {
+            return "Kebele不能为空";
+        }
+
+        // 需求项目必填校验
+        if (dto.getInputItems() == null || dto.getInputItems().isEmpty()) {
+            return "需求项目不能为空";
+        }
+
+        // 校验每个需求项目
+        for (FarmerDemandAddDTO.InputItemDTO item : dto.getInputItems()) {
+            if (StrUtil.isBlank(item.getInputCategory())) {
+                return "投入品类目不能为空";
+            }
+            if (StrUtil.isBlank(item.getInputType())) {
+                return "投入品类型不能为空";
+            }
+            if (StrUtil.isBlank(item.getVariety())) {
+                return "品种不能为空";
+            }
+            if (StrUtil.isBlank(item.getUnit())) {
+                return "单位不能为空";
+            }
+            if (item.getQuantity() == null) {
+                return "数量不能为空";
+            }
+        }
+
+        return null;
     }
 }
