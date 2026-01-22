@@ -289,8 +289,6 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         }
     }
 
-    }
-
     /**
      * 将表单数据转换为FarmerInfo对象
      */
