@@ -49,18 +49,9 @@ public class ResourcesConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handle -> {
-            // 登录校验 -- 拦截所有路由，并排除开放接口
-            SaRouter.match("/**")
-                .notMatch(
-                    "/login", 
-                    "/logout", 
-                    "/captchaImage", 
-                    "/register", 
-                    "/register/**",
-                    "/ucif/oauth/**", 
-                    "/profile/**"
-                )
-                .check(r -> StpUtil.checkLogin());
+            // 登录校验 -- 拦截所有路由，并排除/user/doLogin 用于开放登录
+            // 排除离线同步接口，因为离线同步需要特殊的认证处理
+            SaRouter.match("/**").notMatch("/login", "/logout", "/captchaImage", "/ucif/oauth/**", "/profile/**", "/offline/sync/**").check(r -> StpUtil.checkLogin());
         }));
         //openApi开放接口拦截校验
 //        registry.addInterceptor(signInterceptor())
