@@ -6,6 +6,7 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import com.inspur.common.utils.SecurityUtils;
 import java.util.Date;
 
 /**
@@ -65,6 +66,12 @@ public class BreedingBatchAddDTO {
     private Date startDate;
 
     /**
+     * 结束日期
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date endDate;
+
+    /**
      * 预期产量（kg）
      */
     private BigDecimal expectedYield;
@@ -83,4 +90,9 @@ public class BreedingBatchAddDTO {
      * 备注
      */
     private String remark;
+
+    /**
+     * 待扩繁数量
+     */
+    private BigDecimal toMultiplyQuantity;
 }

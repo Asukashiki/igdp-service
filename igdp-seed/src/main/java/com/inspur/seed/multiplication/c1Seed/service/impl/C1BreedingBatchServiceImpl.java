@@ -51,6 +51,11 @@ public class C1BreedingBatchServiceImpl extends ServiceImpl<C1BreedingBatchMappe
                     .or().like(C1BreedingBatch::getOrgName, queryDTO.getKeyword()));
         }
 
+        // 品种名称模糊搜索
+        if (StringUtils.hasText(queryDTO.getVarietyName())) {
+            wrapper.like(C1BreedingBatch::getVarietyName, queryDTO.getVarietyName());
+        }
+
         // 作物种类
         if (StringUtils.hasText(queryDTO.getCropType())) {
             wrapper.eq(C1BreedingBatch::getCropType, queryDTO.getCropType());
