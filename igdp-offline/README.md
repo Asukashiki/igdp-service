@@ -67,10 +67,51 @@
 - 村代码：必填
 - 详细地址：必填
 
+### 3. 同步农事记录数据
+
+**接口地址**：`POST /offline/sync/farming-record`
+
+**请求体格式**：
+```json
+{
+  "businessType": "farming-record",
+  "formCode": "farming-record-add",
+  "formData": {
+    "farmingRecordId": "农事记录ID",
+    "plotId": "地块ID",
+    "trialId": "试验ID",
+    "batchId": "批次ID",
+    "activityDate": "活动日期",
+    "activityType": "活动类型",
+    "inputName": "投入品名称",
+    "quantity": 10.5,
+    "unit": "单位",
+    "operatorId": "操作人ID",
+    "operationDesc": "操作描述",
+    ...
+  },
+  "clientRecordId": "客户端记录ID"
+}
+```
+
+**校验规则**：
+- 农事记录ID：必填
+- 地块ID：必填
+- 试验ID：必填
+- 批次ID：必填
+- 活动日期：必填
+- 活动类型：必填
+- 操作人ID：必填
+- 投入品名称：可选
+- 数量：可选
+- 单位：可选
+- 操作描述：可选
+
 ## 模块依赖
 
 - `igdp-common`：通用工具类
 - `igdp-farmland`：农田管理模块（用于调用农民和土地服务）
+- `igdp-seed`：种子管理模块（用于调用农事记录数据采集服务）
 
 ## 使用说明
 

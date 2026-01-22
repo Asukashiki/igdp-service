@@ -52,12 +52,12 @@ public class ResourcesConfig implements WebMvcConfigurer {
             // 登录校验 -- 拦截所有路由，并排除开放接口
             SaRouter.match("/**")
                 .notMatch(
-                    "/login", 
-                    "/logout", 
-                    "/captchaImage", 
-                    "/register", 
+                    "/login",
+                    "/logout",
+                    "/captchaImage",
+                    "/register",
                     "/register/**",
-                    "/ucif/oauth/**", 
+                    "/ucif/oauth/**",
                     "/profile/**"
                 )
                 .check(r -> StpUtil.checkLogin());
