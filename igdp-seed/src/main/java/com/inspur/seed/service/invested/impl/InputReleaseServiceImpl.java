@@ -71,13 +71,13 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     @Resource InputReleaseFarmerDetailMapper inputReleaseFarmerDetailMapper;
 
     @Override
-    public List<InputReleaseMain> queryReleaseList(String releaseType, String unionName, String inputType,
+    public List<InputReleaseMain> queryReleaseList(String releaseType, String releaseName, String inputType,
                                                    LocalDate startTime, LocalDate endTime) {
         LambdaQueryWrapper<InputReleaseMain> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(InputReleaseMain::getReleaseType, releaseType);
 
-        if (StringUtils.isNotEmpty(unionName)) {
-            wrapper.like(InputReleaseMain::getTargetId, unionName);
+        if (StringUtils.isNotEmpty(releaseName)) {
+            wrapper.like(InputReleaseMain::getReleaseName, releaseName);
         }
         if (startTime != null) {
             wrapper.ge(InputReleaseMain::getReleaseDate, LocalDateTime.of(startTime, LocalTime.MIN));

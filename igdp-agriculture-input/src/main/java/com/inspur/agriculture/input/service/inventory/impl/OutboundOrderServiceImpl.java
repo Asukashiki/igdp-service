@@ -206,7 +206,7 @@ public class OutboundOrderServiceImpl implements IOutboundOrderService {
                 );
 
                 if (availableStocks == null || availableStocks.isEmpty()) {
-                    throw new ServiceException("Materials[" + detail.getMaterialId() + "]Insufficient inventory");
+                    throw new ServiceException("Materials[" + detail.getMaterialId() + "]Insufficient inventory,Or perhaps the product has expired. Please confirm.");
                 }
 
                 // 计算总可用库存
