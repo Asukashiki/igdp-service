@@ -256,7 +256,8 @@ public class BspAuthStrategy implements IAuthStrategy {
         }
         String logoutUrl = ssoInfo.getServer() + ssoInfo.getLogoutApi();
         Map<String, String> headers = initHeaders(token);
-        String result = HttpRequest.post(logoutUrl).addHeaders(headers).body("access_token", token).execute().body();
+        headers.put("Authorization",token);
+        String result = HttpRequest.post(logoutUrl).addHeaders(headers).execute().body();
         log.info("调用用户中心登出接口响应内容：{}", result);
         long tokenTimeout = StpUtil.getTokenTimeout(token);
         if (tokenTimeout == -1 || tokenTimeout > 0) {
