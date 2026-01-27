@@ -43,4 +43,9 @@ public class BreedSeedDistributeQueryDTO implements Serializable {
      */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date endTime;
+
+    /**
+     * OSE名称
+     */
+    private String oseName;
 }
