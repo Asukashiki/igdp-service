@@ -200,4 +200,116 @@ public class OfflineSyncController extends BaseController {
             return AjaxResult.error("同步失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 同步繁育田间检测数据（仅新增）
+     * 兼容两种格式：
+     * 1. OfflineSyncRequest格式：{"businessType":"c1BreedingTracking","formCode":"c1-breeding-tracking-add","formData":{...}}
+     * 2. 直接formData格式：{"batchId":"xxx","seedClass":"C1",...}
+     *
+     * 说明：离线数据的ID是手动输入的，系统会判断是否已存在：
+     * - 如果传入的id在数据库中已存在，则返回已同步的信息，避免重复提交
+     * - 如果传入的id在数据库中不存在或未传id，则执行新增操作
+     */
+    @PostMapping("/c1-breeding-tracking")
+    public AjaxResult syncC1BreedingTracking(@RequestBody Map<String, Object> requestBody) {
+        try {
+            log.info("收到繁育田间检测数据同步请求: {}", requestBody);
+
+            // 判断是OfflineSyncRequest格式还是直接formData格式
+            OfflineSyncRequest request;
+            if (requestBody.containsKey("formData")) {
+                // OfflineSyncRequest格式
+                request = new OfflineSyncRequest();
+                request.setBusinessType((String) requestBody.get("businessType"));
+                request.setFormCode((String) requestBody.get("formCode"));
+                request.setFormData((Map<String, Object>) requestBody.get("formData"));
+                request.setClientRecordId((String) requestBody.get("clientRecordId"));
+            } else {
+                // 直接formData格式，包装成OfflineSyncRequest
+                request = new OfflineSyncRequest();
+                request.setBusinessType("c1BreedingTracking");
+                request.setFormCode("c1-breeding-tracking-add");
+                request.setFormData(requestBody);
+            }
+
+            return offlineSyncService.syncC1BreedingTracking(request);
+        } catch (Exception e) {
+            log.error("同步繁育田间检测数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 同步农事记录数据
+     * 兼容两种格式：
+     * 1. OfflineSyncRequest格式：{"businessType":"farming-record","formCode":"farming-record-add","formData":{...}}
+     * 2. 直接formData格式：{"plotId":"xxx","activityType":"xxx",...}
+     */
+    @PostMapping("/farming-record")
+    public AjaxResult syncFarmingRecord(@RequestBody Map<String, Object> requestBody) {
+        try {
+            log.info("收到农事记录数据同步请求: {}", requestBody);
+
+            // 判断是OfflineSyncRequest格式还是直接formData格式
+            OfflineSyncRequest request;
+            if (requestBody.containsKey("formData")) {
+                // OfflineSyncRequest格式
+                request = new OfflineSyncRequest();
+                request.setBusinessType((String) requestBody.get("businessType"));
+                request.setFormCode((String) requestBody.get("formCode"));
+                request.setFormData((Map<String, Object>) requestBody.get("formData"));
+                request.setClientRecordId((String) requestBody.get("clientRecordId"));
+            } else {
+                // 直接formData格式，包装成OfflineSyncRequest
+                request = new OfflineSyncRequest();
+                request.setBusinessType("farming-record");
+                request.setFormCode("farming-record-add");
+                request.setFormData(requestBody);
+            }
+
+            return offlineSyncService.syncFarmingRecord(request);
+        } catch (Exception e) {
+            log.error("同步农事记录数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 同步农户需求数据（仅新增）
+     * 兼容两种格式：
+     * 1. OfflineSyncRequest格式：{"businessType":"farmerDemand","formCode":"farmer-demand-add","formData":{...}}
+     * 2. 直接formData格式：{"farmerId":"xxx","farmerName":"xxx","inputItems":[...],...}
+     *
+     * 说明：离线数据的ID是手动输入的，系统会判断是否已存在：
+     * - 如果传入的id在数据库中已存在，则返回已同步的信息，避免重复提交
+     * - 如果传入的id在数据库中不存在或未传id，则执行新增操作
+     */
+    @PostMapping("/farmer-demand")
+    public AjaxResult syncFarmerDemand(@RequestBody Map<String, Object> requestBody) {
+        try {
+            log.info("收到农户需求数据同步请求: {}", requestBody);
+            // 判断是OfflineSyncRequest格式还是直接formData格式
+            OfflineSyncRequest request;
+            if (requestBody.containsKey("formData")) {
+                // OfflineSyncRequest格式
+                request = new OfflineSyncRequest();
+                request.setBusinessType((String) requestBody.get("businessType"));
+                request.setFormCode((String) requestBody.get("formCode"));
+                request.setFormData((Map<String, Object>) requestBody.get("formData"));
+                request.setClientRecordId((String) requestBody.get("clientRecordId"));
+            } else {
+                // 直接formData格式，包装成OfflineSyncRequest
+                request = new OfflineSyncRequest();
+                request.setBusinessType("farmerDemand");
+                request.setFormCode("farmer-demand-add");
+                request.setFormData(requestBody);
+            }
+
+            return offlineSyncService.syncFarmerDemand(request);
+        } catch (Exception e) {
+            log.error("同步农户需求数据失败", e);
+            return AjaxResult.error("同步失败: " + e.getMessage());
+        }
+    }
 }

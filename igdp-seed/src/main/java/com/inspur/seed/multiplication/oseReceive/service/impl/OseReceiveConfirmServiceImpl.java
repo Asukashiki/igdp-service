@@ -118,9 +118,31 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
             queryWrapper.eq(OseBreedSeedReceiveConfirm::getReceiveStatus, queryDTO.getReceiveStatus());
         }
 
-        // 根据OSE ID过滤
-        if (queryDTO.getOseId() != null && !queryDTO.getOseId().isEmpty()) {
-            queryWrapper.eq(OseBreedSeedReceiveConfirm::getOseId, queryDTO.getOseId());
+        // 根据关键字过滤
+        if (queryDTO.getSearchKeyword() != null && !queryDTO.getSearchKeyword().isEmpty()) {
+            String keyword = queryDTO.getSearchKeyword();
+            List<String> distributeIds = getDistributeIdsByKeyword(keyword);
+            List<String> oseIds = getOseIdsByKeyword(keyword);
+
+            queryWrapper.and(w -> {
+                boolean hasCondition = false;
+                if (!distributeIds.isEmpty()) {
+                    w.in(OseBreedSeedReceiveConfirm::getDistributeId, distributeIds);
+                    hasCondition = true;
+                }
+                if (!oseIds.isEmpty()) {
+                    if (hasCondition) {
+                        w.or().in(OseBreedSeedReceiveConfirm::getOseId, oseIds);
+                    } else {
+                        w.in(OseBreedSeedReceiveConfirm::getOseId, oseIds);
+                        hasCondition = true;
+                    }
+                }
+                // 如果搜索框有值但没匹到任何ID，应返回空，所以强制一个无法匹配的条件
+                if (!hasCondition) {
+                    w.eq(OseBreedSeedReceiveConfirm::getReceiveConfirmId, "NONE_MATCHED");
+                }
+            });
         }
 
         // 按创建时间倒序排列
@@ -180,6 +202,34 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
         List<BreedSeedDistributeDetail> detailList = distributeDetailMapper.selectList(detailQuery);
         return detailList.stream()
                 .map(BreedSeedDistributeDetail::getDistributeId)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据关键字获取分发ID列表
+     */
+    private List<String> getDistributeIdsByKeyword(String keyword) {
+        LambdaQueryWrapper<BreedSeedDistributeDetail> detailQuery = new LambdaQueryWrapper<>();
+        detailQuery.and(w -> w.like(BreedSeedDistributeDetail::getProduceBatchId, keyword)
+                .or().like(BreedSeedDistributeDetail::getVarietyName, keyword)
+                .or().like(BreedSeedDistributeDetail::getProduceBatchName, keyword));
+        List<BreedSeedDistributeDetail> detailList = distributeDetailMapper.selectList(detailQuery);
+        return detailList.stream()
+                .map(BreedSeedDistributeDetail::getDistributeId)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据关键字获取OSE ID列表
+     */
+    private List<String> getOseIdsByKeyword(String keyword) {
+        LambdaQueryWrapper<OseInfo> oseQuery = new LambdaQueryWrapper<>();
+        oseQuery.like(OseInfo::getOseName, keyword);
+        List<OseInfo> oseList = oseInfoMapper.selectList(oseQuery);
+        return oseList.stream()
+                .map(OseInfo::getOseId)
                 .distinct()
                 .collect(Collectors.toList());
     }

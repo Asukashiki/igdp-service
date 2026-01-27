@@ -49,7 +49,6 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
 
     @Override
     public List<DemandInputSummaryVO> getDemandInputSummaryList(DemandInputSummaryQueryDTO queryDTO) {
-        List<DemandInputSummaryVO> resList = new ArrayList<>();
         List<DemandInputSummaryVO> list = demandInputSummaryMapper.selectDemandInputSummaryList(queryDTO);
         if(queryDTO.getLevel()!=null){
             for(DemandInputSummaryVO vo: list){
@@ -67,12 +66,9 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
                     vo.setAuditQuantity(demandInputSummaryMapper.countAuditQuantity(year, targetCode));
                     vo.setUnsubmitQuantity(demandInputSummaryMapper.countUnsubmitQuantity(year, targetCode));
                 }
-                resList.add(vo);
             }
-            return resList;
-        }else{
-            return list;
         }
+        return list;
     }
 
     @Override

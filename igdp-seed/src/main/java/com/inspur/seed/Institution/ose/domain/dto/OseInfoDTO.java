@@ -33,11 +33,13 @@ public class OseInfoDTO implements Serializable {
     @NotBlank(message = "详细地址不能为空")
     private String location;
 
-    /**
-     * 行政区划编码
-     */
     @NotBlank(message = "行政区划编码不能为空")
     private String regionCode;
+
+    /**
+     * 行政区划名称
+     */
+    private String regionName;
 
     /**
      * 联系人姓名

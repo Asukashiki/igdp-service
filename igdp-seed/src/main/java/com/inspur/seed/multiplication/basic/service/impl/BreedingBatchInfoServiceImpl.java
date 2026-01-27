@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import com.inspur.common.utils.SecurityUtils;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,6 +79,9 @@ public class BreedingBatchInfoServiceImpl extends ServiceImpl<BreedingBatchInfoM
 
         // 设置创建时间
         batchInfo.setCreateTime(new Date());
+
+        // 设置创建人
+        batchInfo.setCreateBy(SecurityUtils.getNickname());
 
         // 保存数据
         this.save(batchInfo);

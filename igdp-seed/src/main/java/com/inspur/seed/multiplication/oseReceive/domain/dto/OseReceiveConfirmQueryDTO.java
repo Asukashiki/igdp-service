@@ -49,4 +49,9 @@ public class OseReceiveConfirmQueryDTO implements Serializable {
 
     private String oseId;
 
+    /**
+     * 搜索关键字
+     */
+    private String searchKeyword;
+
 }

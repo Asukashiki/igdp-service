@@ -88,9 +88,6 @@ public class OseInfoServiceImpl implements IOseInfoService {
         oseInfo.setCreateTime(now);
         oseInfo.setUpdateTime(now);
 
-        // TODO: 从region_info表自动带出行政区划名称
-        // oseInfo.setRegionName(...);
-
         oseInfoMapper.insert(oseInfo);
 
         PubOrgan organ = new PubOrgan();
@@ -162,9 +159,6 @@ public class OseInfoServiceImpl implements IOseInfoService {
         BeanUtils.copyProperties(dto, oseInfo);
         oseInfo.setOseId(oseId);
         oseInfo.setUpdateTime(new Date());
-
-        // TODO: 从region_info表自动带出行政区划名称
-        // oseInfo.setRegionName(...);
 
         oseInfoMapper.updateById(oseInfo);
 

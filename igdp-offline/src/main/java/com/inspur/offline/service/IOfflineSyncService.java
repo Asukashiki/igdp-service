@@ -49,4 +49,30 @@ public interface IOfflineSyncService {
      * @return 同步结果
      */
     AjaxResult syncYield(OfflineSyncRequest request);
+
+    /**
+     * 同步繁育田间检测数据（仅新增）
+     * 离线数据的ID是手动输入的，需要判断是否已存在防止重复提交
+     *
+     * @param request 同步请求
+     * @return 同步结果
+     */
+    AjaxResult syncC1BreedingTracking(OfflineSyncRequest request);
+
+    /**
+     * 同步农事记录数据
+     *
+     * @param request 同步请求
+     * @return 同步结果
+     */
+    AjaxResult syncFarmingRecord(OfflineSyncRequest request);
+
+    /**
+     * 同步农户需求数据（仅新增）
+     * 离线数据的ID是手动输入的，需要判断是否已存在防止重复提交
+     *
+     * @param request 同步请求
+     * @return 同步结果
+     */
+    AjaxResult syncFarmerDemand(OfflineSyncRequest request);
 }
