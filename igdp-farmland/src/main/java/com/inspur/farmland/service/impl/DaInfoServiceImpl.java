@@ -57,7 +57,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
     /**
      * 用户中心更新接口地址
      */
-    @Value("${bsp.center.update.url:http://172.26.100.103:9403/rbac/user/update}")
+    @Value("${bsp.center.update.url}")
     private String userCenterUpdateUrl;
 
     private RestTemplate restTemplate;
@@ -329,6 +329,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
         try {
             // 构建请求体 (参数名对齐参考类)
             Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("id",daInfo.getId());
             requestBody.put("account", daInfo.getAccount());
             requestBody.put("name", daInfo.getDaName());
             // 密码在同步时需要再次AES加密 (对齐参考类 encryptPasswordForUserCenter 逻辑)
@@ -420,6 +421,7 @@ public class DaInfoServiceImpl implements IDaInfoService {
         try {
             // 构建请求体
             Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("id",daInfo.getId());
             requestBody.put("account", daInfo.getAccount());
             requestBody.put("name", daInfo.getDaName());
             requestBody.put("gender", "MALE".equals(daInfo.getGender()) ? "0" : "1");

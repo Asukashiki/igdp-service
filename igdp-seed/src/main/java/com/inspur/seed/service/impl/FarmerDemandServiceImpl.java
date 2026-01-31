@@ -121,8 +121,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         detail.setCreatedBy(dto.getDaUserName());
 
         // Calculate max seed and fertilizer quantities (simplified version)
-        detail.setMaxSeedQuantity(calculateMaxSeedQuantity(dto.getLandArea(), dto.getInputItems()));
-        detail.setMaxFertilizerQuantity(calculateMaxFertilizerQuantity(dto.getLandArea(), dto.getInputItems()));
+//        detail.setMaxSeedQuantity(calculateMaxSeedQuantity(dto.getLandArea(), dto.getInputItems()));
+//        detail.setMaxFertilizerQuantity(calculateMaxFertilizerQuantity(dto.getLandArea(), dto.getInputItems()));
         detail.setCurrentAuditLevel(AuditLevelEnum.VILLAGE.getCode());
         // Save farmer demand detail
         if (!this.save(detail)) {
@@ -234,10 +234,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         deleteWrapper.set(DemandFarmerInputItem::getIsDeleted, 1);
         inputItemMapper.update(null, deleteWrapper);
 
-
-
-
-        // Insert new input items
+        // 4. Save input items
         List<DemandFarmerInputItem> inputItems = dto.getInputItems().stream().map(item -> {
             DemandFarmerInputItem inputItem = BeanUtil.copyProperties(item, DemandFarmerInputItem.class);
             inputItem.setDemandId(dto.getId());
@@ -248,8 +245,41 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             return inputItem;
         }).collect(Collectors.toList());
 
+
+        List<DemandFarmerInputItem> cropItems = new ArrayList<>();
+        List<DemandFarmerInputItem> fertItems = new ArrayList<>();
+        List<String> seasonList = new ArrayList<>();
         for (DemandFarmerInputItem inputItem : inputItems) {
-            inputItemMapper.insert(inputItem);
+            String season = inputItem.getSeason();
+            if(!seasonList.contains(season)){
+                seasonList.add(season);
+            }
+        }
+
+        for (DemandFarmerInputItem inputItem : inputItems) {
+            //判断类型
+            String type = inputItem.getInputType();
+            if(type.equals("IN01")){
+                cropItems.add(inputItem);
+                inputItemMapper.insert(inputItem);
+            }else if(type.equals("IN02")){
+                fertItems.add(inputItem);
+            }
+        }
+        for(DemandFarmerInputItem fertItem : fertItems){
+            for(String season : seasonList){
+                List<DemandFarmerInputItem> cropSeasonItems = new ArrayList<>();
+                for(DemandFarmerInputItem crop:cropItems){
+                    String tmpSeason = crop.getSeason();
+                    if (tmpSeason.equals(season)){
+                        cropSeasonItems.add(crop);
+                    }
+                }
+                if(fertItem.getSeason().equals(season)){
+                    fertItem = setFertilizerAmount(fertItem,cropSeasonItems);
+                    inputItemMapper.insert(fertItem);
+                }
+            }
         }
 
         return true;
