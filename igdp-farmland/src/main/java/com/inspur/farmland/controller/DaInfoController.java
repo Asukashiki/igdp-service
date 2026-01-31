@@ -4,6 +4,7 @@ import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.page.TableDataInfo;
 import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.farmland.domain.DaInfo;
 import com.inspur.farmland.service.IDaInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,7 @@ public class DaInfoController extends BaseController {
         // 校验DA是否存在
         DaInfo existDa = daInfoService.selectDaInfoByDaId(daId);
         if (existDa == null) {
-            return AjaxResult.error("DA信息不存在");
+            return AjaxResult.error("DA information does not exist");
         }
 
         int rows = daInfoService.updateDaInfo(daId, daInfo);

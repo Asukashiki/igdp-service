@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 离线数据同步服务实现类
+ * Offline Data Sync Service Implementation
  *
  * @author inspur
  */
@@ -75,37 +75,37 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         try {
             Map<String, Object> formData = request.getFormData();
             if (formData == null || formData.isEmpty()) {
-                return AjaxResult.error("表单数据不能为空");
+                return AjaxResult.error("Form data cannot be empty");
             }
 
-            // 转换为FarmerInfo对象
+            // Convert to FarmerInfo object
             FarmerInfo farmerInfo = convertToFarmerInfo(formData);
 
-            // 数据校验
+            // Data validation
             String validationError = validateFarmer(farmerInfo);
             if (StrUtil.isNotBlank(validationError)) {
                 return AjaxResult.error(validationError);
             }
 
-            // 校验身份证号唯一性
+            // Validate ID card uniqueness
             if (!farmerInfoService.checkIdCardUnique(farmerInfo.getIdCard(), null)) {
-                return AjaxResult.error("身份证号已存在");
+                return AjaxResult.error("ID card already exists");
             }
 
-            // 保存数据
+            // Save data
             String farmerId = farmerInfoService.insertFarmerInfo(farmerInfo);
 
-            // 返回结果
+            // Return result
             Map<String, Object> result = new java.util.HashMap<>();
             result.put("id", farmerId);
             result.put("farmerId", farmerId);
 
-            log.info("农民数据同步成功: farmerId={}, farmerName={}", farmerId, farmerInfo.getFarmerName());
-            return AjaxResult.success("同步成功", result);
+            log.info("Farmers' data synchronization was successful.: farmerId={}, farmerName={}", farmerId, farmerInfo.getFarmerName());
+            return AjaxResult.success("Synchronization was successful", result);
 
         } catch (Exception e) {
-            log.error("同步农民数据失败", e);
-            return AjaxResult.error("同步失败: " + e.getMessage());
+            log.error("Failed to sync farmer data", e);
+            return AjaxResult.error("Sync failed: " + e.getMessage());
         }
     }
 
@@ -114,7 +114,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         try {
             Map<String, Object> formData = request.getFormData();
             if (formData == null || formData.isEmpty()) {
-                return AjaxResult.error("表单数据不能为空");
+                return AjaxResult.error("Form data cannot be empty");
             }
 
             // 转换为LandInfo对象
@@ -134,12 +134,12 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             result.put("id", landId);
             result.put("landId", landId);
 
-            log.info("土地数据同步成功: landId={}, landName={}", landId, landInfo.getLandName());
-            return AjaxResult.success("同步成功", result);
+            log.info("Land data synchronization was successful.: landId={}, landName={}", landId, landInfo.getLandName());
+            return AjaxResult.success("Synchronization was successful", result);
 
         } catch (Exception e) {
-            log.error("同步土地数据失败", e);
-            return AjaxResult.error("同步失败: " + e.getMessage());
+            log.error("Failed to sync land data", e);
+            return AjaxResult.error("Sync failed: " + e.getMessage());
         }
     }
 
@@ -149,7 +149,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         try {
             Map<String, Object> formData = request.getFormData();
             if (formData == null || formData.isEmpty()) {
-                return AjaxResult.error("表单数据不能为空");
+                return AjaxResult.error("Form data cannot be empty");
             }
 
             // 转换为AgronomicTraitRecordDTO对象
@@ -169,12 +169,12 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             result.put("id", recordId);
             result.put("recordId", recordId);
 
-            log.info("农艺性状数据同步成功: recordId={}, plotId={}", recordId, dto.getPlotId());
-            return AjaxResult.success("同步成功", result);
+            log.info("Agronomic trait data synchronization was successful.: recordId={}, plotId={}", recordId, dto.getPlotId());
+            return AjaxResult.success("Synchronization was successful", result);
 
         } catch (Exception e) {
-            log.error("同步农艺性状数据失败", e);
-            return AjaxResult.error("同步失败: " + e.getMessage());
+            log.error("Failed to sync agronomic trait data", e);
+            return AjaxResult.error("Sync failed: " + e.getMessage());
         }
     }
 
@@ -183,7 +183,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         try {
             Map<String, Object> formData = request.getFormData();
             if (formData == null || formData.isEmpty()) {
-                return AjaxResult.error("表单数据不能为空");
+                return AjaxResult.error("Form data cannot be empty");
             }
 
             // 转换为EnvironmentNewData对象
@@ -203,12 +203,12 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             result.put("id", envRecordId);
             result.put("envRecordId", envRecordId);
 
-            log.info("环境监测数据同步成功: envRecordId={}, stationId={}", envRecordId, environmentData.getStationId());
-            return AjaxResult.success("同步成功", result);
+            log.info("Environment monitoring data synchronization was successful.: envRecordId={}, stationId={}", envRecordId, environmentData.getStationId());
+            return AjaxResult.success("Synchronization was successful", result);
 
         } catch (Exception e) {
-            log.error("同步环境监测数据失败", e);
-            return AjaxResult.error("同步失败: " + e.getMessage());
+            log.error("Failed to sync environment monitoring data", e);
+            return AjaxResult.error("Sync failed: " + e.getMessage());
         }
     }
 
@@ -217,7 +217,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         try {
             Map<String, Object> formData = request.getFormData();
             if (formData == null || formData.isEmpty()) {
-                return AjaxResult.error("表单数据不能为空");
+                return AjaxResult.error("Form data cannot be empty");
             }
 
             // 转换为BreedingYieldDataDTO对象
@@ -243,12 +243,12 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                 resultMap.put("id", dto.getId());
             }
 
-            log.info("田间检验数据同步成功: plotId={}, inspectionType={}", dto.getPlotId(), dto.getInspectionType());
-            return AjaxResult.success("同步成功", resultMap);
+            log.info("Breeding yield data synchronization was successful.: plotId={}, inspectionType={}", dto.getPlotId(), dto.getInspectionType());
+            return AjaxResult.success("Synchronization was successful", resultMap);
 
         } catch (Exception e) {
-            log.error("同步田间检验数据失败", e);
-            return AjaxResult.error("同步失败: " + e.getMessage());
+            log.error("Failed to sync breeding yield data", e);
+            return AjaxResult.error("Sync failed: " + e.getMessage());
         }
     }
 
@@ -261,26 +261,26 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             if (formData == null || formData.isEmpty()) {
                 return AjaxResult.error("表单数据不能为空");
             }
-            
+
             // 转换为FarmingRecord对象
             FarmingRecord farmingRecord = convertToFarmingRecord(formData);
             log.info("转换后的FarmingRecord对象: {}", farmingRecord);
-            
+
             // 数据校验
             String validationError = validateFarmingRecord(farmingRecord);
             if (StrUtil.isNotBlank(validationError)) {
                 log.warn("农事记录数据校验失败: {}", validationError);
                 return AjaxResult.error(validationError);
             }
-            
+
             // 保存数据
             String id = farmingRecordService.insertFarmingRecord(farmingRecord);
-            
+
             // 返回结果
             Map<String, Object> result = new java.util.HashMap<>();
             result.put("id", id);
             result.put("farmingRecordId", farmingRecord.getFarmingRecordId());
-            
+
             log.info("农事记录数据同步成功: farmingId={}", id);
             return AjaxResult.success("同步成功", result);
         } catch (Exception e) {
@@ -315,7 +315,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                     }
                 }
             } catch (Exception e) {
-                log.warn("日期解析失败: {}", birthdayObj, e);
+                log.warn("Failed to parse birthday: {}", birthdayObj, e);
             }
         }
 
@@ -367,7 +367,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                     }
                 }
             } catch (Exception e) {
-                log.warn("面积解析失败: {}", areaSizeObj, e);
+                log.warn("Failed to parse area size: {}", areaSizeObj, e);
             }
         }
 
@@ -379,7 +379,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             try {
                 landInfo.setLatitude(new BigDecimal(latitudeObj.toString()));
             } catch (Exception e) {
-                log.warn("纬度解析失败: {}", latitudeObj, e);
+                log.warn("Failed to parse latitude: {}", latitudeObj, e);
             }
         }
 
@@ -388,7 +388,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             try {
                 landInfo.setLongitude(new BigDecimal(longitudeObj.toString()));
             } catch (Exception e) {
-                log.warn("经度解析失败: {}", longitudeObj, e);
+                log.warn("Failed to parse longitude: {}", longitudeObj, e);
             }
         }
 
@@ -421,28 +421,28 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
     private String validateFarmer(FarmerInfo farmerInfo) {
         // 必填字段校验
         if (StrUtil.isBlank(farmerInfo.getFarmerName())) {
-            return "农民姓名不能为空";
+            return "The name of the farmer cannot be left blank.";
         }
 
         if (StrUtil.isBlank(farmerInfo.getIdCard())) {
-            return "身份证号不能为空";
+            return "The ID card number cannot be left blank.";
         }
 
         // 姓名长度校验（最多100个字符）
         if (farmerInfo.getFarmerName().length() > 100) {
-            return "农民姓名最多100个字符";
+            return "The name of the farmer cannot exceed 100 characters.";
         }
 
         // 身份证号长度校验（最多50个字符）
         if (farmerInfo.getIdCard().length() > 50) {
-            return "身份证号最多50个字符";
+            return "The ID card number cannot exceed 50 characters.";
         }
 
         // 电话格式校验（可选）
         if (StrUtil.isNotBlank(farmerInfo.getPhone())) {
             // 简单的电话格式校验：只允许数字、+、-、空格
             if (!farmerInfo.getPhone().matches("^[0-9+\\-\\s()]+$")) {
-                return "电话号码格式不正确";
+                return "The phone number format is incorrect.";
             }
         }
 
@@ -456,38 +456,38 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
     private String validateLand(LandInfo landInfo) {
         // 必填字段校验
         if (StrUtil.isBlank(landInfo.getLandName())) {
-            return "地块名称不能为空";
+            return "The name of the plot cannot be left blank.";
         }
 
         if (StrUtil.isBlank(landInfo.getOwnerType())) {
-            return "土地权属不能为空";
+            return "The land ownership cannot be left blank.";
         }
 
         if (StrUtil.isBlank(landInfo.getLandType())) {
-            return "地块类型不能为空";
+            return "The type of the plot cannot be left blank.";
         }
 
         if (landInfo.getAreaSize() == null) {
-            return "地块面积不能为空";
+            return "The area size of the plot cannot be left blank.";
         }
 
         if (landInfo.getAreaSize().compareTo(BigDecimal.ZERO) <= 0) {
-            return "地块面积必须大于0";
+            return "The area size of the plot must be greater than 0.";
         }
 
         // 地块名称长度校验（最多100个字符）
         if (landInfo.getLandName().length() > 100) {
-            return "地块名称最多100个字符";
+            return "The name of the plot cannot exceed 100 characters.";
         }
 
         // 村代码必填校验
         if (StrUtil.isBlank(landInfo.getKebeleCode())) {
-            return "村代码不能为空";
+            return "The kebele code cannot be left blank.";
         }
 
         // 详细地址必填校验
         if (StrUtil.isBlank(landInfo.getAddress())) {
-            return "详细地址不能为空";
+            return "The address cannot be left blank.";
         }
 
         return null;
@@ -525,7 +525,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                         try {
                             dto.setObservationDate(sdf2.parse(dateStr));
                         } catch (Exception e2) {
-                            log.warn("日期解析失败: {}", dateStr, e2);
+                            log.warn("Date parsing failed: {}", dateStr, e2);
                         }
                     }
                 } else if (observationDateObj instanceof Number) {
@@ -534,7 +534,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                     dto.setObservationDate(new Date(timestamp));
                 }
             } catch (Exception e) {
-                log.warn("日期解析失败: {}", observationDateObj, e);
+                log.warn("Date parsing failed: {}", observationDateObj, e);
             }
         }
 
@@ -564,7 +564,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                             }
                         }
                     } catch (Exception e) {
-                        log.warn("性状值解析失败: {}", traitValueObj, e);
+                        log.warn("Trait value parsing failed: {}", traitValueObj, e);
                     }
                 }
                 
@@ -581,7 +581,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                             }
                         }
                     } catch (Exception e) {
-                        log.warn("排序序号解析失败: {}", sortOrderObj, e);
+                        log.warn("Sort order parsing failed: {}", sortOrderObj, e);
                     }
                 }
                 
@@ -600,34 +600,34 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
     private String validateTrait(AgronomicTraitRecordDTO dto) {
         // 必填字段校验
         if (StrUtil.isBlank(dto.getPlotId())) {
-            return "地块ID不能为空";
+            return "The plot ID cannot be left blank.";
         }
 
         if (dto.getObservationDate() == null) {
-            return "观测日期不能为空";
+            return "The observation date cannot be left blank.";
         }
 
         if (StrUtil.isBlank(dto.getGrowthStage())) {
-            return "生长阶段不能为空";
+            return "The growth stage cannot be left blank.";
         }
 
         if (StrUtil.isBlank(dto.getObserverId())) {
-            return "观测员不能为空";
+            return "The observer ID cannot be left blank.";
         }
 
         // 明细列表校验
         if (dto.getDetailList() == null || dto.getDetailList().isEmpty()) {
-            return "至少需要添加一条性状数据";
+            return "At least one trait data must be added.";
         }
 
         // 校验每条明细数据
         for (int i = 0; i < dto.getDetailList().size(); i++) {
             AgronomicTraitDetailDTO detail = dto.getDetailList().get(i);
             if (StrUtil.isBlank(detail.getTraitCode())) {
-                return String.format("第%d条性状数据的性状名称不能为空", i + 1);
+                return String.format("The trait name of the %dth trait data cannot be left blank.", i + 1);
             }
             if (detail.getTraitValue() == null) {
-                return String.format("第%d条性状数据的性状值不能为空", i + 1);
+                return String.format("The trait value of the %dth trait data cannot be left blank.", i + 1);
             }
         }
 
@@ -673,7 +673,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                                 // 如果是只有日期，设置为当天的 00:00
                                 environmentData.setTimestamp(date);
                             } catch (Exception e3) {
-                                log.warn("日期解析失败: {}", dateStr, e3);
+                                log.warn("Timestamp parsing failed: {}", dateStr, e3);
                             }
                         }
                     }
@@ -683,7 +683,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                     environmentData.setTimestamp(new Date(timestamp));
                 }
             } catch (Exception e) {
-                log.warn("日期解析失败: {}", timestampObj, e);
+                log.warn("Timestamp parsing failed: {}", timestampObj, e);
             }
         }
 
@@ -700,7 +700,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                     }
                 }
             } catch (Exception e) {
-                log.warn("数值解析失败: {}", valueObj, e);
+                log.warn("Numerical analysis failed: {}", valueObj, e);
             }
         }
 
@@ -713,27 +713,27 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
     private String validateEnvironment(EnvironmentNewData environmentData) {
         // 必填字段校验
         if (StrUtil.isBlank(environmentData.getPlotId())) {
-            return "地块ID不能为空";
+            return "The plot ID cannot be left blank.";
         }
 
         if (StrUtil.isBlank(environmentData.getStationId())) {
-            return "气象站ID不能为空";
+            return "The station ID cannot be left blank.";
         }
 
         if (environmentData.getTimestamp() == null) {
-            return "采集时间不能为空";
+            return "The timestamp cannot be left blank.";
         }
 
         if (StrUtil.isBlank(environmentData.getParameterCode())) {
-            return "参数代码不能为空";
+            return "The parameter code cannot be left blank.";
         }
 
         if (environmentData.getValue() == null) {
-            return "数值不能为空";
+            return "The value cannot be left blank.";
         }
 
         if (StrUtil.isBlank(environmentData.getUnit())) {
-            return "单位不能为空";
+            return "The unit cannot be left blank.";
         }
 
         return null;
@@ -767,7 +767,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
                     dto.setInspectionDate(LocalDate.parse(dateStr, formatter));
                 }
             } catch (Exception e) {
-                log.warn("检验日期解析失败: {}", inspectionDateObj, e);
+                log.warn("Failed to parse the inspection date: {}", inspectionDateObj, e);
             }
         }
 
@@ -792,27 +792,27 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
     private String validateYield(BreedingYieldDataDTO dto) {
         // 必填字段校验
         if (StrUtil.isBlank(dto.getPlotId())) {
-            return "地块ID不能为空";
+            return "The plot ID cannot be left blank.";
         }
 
         if (dto.getInspectionDate() == null) {
-            return "检验日期不能为空";
+            return "The inspection date cannot be left blank.";
         }
 
         if (StrUtil.isBlank(dto.getInspectionType())) {
-            return "检验类型不能为空";
+            return "The inspection type cannot be left blank.";
         }
 
         if (StrUtil.isBlank(dto.getScoreCode())) {
-            return "评分代码不能为空";
+            return "The score code cannot be left blank.";
         }
 
         if (StrUtil.isBlank(dto.getScoreValue())) {
-            return "评分值不能为空";
+            return "The score value cannot be left blank.";
         }
 
         if (StrUtil.isBlank(dto.getRecorderName())) {
-            return "记录人员不能为空";
+            return "The recorder name cannot be left blank.";
         }
 
         return null;
@@ -828,7 +828,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         farmingRecord.setPlotId(getString(formData, "plotId"));
         farmingRecord.setTrialId(getString(formData, "trialId"));
         farmingRecord.setBatchId(getString(formData, "batchId"));
-        
+
         // 日期处理
         Object activityDateObj = formData.get("activityDate");
         if (activityDateObj != null) {
@@ -884,7 +884,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         if (StrUtil.isBlank(farmingRecord.getActivityType())) {
             return "农事活动类型不能为空";
         }
-        
+
         if (farmingRecord.getActivityDate() == null) {
             return "活动日期不能为空";
         }
@@ -1099,12 +1099,12 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
 
             // 新增数据 - 使用服务层的addFarmerDemand方法
             String demandId = farmerDemandService.addFarmerDemand(dto);
-            
+
             // 检查是否因为重复年份而失败
             if ("1".equals(demandId)) {
                 return AjaxResult.error("该农户在当前年份已存在需求数据");
             }
-            
+
             log.info("农户需求数据同步成功: id={}, farmerId={}", demandId, dto.getFarmerId());
 
             // 返回结果
@@ -1172,7 +1172,7 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         if (inputItemsObj instanceof List) {
             List<Map<String, Object>> itemsList = (List<Map<String, Object>>) inputItemsObj;
             List<FarmerDemandAddDTO.InputItemDTO> inputItems = new ArrayList<>();
-            
+
             for (Map<String, Object> itemMap : itemsList) {
                 FarmerDemandAddDTO.InputItemDTO item = new FarmerDemandAddDTO.InputItemDTO();
                 item.setInputCategory(getString(itemMap, "inputCategory"));

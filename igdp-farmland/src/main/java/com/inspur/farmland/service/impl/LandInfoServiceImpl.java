@@ -65,8 +65,14 @@ public class LandInfoServiceImpl implements ILandInfoService {
         if (StrUtil.isNotBlank(landInfo.getFarmerName())) {
             wrapper.like(LandInfo::getFarmerName, landInfo.getFarmerName());
         }
+        // 所属村查询：支持代码和名称的模糊匹配
+        // 用户可能输入村代码或村名称，所以同时匹配两个字段
         if (StrUtil.isNotBlank(landInfo.getKebeleCode())) {
-            wrapper.eq(LandInfo::getKebeleCode, landInfo.getKebeleCode());
+            wrapper.and(w -> w.like(LandInfo::getKebeleCode, landInfo.getKebeleCode())
+                    .or().like(LandInfo::getKebeleName, landInfo.getKebeleCode()));
+        }
+        if (StrUtil.isNotBlank(landInfo.getKebeleName())) {
+            wrapper.like(LandInfo::getKebeleName, landInfo.getKebeleName());
         }
         if (StrUtil.isNotBlank(landInfo.getLandType())) {
             wrapper.eq(LandInfo::getLandType, landInfo.getLandType());
