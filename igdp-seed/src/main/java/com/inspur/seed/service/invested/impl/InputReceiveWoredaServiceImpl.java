@@ -39,9 +39,11 @@ public class InputReceiveWoredaServiceImpl extends ServiceImpl<InputReceiveWored
 
     @Override
     public List<InputReceiveWoreda> queryReceiveList(String woredaName, String receiveStatus,
-                                                      LocalDate startTime, LocalDate endTime) {
+                                                      LocalDate startTime, LocalDate endTime,String releaseName) {
         LambdaQueryWrapper<InputReceiveWoreda> wrapper = new LambdaQueryWrapper<>();
-
+        if(StringUtils.isNotEmpty(releaseName)){
+            wrapper.like(InputReceiveWoreda::getReleaseName, releaseName);
+        }
         if (StringUtils.isNotEmpty(woredaName)) {
             wrapper.like(InputReceiveWoreda::getTargetId, woredaName);
         }

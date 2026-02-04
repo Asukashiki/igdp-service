@@ -25,7 +25,7 @@ public interface IInputReceiveWoredaService extends IService<InputReceiveWoreda>
      * @return 接收确认列表
      */
     List<InputReceiveWoreda> queryReceiveList(String woredaName, String receiveStatus,
-                                               LocalDate startTime, LocalDate endTime);
+                                               LocalDate startTime, LocalDate endTime, String releaseName);
 
     /**
      * 查询接收确认详情

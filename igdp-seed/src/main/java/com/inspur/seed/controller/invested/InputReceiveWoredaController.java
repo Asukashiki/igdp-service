@@ -32,10 +32,11 @@ public class InputReceiveWoredaController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(@RequestParam(required = false) String woredaName,
                                @RequestParam(required = false) String receiveStatus,
+                               @RequestParam(required = false) String releaseBy,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
         startPage();
-        List<InputReceiveWoreda> list = receiveService.queryReceiveList(woredaName, receiveStatus, startTime, endTime);
+        List<InputReceiveWoreda> list = receiveService.queryReceiveList(woredaName, receiveStatus, startTime, endTime, releaseBy);
         return getDataTable(list);
     }
 
