@@ -70,9 +70,10 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             // Assume production date and expire date are managed or defaulted, or passed in detail if available
             // For now use current date as production date and +1 year as expire date if not provided (detail doesn't have these fields in domain yet, add later if needed)
             Date prodDate = new Date();
-            Date expDate = new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000); // 1 year later
+            Date expDate = detail.getExpireDate() != null ? detail.getExpireDate() : new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000); // 1 year later
             
-            coreService.increaseStock(detail.getSkuId(), inbound.getWarehouseId(), detail.getBatchNo(), detail.getRealQty(), prodDate, expDate);
+            // 传递质量等级和库存状态
+            coreService.increaseStock(detail.getSkuId(), inbound.getWarehouseId(), detail.getBatchNo(), detail.getRealQty(), prodDate, expDate, detail.getQualityGrade(), detail.getStockStatus());
         }
         
         return true;

@@ -12,28 +12,29 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 入库单主表
+ * 盘点单主表
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("inventory_inbound_order")
-public class InventoryInbound extends BaseEntity {
+@TableName("inventory_check_order")
+public class InventoryCheckOrder extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String inboundNo;
+    private String checkNo;
     private Long warehouseId;
-    private String type;
-    private String status;
-    private String bizNo;
-    private String operator;
-
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date orderDate;
+    private Date checkDate;
+    private String checkBy;
+    private String status;
+    private String auditBy;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date auditTime;
+    private String auditComment;
 
     /** 明细列表 */
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
-    private List<InventoryInboundDetail> detailList;
+    private List<InventoryCheckOrderDetail> detailList;
 }

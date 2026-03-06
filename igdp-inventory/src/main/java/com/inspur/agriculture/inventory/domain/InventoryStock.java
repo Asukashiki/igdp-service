@@ -23,9 +23,14 @@ public class InventoryStock extends BaseEntity {
     private Long id;
 
     private Long skuId;
+    private Long productId;
     private Long warehouseId;
+    private String mainCategory;
+    private String subCategory;
     private BigDecimal availableQty;
     private BigDecimal lockedQty;
+    private String qualityGrade;
+    private String stockStatus;
 
     @Version
     private Long version;

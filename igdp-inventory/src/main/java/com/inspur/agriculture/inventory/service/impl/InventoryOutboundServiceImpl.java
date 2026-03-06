@@ -57,7 +57,7 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
             throw new ServiceException("出库单不存在");
         }
         if (!"SUBMITTED".equals(outbound.getStatus()) && !"DRAFT".equals(outbound.getStatus())) {
-            // Assume flow allows direct approve or submitted
+            throw new ServiceException("出库单状态错误");
         }
         
         // Update status

@@ -45,6 +45,19 @@ public interface IInventoryCoreService {
     void increaseStock(Long skuId, Long warehouseId, String batchNo, BigDecimal qty, Date prodDate, Date expDate);
 
     /**
+     * 增加库存 (确认入库) - 支持质量等级和状态
+     * @param skuId SKU ID
+     * @param warehouseId 仓库ID
+     * @param batchNo 批次号
+     * @param qty 数量
+     * @param prodDate 生产日期
+     * @param expDate 过期日期
+     * @param qualityGrade 质量等级
+     * @param stockStatus 库存状态
+     */
+    void increaseStock(Long skuId, Long warehouseId, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus);
+
+    /**
      * 预占库存 (可选)
      * @param skuId SKU ID
      * @param warehouseId 仓库ID

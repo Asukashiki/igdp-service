@@ -67,10 +67,6 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         InventoryStock stock = getOrCreateStock(skuId, warehouseId);
 
         // 释放逻辑：available += qty, locked -= qty
-        // 这里可以使用 updateStockOptimistic 的逆操作，或者单独写一个 update
-        // 为了简单，这里直接更新字段，使用乐观锁
-        // 但 updateStockOptimistic 是固定的减可用加锁定。
-        // 所以我需要手动更新
         
         // 重新查询以获取最新版本
         stock = stockMapper.selectById(stock.getId());
@@ -118,9 +114,6 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
             }
             batch.setQty(batch.getQty().subtract(qty));
             stockBatchMapper.updateById(batch);
-        } else {
-             // 如果未指定批次，可能需要先进先出扣减，这里简化为不处理或报错
-             // 暂不处理自动分配批次逻辑，假设业务层传入了批次或者允许无批次扣减(如果不需要批次管理)
         }
 
         recordLog(skuId, warehouseId, batchNo, "OUTBOUND", qty, stock.getAvailableQty(), stock.getAvailableQty(), "REDUCE_STOCK", null, null);
@@ -129,6 +122,11 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void increaseStock(Long skuId, Long warehouseId, String batchNo, BigDecimal qty, Date prodDate, Date expDate) {
+        increaseStock(skuId, warehouseId, batchNo, qty, prodDate, expDate, null, "AVAILABLE");
+    }
+
+    // 重载方法，支持质量等级和状态
+    public void increaseStock(Long skuId, Long warehouseId, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus) {
         if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
              throw new ServiceException("增加数量必须大于0");
         }
@@ -137,6 +135,10 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         InventoryStock stock = getOrCreateStock(skuId, warehouseId);
         BigDecimal before = stock.getAvailableQty();
         stock.setAvailableQty(stock.getAvailableQty().add(qty));
+        // 更新总库存的质量等级和状态（取最新的或默认）
+        if (qualityGrade != null) stock.setQualityGrade(qualityGrade);
+        if (stockStatus != null) stock.setStockStatus(stockStatus);
+        
         stockMapper.updateById(stock);
 
         // 2. 增加批次库存
@@ -154,6 +156,8 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
                 batch.setQty(qty);
                 batch.setProductionDate(prodDate);
                 batch.setExpireDate(expDate);
+                batch.setQualityGrade(qualityGrade);
+                batch.setStockStatus(stockStatus != null ? stockStatus : "AVAILABLE");
                 stockBatchMapper.insert(batch);
             } else {
                 batch.setQty(batch.getQty().add(qty));

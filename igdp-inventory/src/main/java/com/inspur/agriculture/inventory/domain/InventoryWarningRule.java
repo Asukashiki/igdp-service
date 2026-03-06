@@ -10,24 +10,20 @@ import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
 
 /**
- * 出库单明细表
+ * 库存预警规则表
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("inventory_outbound_order_detail")
-public class InventoryOutboundDetail extends BaseEntity {
+@TableName("inventory_warning_rule")
+public class InventoryWarningRule extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long outboundId;
+    private Long warehouseId;
     private Long productId;
     private Long skuId;
-    private String mainCategory;
-    private String subCategory;
-    private String batchNo;
-    private BigDecimal applyQty;
-    private BigDecimal realQty;
-    private String unit;
+    private BigDecimal minStock;
+    private BigDecimal maxStock;
 }
