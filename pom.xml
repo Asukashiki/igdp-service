@@ -313,6 +313,7 @@
         <module>igdp-seed</module>
         <module>igdp-farmland</module>
         <module>igdp-offline</module>
+        <module>igdp-inventory</module>
     </modules>
     <packaging>pom</packaging>
 
