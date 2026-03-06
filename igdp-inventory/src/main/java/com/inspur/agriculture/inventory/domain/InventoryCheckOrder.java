@@ -33,6 +33,7 @@ public class InventoryCheckOrder extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date auditTime;
     private String auditComment;
+    private String remark;
 
     /** 明细列表 */
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)

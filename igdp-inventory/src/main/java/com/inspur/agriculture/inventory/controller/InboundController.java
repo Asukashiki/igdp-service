@@ -6,7 +6,6 @@ import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.page.TableDataInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +17,6 @@ public class InboundController extends BaseController {
     @Autowired
     private IInventoryInboundService inboundService;
 
-    @PreAuthorize("@ss.hasPermi('inventory:inbound:list')")
     @GetMapping("/list")
     public TableDataInfo list(InventoryInbound inbound) {
         startPage();
@@ -27,13 +25,11 @@ public class InboundController extends BaseController {
         return getDataTable(list);
     }
 
-    @PreAuthorize("@ss.hasPermi('inventory:inbound:add')")
     @PostMapping("/create")
     public AjaxResult create(@RequestBody InventoryInbound inbound) {
         return toAjax(inboundService.createInbound(inbound));
     }
 
-    @PreAuthorize("@ss.hasPermi('inventory:inbound:audit')")
     @PostMapping("/approve")
     public AjaxResult approve(@RequestBody InventoryInbound inbound) {
         // Assume ID is passed

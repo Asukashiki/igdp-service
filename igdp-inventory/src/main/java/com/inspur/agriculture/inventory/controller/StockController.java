@@ -3,10 +3,8 @@ package com.inspur.agriculture.inventory.controller;
 import com.inspur.agriculture.inventory.domain.InventoryStock;
 import com.inspur.agriculture.inventory.service.IInventoryStockService;
 import com.inspur.common.core.controller.BaseController;
-import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.page.TableDataInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +18,6 @@ public class StockController extends BaseController {
     @Autowired
     private IInventoryStockService stockService;
 
-    @PreAuthorize("@ss.hasPermi('inventory:stock:list')")
     @GetMapping("/list")
     public TableDataInfo list(InventoryStock stock) {
         startPage();

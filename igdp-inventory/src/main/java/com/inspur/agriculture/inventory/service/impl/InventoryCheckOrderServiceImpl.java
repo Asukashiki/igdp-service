@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
             throw new ServiceException("盘点单不能为空");
         }
         checkOrder.setStatus("DRAFT");
-        checkOrder.setCreateTime(new Date());
+        checkOrder.setCreateTime(LocalDateTime.now());
         this.save(checkOrder);
 
         List<InventoryCheckOrderDetail> details = checkOrder.getDetailList();

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             throw new ServiceException("入库单不能为空");
         }
         inbound.setStatus("DRAFT");
-        inbound.setCreateTime(new Date());
+        inbound.setCreateTime(LocalDateTime.now());
         this.save(inbound);
         
         List<InventoryInboundDetail> details = inbound.getDetailList();
