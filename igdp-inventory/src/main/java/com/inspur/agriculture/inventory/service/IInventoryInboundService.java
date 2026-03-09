@@ -16,9 +16,16 @@ public interface IInventoryInboundService extends IService<InventoryInbound> {
     boolean createInbound(InventoryInbound inbound);
 
     /**
-     * 审核入库单
+     * 提交入库单
      * @param id 入库单ID
      * @return 结果
      */
-    boolean approveInbound(Long id);
+    boolean submitInbound(Long id);
+
+    /**
+     * 审核入库单
+     * @param inbound 包含审核信息的入库单对象
+     * @return 结果
+     */
+    boolean auditInbound(InventoryInbound inbound);
 }

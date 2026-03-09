@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/inventory/stock")
-public class StockController extends BaseController {
+@RequestMapping("/inventory/stock-new")
+public class InventoryStockController extends BaseController {
 
     @Autowired
     private IInventoryStockService stockService;
