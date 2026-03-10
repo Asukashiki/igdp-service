@@ -274,6 +274,13 @@
                 <version>${igdp.version}</version>
             </dependency>
 
+            <!-- 库存主数据模块 -->
+            <dependency>
+                <groupId>com.inspur</groupId>
+                <artifactId>igdp-inventory</artifactId>
+                <version>${igdp.version}</version>
+            </dependency>
+
             <!-- 农田管理模块-->
             <!-- <dependency>
                 <groupId>com.inspur</groupId>

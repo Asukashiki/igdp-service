@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.inventory.mapper.InventoryWarehouseMapper">
+
+    <resultMap id="InventoryWarehouseResult" type="com.inspur.agriculture.inventory.domain.InventoryWarehouse">
+        <id property="id" column="id"/>
+        <result property="warehouseCode" column="warehouse_code"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="type" column="type"/>
+        <result property="storeType" column="store_type"/>
+        <result property="orgName" column="org_name"/>
+        <result property="adminLevel" column="admin_level"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="location" column="location"/>
+        <result property="capacity" column="capacity"/>
+        <result property="address" column="address"/>
+        <result property="status" column="status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <result property="parentWarehouseName" column="parent_warehouse_name"/>
+    </resultMap>
+
+    <sql id="selectInventoryWarehouseVo">
+        SELECT w.id,
+               w.warehouse_code,
+               w.warehouse_name,
+               w.type,
+               w.store_type,
+               w.org_name,
+               w.admin_level,
+               w.parent_id,
+               w.location,
+               w.capacity,
+               w.address,
+               w.status,
+               w.create_by,
+               w.create_time,
+               w.update_by,
+               w.update_time,
+               w.remark,
+               p.warehouse_name AS parent_warehouse_name
+        FROM inventory_warehouse w
+        LEFT JOIN inventory_warehouse p ON w.parent_id = p.id
+    </sql>
+
+    <select id="selectWarehouseList" parameterType="com.inspur.agriculture.inventory.domain.InventoryWarehouse" resultMap="InventoryWarehouseResult">
+        <include refid="selectInventoryWarehouseVo"/>
+        <where>
+            <if test="warehouseCode != null and warehouseCode != ''">
+                AND w.warehouse_code LIKE concat('%', #{warehouseCode}, '%')
+            </if>
+            <if test="warehouseName != null and warehouseName != ''">
+                AND w.warehouse_name LIKE concat('%', #{warehouseName}, '%')
+            </if>
+            <if test="type != null and type != ''">
+                AND w.type = #{type}
+            </if>
+            <if test="orgName != null and orgName != ''">
+                AND w.org_name LIKE concat('%', #{orgName}, '%')
+            </if>
+            <if test="adminLevel != null and adminLevel != ''">
+                AND w.admin_level = #{adminLevel}
+            </if>
+            <if test="status != null and status != ''">
+                AND w.status = #{status}
+            </if>
+        </where>
+        ORDER BY w.create_time DESC, w.id DESC
+    </select>
+
+    <select id="selectWarehouseById" parameterType="java.lang.Long" resultMap="InventoryWarehouseResult">
+        <include refid="selectInventoryWarehouseVo"/>
+        WHERE w.id = #{id}
+    </select>
+
+</mapper>
