@@ -88,7 +88,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             for (InventoryInboundDetail detail : details) {
                 Date prodDate = new Date();
                 Date expDate = detail.getExpireDate() != null ? detail.getExpireDate() : new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000); 
-                coreService.increaseStock(detail.getSkuId(), existInbound.getWarehouseId(), detail.getBatchNo(), detail.getRealQty(), prodDate, expDate, detail.getQualityGrade(), detail.getStockStatus());
+                coreService.increaseStock(detail.getSkuId(), existInbound.getWarehouseId(), detail.getBatchNo(), detail.getQty(), prodDate, expDate, detail.getQualityGrade(), detail.getStockStatus());
             }
         } else if ("REJECTED".equals(inbound.getStatus())) {
             existInbound.setStatus("REJECTED");
