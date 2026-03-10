@@ -35,6 +35,11 @@ public class InventoryOutbound extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date orderDate;
 
+    private String auditBy;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date auditTime;
+    private String auditComment;
+
     /** 明细列表 */
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private List<InventoryOutboundDetail> detailList;

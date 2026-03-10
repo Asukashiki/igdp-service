@@ -52,26 +52,55 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean approveOutbound(Long id) {
+    public boolean submitOutbound(Long id) {
         InventoryOutbound outbound = this.getById(id);
         if (outbound == null) {
             throw new ServiceException("出库单不存在");
         }
-        if (!"SUBMITTED".equals(outbound.getStatus()) && !"DRAFT".equals(outbound.getStatus())) {
-            throw new ServiceException("出库单状态错误");
+        if (!"DRAFT".equals(outbound.getStatus())) {
+            throw new ServiceException("只有草稿状态的出库单可以提交");
         }
-        
-        // Update status
-        outbound.setStatus("APPROVED");
-        this.updateById(outbound);
-        
-        // Deduct stock
+        outbound.setStatus("SUBMITTED");
+        return this.updateById(outbound);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean auditOutbound(InventoryOutbound outbound) {
+        InventoryOutbound existOutbound = this.getById(outbound.getId());
+        if (existOutbound == null) {
+            throw new ServiceException("出库单不存在");
+        }
+        if (!"SUBMITTED".equals(existOutbound.getStatus())) {
+            throw new ServiceException("只有待审批的出库单可以审批");
+        }
+
+        existOutbound.setAuditBy(outbound.getAuditBy());
+        existOutbound.setAuditTime(new Date());
+        existOutbound.setAuditComment(outbound.getAuditComment());
+
         LambdaQueryWrapper<InventoryOutboundDetail> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(InventoryOutboundDetail::getOutboundId, id);
+        queryWrapper.eq(InventoryOutboundDetail::getOutboundId, outbound.getId());
         List<InventoryOutboundDetail> details = detailMapper.selectList(queryWrapper);
-        
-        for (InventoryOutboundDetail detail : details) {
-            coreService.reduceStock(detail.getSkuId(), outbound.getWarehouseId(), detail.getBatchNo(), detail.getApplyQty());
+
+        if ("APPROVED".equals(outbound.getStatus())) {
+            existOutbound.setStatus("APPROVED");
+            this.updateById(existOutbound);
+
+            // Deduct stock
+            for (InventoryOutboundDetail detail : details) {
+                coreService.reduceStock(detail.getSkuId(), existOutbound.getWarehouseId(), detail.getBatchNo(), detail.getApplyQty());
+            }
+        } else if ("REJECTED".equals(outbound.getStatus())) {
+            existOutbound.setStatus("REJECTED");
+            this.updateById(existOutbound);
+
+            // Release locked stock
+            for (InventoryOutboundDetail detail : details) {
+                coreService.releaseStock(detail.getSkuId(), existOutbound.getWarehouseId(), detail.getApplyQty());
+            }
+        } else {
+            throw new ServiceException("无效的审批状态");
         }
         
         return true;

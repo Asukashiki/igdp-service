@@ -49,32 +49,52 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean approveInbound(Long id) {
+    public boolean submitInbound(Long id) {
         InventoryInbound inbound = this.getById(id);
         if (inbound == null) {
             throw new ServiceException("入库单不存在");
         }
-        if (!"SUBMITTED".equals(inbound.getStatus()) && !"DRAFT".equals(inbound.getStatus())) { // Allow direct approve from draft for now or based on flow
-             // Assume flow is DRAFT -> SUBMITTED -> APPROVED. But for now allow simpler flow.
+        if (!"DRAFT".equals(inbound.getStatus())) {
+            throw new ServiceException("只有草稿状态的入库单可以提交");
         }
-        
-        // Update status
-        inbound.setStatus("APPROVED");
-        this.updateById(inbound);
-        
-        // Increase stock
-        LambdaQueryWrapper<InventoryInboundDetail> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(InventoryInboundDetail::getInboundId, id);
-        List<InventoryInboundDetail> details = detailMapper.selectList(queryWrapper);
-        
-        for (InventoryInboundDetail detail : details) {
-            // Assume production date and expire date are managed or defaulted, or passed in detail if available
-            // For now use current date as production date and +1 year as expire date if not provided (detail doesn't have these fields in domain yet, add later if needed)
-            Date prodDate = new Date();
-            Date expDate = detail.getExpireDate() != null ? detail.getExpireDate() : new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000); // 1 year later
-            
-            // 传递质量等级和库存状态
-            coreService.increaseStock(detail.getSkuId(), inbound.getWarehouseId(), detail.getBatchNo(), detail.getRealQty(), prodDate, expDate, detail.getQualityGrade(), detail.getStockStatus());
+        inbound.setStatus("SUBMITTED");
+        return this.updateById(inbound);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean auditInbound(InventoryInbound inbound) {
+        InventoryInbound existInbound = this.getById(inbound.getId());
+        if (existInbound == null) {
+            throw new ServiceException("入库单不存在");
+        }
+        if (!"SUBMITTED".equals(existInbound.getStatus())) {
+            throw new ServiceException("只有待审批的入库单可以审批");
+        }
+
+        existInbound.setAuditBy(inbound.getAuditBy());
+        existInbound.setAuditTime(new Date());
+        existInbound.setAuditComment(inbound.getAuditComment());
+
+        if ("APPROVED".equals(inbound.getStatus())) {
+            existInbound.setStatus("APPROVED");
+            this.updateById(existInbound);
+
+            // Increase stock
+            LambdaQueryWrapper<InventoryInboundDetail> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(InventoryInboundDetail::getInboundId, inbound.getId());
+            List<InventoryInboundDetail> details = detailMapper.selectList(queryWrapper);
+
+            for (InventoryInboundDetail detail : details) {
+                Date prodDate = new Date();
+                Date expDate = detail.getExpireDate() != null ? detail.getExpireDate() : new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000); 
+                coreService.increaseStock(detail.getSkuId(), existInbound.getWarehouseId(), detail.getBatchNo(), detail.getRealQty(), prodDate, expDate, detail.getQualityGrade(), detail.getStockStatus());
+            }
+        } else if ("REJECTED".equals(inbound.getStatus())) {
+            existInbound.setStatus("REJECTED");
+            this.updateById(existInbound);
+        } else {
+            throw new ServiceException("无效的审批状态");
         }
         
         return true;

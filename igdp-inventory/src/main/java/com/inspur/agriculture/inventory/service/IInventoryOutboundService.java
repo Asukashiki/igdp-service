@@ -16,9 +16,16 @@ public interface IInventoryOutboundService extends IService<InventoryOutbound> {
     boolean createOutbound(InventoryOutbound outbound);
 
     /**
-     * 审核出库单 (并扣减库存)
+     * 提交出库单
      * @param id 出库单ID
      * @return 结果
      */
-    boolean approveOutbound(Long id);
+    boolean submitOutbound(Long id);
+
+    /**
+     * 审核出库单
+     * @param outbound 包含审核信息的出库单对象
+     * @return 结果
+     */
+    boolean auditOutbound(InventoryOutbound outbound);
 }

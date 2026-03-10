@@ -30,9 +30,13 @@ public class InboundController extends BaseController {
         return toAjax(inboundService.createInbound(inbound));
     }
 
-    @PostMapping("/approve")
-    public AjaxResult approve(@RequestBody InventoryInbound inbound) {
-        // Assume ID is passed
-        return toAjax(inboundService.approveInbound(inbound.getId()));
+    @PostMapping("/submit")
+    public AjaxResult submit(@RequestBody InventoryInbound inbound) {
+        return toAjax(inboundService.submitInbound(inbound.getId()));
+    }
+
+    @PostMapping("/audit")
+    public AjaxResult audit(@RequestBody InventoryInbound inbound) {
+        return toAjax(inboundService.auditInbound(inbound));
     }
 }

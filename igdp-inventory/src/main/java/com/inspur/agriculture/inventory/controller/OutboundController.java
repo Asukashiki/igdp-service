@@ -29,8 +29,13 @@ public class OutboundController extends BaseController {
         return toAjax(outboundService.createOutbound(outbound));
     }
 
-    @PostMapping("/approve")
-    public AjaxResult approve(@RequestBody InventoryOutbound outbound) {
-        return toAjax(outboundService.approveOutbound(outbound.getId()));
+    @PostMapping("/submit")
+    public AjaxResult submit(@RequestBody InventoryOutbound outbound) {
+        return toAjax(outboundService.submitOutbound(outbound.getId()));
+    }
+
+    @PostMapping("/audit")
+    public AjaxResult audit(@RequestBody InventoryOutbound outbound) {
+        return toAjax(outboundService.auditOutbound(outbound));
     }
 }
