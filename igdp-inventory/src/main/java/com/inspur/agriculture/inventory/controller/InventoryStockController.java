@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController("inventoryStockController")
 @RequestMapping("/inventory/stock")
-public class StockController extends BaseController {
+public class InventoryStockController extends BaseController {
 
     @Autowired
     private IInventoryStockService stockService;

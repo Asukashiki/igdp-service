@@ -156,10 +156,6 @@
             <artifactId>igdp-offline</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.inspur</groupId>
-            <artifactId>igdp-inventory</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.snmp4j</groupId>
