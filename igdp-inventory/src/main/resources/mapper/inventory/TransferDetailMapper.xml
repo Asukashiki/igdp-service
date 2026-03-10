@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.inventory.mapper.TransferDetailMapper">
+
+    <resultMap type="com.inspur.agriculture.inventory.domain.InventoryTransferDetail" id="TransferDetailResult">
+        <id property="id" column="id"/>
+        <result property="transferId" column="transfer_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="inputId" column="input_id"/>
+        <result property="inputCode" column="input_code"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="supplier" column="supplier"/>
+        <result property="applyQty" column="apply_qty"/>
+        <result property="realQty" column="real_qty"/>
+        <result property="unit" column="unit"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectTransferDetailVo">
+        SELECT id, transfer_id, product_id, product_name, input_id, input_code,
+               batch_no, supplier, apply_qty, real_qty, unit,
+               create_by, create_time, update_by, update_time
+        FROM inventory_transfer_detail
+    </sql>
+
+    <select id="selectByTransferId" parameterType="Long" resultMap="TransferDetailResult">
+        <include refid="selectTransferDetailVo"/>
+        WHERE transfer_id = #{transferId}
+        ORDER BY id ASC
+    </select>
+
+    <delete id="deleteByTransferId" parameterType="Long">
+        DELETE FROM inventory_transfer_detail WHERE transfer_id = #{transferId}
+    </delete>
+
+</mapper>

@@ -10,25 +10,34 @@ import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
 
 /**
- * 出库单明细表
+ * 库存调拨明细表
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("inventory_outbound_order_detail")
-public class InventoryOutboundDetail extends BaseEntity {
+@TableName("inventory_transfer_detail")
+public class InventoryTransferDetail extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long outboundId;
-    private Long inputId;
-    private String inputCode;
+    private Long transferId;
+
     private Long productId;
-    private Long skuId;
-    private String mainCategory;
-    private String subCategory;
+
+    private String productName;
+
+    private Long inputId;
+
+    private String inputCode;
+
     private String batchNo;
-    private BigDecimal qty;
+
+    private String supplier;
+
+    private BigDecimal applyQty;
+
+    private BigDecimal realQty;
+
     private String unit;
 }
