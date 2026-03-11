@@ -3,9 +3,12 @@ package com.inspur.agriculture.inventory.domain;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.inspur.common.core.domain.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.math.BigDecimal;
 
 /**
  * 仓库表
@@ -22,6 +25,16 @@ public class InventoryWarehouse extends BaseEntity {
     private String warehouseCode;
     private String warehouseName;
     private String type;
+    private String storeType;
+    private String orgName;
+    private String adminLevel;
+    private Long parentId;
+    private String location;
+    private BigDecimal capacity;
     private String address;
     private String status;
+    private String remark;
+
+    @TableField(exist = false)
+    private String parentWarehouseName;
 }

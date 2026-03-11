@@ -144,16 +144,18 @@
             <artifactId>igdp-agriculture-input</artifactId>
         </dependency>
 
+        <!-- 库存主数据模块 -->
+        <dependency>
+            <groupId>com.inspur</groupId>
+            <artifactId>igdp-inventory</artifactId>
+        </dependency>
+
         <!-- 离线数据同步模块 -->
         <dependency>
             <groupId>com.inspur</groupId>
             <artifactId>igdp-offline</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.inspur</groupId>
-            <artifactId>igdp-inventory</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.snmp4j</groupId>

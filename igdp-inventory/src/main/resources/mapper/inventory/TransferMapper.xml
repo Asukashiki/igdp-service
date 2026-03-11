@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.inventory.mapper.TransferMapper">
+
+    <resultMap type="com.inspur.agriculture.inventory.domain.InventoryTransfer" id="TransferResult">
+        <id property="id" column="id"/>
+        <result property="transferNo" column="transfer_no"/>
+        <result property="transferType" column="transfer_type"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="expectedDate" column="expected_date"/>
+        <result property="applicant" column="applicant"/>
+        <result property="department" column="department"/>
+        <result property="outWarehouseId" column="out_warehouse_id"/>
+        <result property="outWarehouseName" column="out_warehouse_name"/>
+        <result property="outTime" column="out_time"/>
+        <result property="inWarehouseId" column="in_warehouse_id"/>
+        <result property="inWarehouseName" column="in_warehouse_name"/>
+        <result property="inTime" column="in_time"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="auditComment" column="audit_comment"/>
+        <result property="relatedOutboundId" column="related_outbound_id"/>
+        <result property="relatedInboundId" column="related_inbound_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap type="com.inspur.agriculture.inventory.vo.TransferVO" id="TransferVOResult">
+        <id property="id" column="id"/>
+        <result property="transferNo" column="transfer_no"/>
+        <result property="transferType" column="transfer_type"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="expectedDate" column="expected_date"/>
+        <result property="applicant" column="applicant"/>
+        <result property="department" column="department"/>
+        <result property="outWarehouseId" column="out_warehouse_id"/>
+        <result property="outWarehouseName" column="out_warehouse_name"/>
+        <result property="outTime" column="out_time"/>
+        <result property="inWarehouseId" column="in_warehouse_id"/>
+        <result property="inWarehouseName" column="in_warehouse_name"/>
+        <result property="inTime" column="in_time"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="auditComment" column="audit_comment"/>
+        <result property="relatedOutboundId" column="related_outbound_id"/>
+        <result property="relatedInboundId" column="related_inbound_id"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="selectTransferVo">
+        SELECT id, transfer_no, transfer_type, apply_date, expected_date, applicant, department,
+               out_warehouse_id, out_warehouse_name, out_time,
+               in_warehouse_id, in_warehouse_name, in_time,
+               status, remark, audit_by, audit_time, audit_comment,
+               related_outbound_id, related_inbound_id,
+               create_by, create_time, update_by, update_time
+        FROM inventory_transfer
+    </sql>
+
+    <select id="selectTransferList" parameterType="com.inspur.agriculture.inventory.dto.TransferDTO" resultMap="TransferVOResult">
+        <include refid="selectTransferVo"/>
+        <where>
+            <if test="transferType != null and transferType != ''">
+                AND transfer_type = #{transferType}
+            </if>
+            <if test="startDate != null">
+                AND apply_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND apply_date &lt;= #{endDate}
+            </if>
+            <if test="outWarehouseId != null">
+                AND out_warehouse_id = #{outWarehouseId}
+            </if>
+            <if test="inWarehouseId != null">
+                AND in_warehouse_id = #{inWarehouseId}
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test="status.contains(',')">
+                        AND status IN
+                        <foreach collection="status.split(',')" item="item" open="(" separator="," close=")">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND status = #{status}
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectTransferById" parameterType="Long" resultMap="TransferVOResult">
+        <include refid="selectTransferVo"/>
+        WHERE id = #{id}
+    </select>
+
+</mapper>
