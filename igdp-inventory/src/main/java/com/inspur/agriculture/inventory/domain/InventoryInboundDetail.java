@@ -1,6 +1,7 @@
 package com.inspur.agriculture.inventory.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.inspur.common.core.domain.BaseEntity;
@@ -23,10 +24,7 @@ public class InventoryInboundDetail extends BaseEntity {
     private Long id;
 
     private Long inboundId;
-    private Long inputId;
-    private String inputCode;
     private Long productId;
-    private Long skuId;
     private String mainCategory;
     private String subCategory;
     private String batchNo;
@@ -35,9 +33,11 @@ public class InventoryInboundDetail extends BaseEntity {
     private String unit;
     private Date expireDate;
     
-    // 冗余字段用于传递业务信息，非数据库字段
-    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    /** 质量等级（非数据库字段，用于业务传递） */
+    @TableField(exist = false)
     private String qualityGrade;
-    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    
+    /** 库存状态（非数据库字段，用于业务传递） */
+    @TableField(exist = false)
     private String stockStatus;
 }

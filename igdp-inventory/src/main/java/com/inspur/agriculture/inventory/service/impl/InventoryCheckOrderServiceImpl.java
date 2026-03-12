@@ -6,7 +6,6 @@ import com.inspur.agriculture.inventory.domain.InventoryCheckOrder;
 import com.inspur.agriculture.inventory.domain.InventoryCheckOrderDetail;
 import com.inspur.agriculture.inventory.mapper.InventoryCheckOrderDetailMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryCheckOrderMapper;
-import com.inspur.agriculture.inventory.service.IInventoryCheckOrderDetailService;
 import com.inspur.agriculture.inventory.service.IInventoryCheckOrderService;
 import com.inspur.agriculture.inventory.service.IInventoryCoreService;
 import com.inspur.common.exception.ServiceException;
@@ -32,7 +31,7 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
     @Transactional(rollbackFor = Exception.class)
     public boolean createCheckOrder(InventoryCheckOrder checkOrder) {
         if (checkOrder == null) {
-            throw new ServiceException("盘点单不能为空");
+            throw new ServiceException("Inventory check order cannot be null.");
         }
         checkOrder.setStatus("DRAFT");
         checkOrder.setCreateTime(LocalDateTime.now());
@@ -52,13 +51,13 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
     @Transactional(rollbackFor = Exception.class)
     public boolean recordCheckResult(InventoryCheckOrder checkOrder) {
         if (checkOrder == null || checkOrder.getId() == null) {
-            throw new ServiceException("盘点单信息不完整");
+            throw new ServiceException("Inventory check order information is incomplete.");
         }
         InventoryCheckOrder existOrder = this.getById(checkOrder.getId());
         if (existOrder == null) {
-            throw new ServiceException("盘点单不存在");
+            throw new ServiceException("Inventory check order not found.");
         }
-        
+
         existOrder.setStatus("CHECKING");
         existOrder.setCheckDate(new Date());
         existOrder.setCheckBy(checkOrder.getCheckBy());
@@ -73,7 +72,7 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
                     BigDecimal bookQty = detail.getBookQty() != null ? detail.getBookQty() : BigDecimal.ZERO;
                     BigDecimal realQty = detail.getRealQty() != null ? detail.getRealQty() : BigDecimal.ZERO;
                     BigDecimal diffQty = realQty.subtract(bookQty);
-                    
+
                     detail.setDiffQty(diffQty.abs());
                     if (diffQty.compareTo(BigDecimal.ZERO) > 0) {
                         detail.setDiffType("PROFIT"); // 盘盈
@@ -82,7 +81,7 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
                     } else {
                         detail.setDiffType("NORMAL"); // 正常
                     }
-                    
+
                     detailMapper.updateById(detail);
                 }
             }
@@ -95,9 +94,9 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
     public boolean auditCheckOrder(InventoryCheckOrder checkOrder) {
         InventoryCheckOrder existOrder = this.getById(checkOrder.getId());
         if (existOrder == null) {
-            throw new ServiceException("盘点单不存在");
+            throw new ServiceException("Inventory check order not found.");
         }
-        
+
         existOrder.setStatus("FINISHED"); // 或 AUDITED
         existOrder.setAuditBy(checkOrder.getAuditBy());
         existOrder.setAuditTime(new Date());
@@ -112,13 +111,13 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
         for (InventoryCheckOrderDetail detail : details) {
             if ("PROFIT".equals(detail.getDiffType())) {
                 // 盘盈入库
-                coreService.increaseStock(detail.getSkuId(), existOrder.getWarehouseId(), detail.getBatchNo(), detail.getDiffQty(), null, null);
+                coreService.increaseStock(detail.getProductId(), existOrder.getWarehouseCode(), detail.getBatchNo(), detail.getDiffQty(), null, null);
             } else if ("LOSS".equals(detail.getDiffType())) {
                 // 盘亏出库 (直接扣减，不走锁定流程)
                 // 注意：reduceStock默认扣减锁定库存，这里需要特殊处理或者先锁定再扣减
                 // 简化处理：先锁定再扣减
-                coreService.lockStock(detail.getSkuId(), existOrder.getWarehouseId(), detail.getDiffQty());
-                coreService.reduceStock(detail.getSkuId(), existOrder.getWarehouseId(), detail.getBatchNo(), detail.getDiffQty());
+                coreService.lockStock(detail.getProductId(), existOrder.getWarehouseCode(), detail.getDiffQty());
+                coreService.reduceStock(detail.getProductId(), existOrder.getWarehouseCode(), detail.getBatchNo(), detail.getDiffQty());
             }
         }
         return true;

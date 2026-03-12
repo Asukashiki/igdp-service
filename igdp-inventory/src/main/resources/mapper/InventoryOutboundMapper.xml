@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.inventory.mapper.InventoryOutboundMapper">
+
+    <resultMap id="OutboundResultMap" type="com.inspur.agriculture.inventory.domain.InventoryOutbound">
+        <id property="id" column="id"/>
+        <result property="outboundNo" column="outbound_no"/>
+        <result property="warehouseCode" column="warehouse_code"/>
+        <result property="warehouseName" column="warehouse_name"/>
+        <result property="type" column="type"/>
+        <result property="status" column="status"/>
+        <result property="receiverType" column="receiver_type"/>
+        <result property="receiver" column="receiver"/>
+        <result property="bizNo" column="biz_no"/>
+        <result property="operator" column="operator"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="auditComment" column="audit_comment"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="selectOutboundWithWarehouse" resultMap="OutboundResultMap">
+        SELECT 
+            oo.id,
+            oo.outbound_no,
+            oo.warehouse_code,
+            w.warehouse_name,
+            oo.type,
+            oo.status,
+            oo.receiver_type,
+            oo.receiver,
+            oo.biz_no,
+            oo.operator,
+            oo.order_date,
+            oo.audit_by,
+            oo.audit_time,
+            oo.audit_comment,
+            oo.create_by,
+            oo.create_time,
+            oo.update_by,
+            oo.update_time,
+            oo.remark
+        FROM inventory_outbound_order oo
+        LEFT JOIN inventory_warehouse w ON oo.warehouse_code = w.warehouse_code
+        WHERE oo.id = #{id}
+    </select>
+
+    <select id="selectOutboundListWithWarehouse" resultMap="OutboundResultMap">
+        SELECT 
+            oo.id,
+            oo.outbound_no,
+            oo.warehouse_code,
+            w.warehouse_name,
+            oo.type,
+            oo.status,
+            oo.receiver_type,
+            oo.receiver,
+            oo.biz_no,
+            oo.operator,
+            oo.order_date,
+            oo.audit_by,
+            oo.audit_time,
+            oo.audit_comment,
+            oo.create_by,
+            oo.create_time,
+            oo.update_by,
+            oo.update_time,
+            oo.remark
+        FROM inventory_outbound_order oo
+        LEFT JOIN inventory_warehouse w ON oo.warehouse_code = w.warehouse_code
+        <where>
+            <if test="outboundNo != null and outboundNo != ''">
+                AND oo.outbound_no LIKE CONCAT('%', #{outboundNo}, '%')
+            </if>
+            <if test="type != null and type != ''">
+                AND oo.type = #{type}
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test="status.indexOf(',') &gt; -1">
+                        AND oo.status IN
+                        <foreach collection="status.split(',')" item="s" open="(" separator="," close=")">
+                            #{s}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND oo.status = #{status}
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="warehouseCode != null and warehouseCode != ''">
+                AND oo.warehouse_code = #{warehouseCode}
+            </if>
+        </where>
+        ORDER BY oo.create_time DESC
+    </select>
+
+</mapper>

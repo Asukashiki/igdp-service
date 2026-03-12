@@ -22,13 +22,15 @@ public class InventoryStockBatch extends BaseEntity {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long skuId;
+    private Long stockId;
     private Long productId;
     private Long warehouseId;
     private String batchNo;
+    private String mainCategory;
+    private String subCategory;
+    private BigDecimal qty;
     private Date productionDate;
     private Date expireDate;
-    private BigDecimal qty;
     private String qualityGrade;
     private String stockStatus;
 }

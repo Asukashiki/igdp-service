@@ -23,7 +23,6 @@ public class InventoryCheckOrderDetail extends BaseEntity {
 
     private Long checkId;
     private Long productId;
-    private Long skuId;
     private String mainCategory;
     private String subCategory;
     private String batchNo;

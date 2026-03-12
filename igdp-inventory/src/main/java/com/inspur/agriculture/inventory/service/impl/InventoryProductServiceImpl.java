@@ -15,10 +15,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 商品服务实现
+ * Product service implementation.
  */
 @Service
-public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMapper, InventoryProduct> implements IInventoryProductService {
+public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMapper, InventoryProduct>
+        implements IInventoryProductService {
 
     @Override
     public List<InventoryProduct> selectProductList(InventoryProduct product) {
@@ -45,11 +46,11 @@ public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMap
     @Transactional(rollbackFor = Exception.class)
     public boolean updateProduct(InventoryProduct product) {
         if (product == null || product.getId() == null) {
-            throw new ServiceException("商品ID不能为空");
+            throw new ServiceException("Product ID cannot be null.");
         }
         InventoryProduct exists = this.getById(product.getId());
         if (exists == null) {
-            throw new ServiceException("商品不存在");
+            throw new ServiceException("Product not found.");
         }
         validateProduct(product, true);
         product.setUpdateTime(LocalDateTime.now());
@@ -61,36 +62,36 @@ public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMap
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteProduct(Long id) {
         if (id == null) {
-            throw new ServiceException("商品ID不能为空");
+            throw new ServiceException("Product ID cannot be null.");
         }
         InventoryProduct exists = this.getById(id);
         if (exists == null) {
-            throw new ServiceException("商品不存在");
+            throw new ServiceException("Product not found.");
         }
         return this.removeById(id);
     }
 
     private void validateProduct(InventoryProduct product, boolean isUpdate) {
         if (product == null) {
-            throw new ServiceException("商品信息不能为空");
+            throw new ServiceException("Product information cannot be null.");
         }
         if (isBlank(product.getProductCode())) {
-            throw new ServiceException("商品编码不能为空");
+            throw new ServiceException("Product code cannot be empty.");
         }
         if (isBlank(product.getProductName())) {
-            throw new ServiceException("商品名称不能为空");
+            throw new ServiceException("Product name cannot be empty.");
         }
         if (isBlank(product.getMainCategory())) {
-            throw new ServiceException("商品大类不能为空");
+            throw new ServiceException("Main category cannot be empty.");
         }
         if (isBlank(product.getUnit())) {
-            throw new ServiceException("单位不能为空");
+            throw new ServiceException("Unit cannot be empty.");
         }
         if (product.getPrice() == null) {
             product.setPrice(BigDecimal.ZERO);
         }
         if (product.getPrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new ServiceException("参考价格不能小于0");
+            throw new ServiceException("Reference price cannot be less than 0.");
         }
 
         LambdaQueryWrapper<InventoryProduct> wrapper = new LambdaQueryWrapper<>();
@@ -100,7 +101,7 @@ public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMap
         }
         long count = this.count(wrapper);
         if (count > 0) {
-            throw new ServiceException("商品编码已存在");
+            throw new ServiceException("Product code already exists.");
         }
     }
 

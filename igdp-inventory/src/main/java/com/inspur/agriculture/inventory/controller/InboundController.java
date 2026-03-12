@@ -26,36 +26,30 @@ public class InboundController extends BaseController {
                               @RequestParam(required = false) String type,
                               @RequestParam(required = false) String status) {
         startPage();
-        LambdaQueryWrapper<InventoryInbound> wrapper = new LambdaQueryWrapper<>();
         
-        if (StringUtils.isNotBlank(inboundNo)) {
-            wrapper.like(InventoryInbound::getInboundNo, inboundNo);
-        }
-        if (StringUtils.isNotBlank(type)) {
-            wrapper.eq(InventoryInbound::getType, type);
-        }
-        if (StringUtils.isNotBlank(status)) {
-            if (status.contains(",")) {
-                wrapper.in(InventoryInbound::getStatus, Arrays.asList(status.split(",")));
-            } else {
-                wrapper.eq(InventoryInbound::getStatus, status);
-            }
-        }
-        wrapper.orderByDesc(InventoryInbound::getCreateTime);
+        InventoryInbound query = new InventoryInbound();
+        query.setInboundNo(inboundNo);
+        query.setType(type);
+        query.setStatus(status);
         
-        List<InventoryInbound> list = inboundService.list(wrapper);
+        List<InventoryInbound> list = inboundService.selectInboundListWithWarehouse(query);
         return getDataTable(list);
     }
 
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable Long id) {
-        InventoryInbound inbound = inboundService.getById(id);
+        InventoryInbound inbound = inboundService.selectInboundWithWarehouse(id);
         return AjaxResult.success(inbound);
     }
 
     @PostMapping("/create")
     public AjaxResult create(@RequestBody InventoryInbound inbound) {
         return toAjax(inboundService.createInbound(inbound));
+    }
+
+    @PutMapping
+    public AjaxResult update(@RequestBody InventoryInbound inbound) {
+        return toAjax(inboundService.updateInbound(inbound));
     }
 
     @PostMapping("/submit")

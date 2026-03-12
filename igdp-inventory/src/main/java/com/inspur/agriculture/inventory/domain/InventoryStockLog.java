@@ -21,7 +21,7 @@ public class InventoryStockLog extends BaseEntity {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long skuId;
+    private Long productId;
     private Long warehouseId;
     private String batchNo;
     private String changeType;

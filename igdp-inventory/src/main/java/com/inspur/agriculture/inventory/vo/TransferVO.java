@@ -26,13 +26,13 @@ public class TransferVO {
 
     private String department;
 
-    private Long outWarehouseId;
+    private String outWarehouseCode;
 
     private String outWarehouseName;
 
     private Date outTime;
 
-    private Long inWarehouseId;
+    private String inWarehouseCode;
 
     private String inWarehouseName;
 
