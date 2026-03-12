@@ -34,6 +34,16 @@ public interface IInventoryCoreService {
     void reduceStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty);
 
     /**
+     * Reduce stock with separate batch quantity.
+     * @param productId Product ID
+     * @param warehouseCode Warehouse code
+     * @param batchNo Batch number
+     * @param stockQtyKg Stock quantity in KG
+     * @param batchQty Batch quantity in its own unit
+     */
+    void reduceStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty);
+
+    /**
      * 增加库存 (确认入库)
      * @param productId Product ID
      * @param warehouseCode 仓库编码
@@ -71,6 +81,24 @@ public interface IInventoryCoreService {
      * @param subCategory 商品小类
      */
     void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory);
+
+    /**
+     * Increase stock with separate batch quantity and unit.
+     * @param productId Product ID
+     * @param warehouseCode Warehouse code
+     * @param batchNo Batch number
+     * @param stockQtyKg Stock quantity in KG
+     * @param batchQty Batch quantity in its own unit
+     * @param batchUnit Batch unit
+     * @param prodDate Production date
+     * @param expDate Expire date
+     * @param qualityGrade Quality grade
+     * @param stockStatus Stock status
+     * @param mainCategory Main category
+     * @param subCategory Sub category
+     */
+    void increaseStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty, String batchUnit,
+                                Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory);
 
     /**
      * 预占库存 (可选)

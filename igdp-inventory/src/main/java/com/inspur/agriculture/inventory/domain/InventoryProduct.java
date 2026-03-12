@@ -37,4 +37,5 @@ public class InventoryProduct extends BaseEntity {
     private String remark;
     @TableField(exist = false)
     private String keyword;
+    private Long parentId;
 }

@@ -23,6 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
+        <result property="parentId" column="parent_id"/>
     </resultMap>
 
     <sql id="selectInventoryProductVo">
@@ -43,7 +44,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                create_time,
                update_by,
                update_time,
-               remark
+               remark,
+               parent_id
         FROM inventory_product
     </sql>
 
@@ -70,6 +72,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
             <if test="status != null and status != ''">
                 AND status = #{status}
+            </if>
+            <if test="parentId != null">
+                <choose>
+                    <when test="parentId == 0">
+                        AND (parent_id = 0 OR parent_id IS NULL)
+                    </when>
+                    <otherwise>
+                        AND parent_id = #{parentId}
+                    </otherwise>
+                </choose>
             </if>
             <if test="keyword != null and keyword != ''">
                 AND (

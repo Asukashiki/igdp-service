@@ -14,6 +14,7 @@ import com.inspur.agriculture.inventory.service.IInventoryInboundDetailService;
 import com.inspur.agriculture.inventory.service.IInventoryInboundService;
 import com.inspur.agriculture.inventory.service.IInventoryWarehouseService;
 import com.inspur.common.exception.ServiceException;
+import com.inspur.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,7 +129,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             throw new ServiceException("Only submitted inbound orders can be audited.");
         }
 
-        existInbound.setAuditBy(inbound.getAuditBy());
+        existInbound.setAuditBy(SecurityUtils.getUsername());
         existInbound.setAuditTime(new Date());
         existInbound.setAuditComment(inbound.getAuditComment());
 
@@ -152,13 +153,15 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
                 BigDecimal qtyKg = convertToKg(detail.getQty(), detail.getUnit(), "Inbound detail quantity");
                 Date prodDate = new Date();
                 Date expDate = detail.getExpireDate() != null ? detail.getExpireDate() : new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000);
-                coreService.increaseStock(
-                    detail.getProductId(), 
-                    existInbound.getWarehouseCode(), 
-                    detail.getBatchNo(), 
-                    qtyKg, 
-                    prodDate, 
-                    expDate, 
+                coreService.increaseStockWithBatch(
+                    detail.getProductId(),
+                    existInbound.getWarehouseCode(),
+                    detail.getBatchNo(),
+                    qtyKg,
+                    detail.getQty(),
+                    detail.getUnit(),
+                    prodDate,
+                    expDate,
                     detail.getQualityGrade(),
                     detail.getStockStatus(),
                     detail.getMainCategory(),

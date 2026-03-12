@@ -29,6 +29,7 @@ public class InventoryStockBatch extends BaseEntity {
     private String mainCategory;
     private String subCategory;
     private BigDecimal qty;
+    private String unit;
     private Date productionDate;
     private Date expireDate;
     private String qualityGrade;

@@ -25,9 +25,9 @@ public class InventoryStockLog extends BaseEntity {
     private Long warehouseId;
     private String batchNo;
     private String changeType;
-    private BigDecimal changeQty;
-    private BigDecimal beforeQty;
-    private BigDecimal afterQty;
+    private BigDecimal changeQuantity;
+    private BigDecimal beforeQuantity;
+    private BigDecimal afterQuantity;
     private String bizType;
     private Long bizId;
     private String bizNo;

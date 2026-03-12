@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -16,25 +16,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
-        <result property="productName" column="product_name"/>
         <result property="warehouseName" column="warehouse_name"/>
     </resultMap>
 
     <sql id="selectInventoryStockVo">
         SELECT s.id, s.product_id, s.warehouse_id, s.available_qty, s.locked_qty, s.version, 
-               s.create_by, s.create_time, s.update_by, s.update_time, s.remark,
-               p.product_name, w.warehouse_name
+               s.create_by, s.create_time, s.update_by, s.update_time, s.remark, w.warehouse_name
         FROM inventory_stock s
-        LEFT JOIN inventory_product p ON s.product_id = p.id
         LEFT JOIN inventory_warehouse w ON s.warehouse_id = w.id
     </sql>
 
     <select id="selectStockList" parameterType="com.inspur.agriculture.inventory.domain.InventoryStock" resultMap="InventoryStockResult">
         <include refid="selectInventoryStockVo"/>
         <where>
-            <if test="warehouseId != null"> AND s.warehouse_id = #{warehouseId} </if>
             <if test="productId != null"> AND s.product_id = #{productId} </if>
-            <if test="productName != null and productName != ''"> AND p.product_name LIKE concat('%', #{productName}, '%') </if>
+            <if test="warehouseId != null"> AND s.warehouse_id = #{warehouseId} </if>
             <if test="warehouseName != null and warehouseName != ''"> AND w.warehouse_name LIKE concat('%', #{warehouseName}, '%') </if>
         </where>
     </select>
@@ -51,3 +47,4 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
 </mapper>
+

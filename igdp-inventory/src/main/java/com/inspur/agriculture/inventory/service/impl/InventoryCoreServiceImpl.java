@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 库存核心服务实现
+ * 搴撳瓨鏍稿績鏈嶅姟瀹炵幇
  */
 @Service
 public class InventoryCoreServiceImpl implements IInventoryCoreService {
@@ -86,16 +86,22 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void reduceStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty) {
+        reduceStockWithBatch(productId, warehouseCode, batchNo, qty, qty);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void reduceStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty) {
         Long warehouseId = getWarehouseIdByCode(warehouseCode);
-        if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
-             throw new ServiceException("Reduce quantity must be greater than 0.");
+        if (stockQtyKg == null || stockQtyKg.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ServiceException("Reduce quantity must be greater than 0.");
         }
 
         InventoryStock stock = getOrCreateStock(productId, warehouseId);
-        if (stock.getLockedQty().compareTo(qty) < 0) {
+        if (stock.getLockedQty().compareTo(stockQtyKg) < 0) {
             throw new ServiceException("Reduce quantity is greater than locked quantity (please lock first).");
         }
-        stock.setLockedQty(stock.getLockedQty().subtract(qty));
+        stock.setLockedQty(stock.getLockedQty().subtract(stockQtyKg));
         int rows = stockMapper.updateById(stock);
         if (rows == 0) {
             throw new ServiceException("Stock update failed, please retry.");
@@ -103,18 +109,28 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
         if (batchNo != null && !batchNo.isEmpty()) {
             LambdaQueryWrapper<InventoryStockBatch> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(InventoryStockBatch::getProductId, productId)
-                        .eq(InventoryStockBatch::getWarehouseId, warehouseId)
-                        .eq(InventoryStockBatch::getBatchNo, batchNo);
+            queryWrapper.eq(InventoryStockBatch::getStockId, stock.getId())
+                    .eq(InventoryStockBatch::getBatchNo, batchNo);
             InventoryStockBatch batch = stockBatchMapper.selectOne(queryWrapper);
-            if (batch == null || batch.getQty().compareTo(qty) < 0) {
+            if (batch == null || batch.getQty() == null) {
+                throw new ServiceException("Batch stock not found.");
+            }
+            if (batchQty == null || batchQty.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ServiceException("Batch reduce quantity must be greater than 0.");
+            }
+            if (batch.getQty().compareTo(batchQty) < 0) {
                 throw new ServiceException("Insufficient batch stock.");
             }
-            batch.setQty(batch.getQty().subtract(qty));
-            stockBatchMapper.updateById(batch);
+            BigDecimal newQty = batch.getQty().subtract(batchQty);
+            if (newQty.compareTo(BigDecimal.ZERO) == 0) {
+                stockBatchMapper.deleteById(batch.getId());
+            } else {
+                batch.setQty(newQty);
+                stockBatchMapper.updateById(batch);
+            }
         }
 
-        recordLog(productId, warehouseId, batchNo, "OUTBOUND", qty, stock.getAvailableQty(), stock.getAvailableQty(), "REDUCE_STOCK", null, null);
+        recordLog(productId, warehouseId, batchNo, "OUTBOUND", stockQtyKg, stock.getAvailableQty(), stock.getAvailableQty(), "REDUCE_STOCK", null, null);
     }
 
     @Override
@@ -130,31 +146,38 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
     @Override
     public void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory) {
+        increaseStockWithBatch(productId, warehouseCode, batchNo, qty, qty, null, prodDate, expDate, qualityGrade, stockStatus, mainCategory, subCategory);
+    }
+
+    @Override
+    public void increaseStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty, String batchUnit,
+                                       Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory) {
         Long warehouseId = getWarehouseIdByCode(warehouseCode);
-        if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
-             throw new ServiceException("Increase quantity must be greater than 0.");
+        if (stockQtyKg == null || stockQtyKg.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ServiceException("Increase quantity must be greater than 0.");
         }
 
         InventoryStock stock = getOrCreateStock(productId, warehouseId);
         BigDecimal before = stock.getAvailableQty();
-        stock.setAvailableQty(stock.getAvailableQty().add(qty));
+        stock.setAvailableQty(stock.getAvailableQty().add(stockQtyKg));
         if (qualityGrade != null) stock.setQualityGrade(qualityGrade);
         if (stockStatus != null) stock.setStockStatus(stockStatus);
-        
+
         stockMapper.updateById(stock);
 
         if (batchNo != null && !batchNo.isEmpty()) {
             LambdaQueryWrapper<InventoryStockBatch> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(InventoryStockBatch::getProductId, productId)
-                        .eq(InventoryStockBatch::getWarehouseId, warehouseId)
-                        .eq(InventoryStockBatch::getBatchNo, batchNo);
+            queryWrapper.eq(InventoryStockBatch::getStockId, stock.getId())
+                    .eq(InventoryStockBatch::getBatchNo, batchNo);
             InventoryStockBatch batch = stockBatchMapper.selectOne(queryWrapper);
             if (batch == null) {
                 batch = new InventoryStockBatch();
                 batch.setProductId(productId);
                 batch.setWarehouseId(warehouseId);
+                batch.setStockId(stock.getId());
                 batch.setBatchNo(batchNo);
-                batch.setQty(qty);
+                batch.setQty(batchQty != null ? batchQty : BigDecimal.ZERO);
+                batch.setUnit(batchUnit);
                 batch.setProductionDate(prodDate);
                 batch.setExpireDate(expDate);
                 batch.setQualityGrade(qualityGrade);
@@ -163,14 +186,16 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
                 batch.setSubCategory(subCategory);
                 stockBatchMapper.insert(batch);
             } else {
-                batch.setQty(batch.getQty().add(qty));
+                BigDecimal addQty = batchQty != null ? batchQty : BigDecimal.ZERO;
+                batch.setQty(batch.getQty().add(addQty));
+                if (batchUnit != null && !batchUnit.isEmpty()) batch.setUnit(batchUnit);
                 if (mainCategory != null) batch.setMainCategory(mainCategory);
                 if (subCategory != null) batch.setSubCategory(subCategory);
                 stockBatchMapper.updateById(batch);
             }
         }
 
-        recordLog(productId, warehouseId, batchNo, "INBOUND", qty, before, stock.getAvailableQty(), "INCREASE_STOCK", null, null);
+        recordLog(productId, warehouseId, batchNo, "INBOUND", stockQtyKg, before, stock.getAvailableQty(), "INCREASE_STOCK", null, null);
     }
 
     @Override
@@ -190,9 +215,12 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
     }
 
     private InventoryStock getOrCreateStock(Long productId, Long warehouseId) {
+        if (productId == null) {
+            throw new ServiceException("Product ID cannot be empty.");
+        }
         LambdaQueryWrapper<InventoryStock> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(InventoryStock::getProductId, productId)
-                    .eq(InventoryStock::getWarehouseId, warehouseId);
+        queryWrapper.eq(InventoryStock::getWarehouseId, warehouseId)
+                    .eq(InventoryStock::getProductId, productId);
         InventoryStock stock = stockMapper.selectOne(queryWrapper);
         if (stock == null) {
             stock = new InventoryStock();
@@ -209,15 +237,17 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
     private void recordLog(Long productId, Long warehouseId, String batchNo, String type, BigDecimal changeQty, 
                            BigDecimal beforeQty, BigDecimal afterQty, String bizType, Long bizId, String bizNo) {
         InventoryStockLog log = new InventoryStockLog();
+        log.setProductId(productId);
         log.setWarehouseId(warehouseId);
         log.setBatchNo(batchNo);
         log.setChangeType(type);
-        log.setChangeQty(changeQty);
-        log.setBeforeQty(beforeQty);
-        log.setAfterQty(afterQty);
+        log.setChangeQuantity(changeQty);
+        log.setBeforeQuantity(beforeQty);
+        log.setAfterQuantity(afterQty);
         log.setBizType(bizType);
         log.setBizId(bizId);
         log.setBizNo(bizNo);
         stockLogMapper.insert(log);
     }
 }
+
