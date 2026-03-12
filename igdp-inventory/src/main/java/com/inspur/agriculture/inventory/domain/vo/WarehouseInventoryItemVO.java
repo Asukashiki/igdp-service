@@ -21,4 +21,6 @@ public class WarehouseInventoryItemVO {
 
     private String qualityStatus;
     private BigDecimal currentQty;
+    private String mainCategory;
+    private String subCategory;
 }

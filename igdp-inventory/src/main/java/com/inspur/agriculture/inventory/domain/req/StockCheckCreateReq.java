@@ -45,5 +45,9 @@ public class StockCheckCreateReq {
         private String unit;
 
         private String itemRemark;
+
+        private String mainCategory;
+
+        private String subCategory;
     }
 }
