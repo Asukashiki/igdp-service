@@ -24,10 +24,13 @@ public class InventoryStock extends BaseEntity {
 
     private Long productId;
     private Long warehouseId;
+//    private String mainCategory;
+//    private String subCategory;
     private BigDecimal availableQty;
     private BigDecimal lockedQty;
     private String qualityGrade;
     private String stockStatus;
+    private String remark;
 
     @Version
     private Long version;
@@ -36,4 +39,14 @@ public class InventoryStock extends BaseEntity {
     private String productName;
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String warehouseName;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String skuName;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String skuCode;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String unit;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private Long batchId;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String batchNo;
 }

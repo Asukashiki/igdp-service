@@ -191,6 +191,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
     private InventoryStock getOrCreateStock(Long productId, Long warehouseId) {
         LambdaQueryWrapper<InventoryStock> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(InventoryStock::getWarehouseId, warehouseId);
         queryWrapper.eq(InventoryStock::getProductId, productId)
                     .eq(InventoryStock::getWarehouseId, warehouseId);
         InventoryStock stock = stockMapper.selectOne(queryWrapper);
@@ -206,15 +207,15 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         return stock;
     }
 
-    private void recordLog(Long productId, Long warehouseId, String batchNo, String type, BigDecimal changeQty, 
+    private void recordLog(Long productId, Long warehouseId, String batchNo, String type, BigDecimal changeQty,
                            BigDecimal beforeQty, BigDecimal afterQty, String bizType, Long bizId, String bizNo) {
         InventoryStockLog log = new InventoryStockLog();
         log.setWarehouseId(warehouseId);
         log.setBatchNo(batchNo);
         log.setChangeType(type);
-        log.setChangeQty(changeQty);
-        log.setBeforeQty(beforeQty);
-        log.setAfterQty(afterQty);
+//        log.setChangeQty(changeQty);
+//        log.setBeforeQty(beforeQty);
+//        log.setAfterQty(afterQty);
         log.setBizType(bizType);
         log.setBizId(bizId);
         log.setBizNo(bizNo);

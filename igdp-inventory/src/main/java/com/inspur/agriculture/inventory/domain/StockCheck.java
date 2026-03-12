@@ -18,7 +18,7 @@ import java.util.Date;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("t_stock_check")
+@TableName(value = "t_stock_check", excludeProperty = {"createBy","updateBy"})
 public class StockCheck extends BaseEntity {
     private static final long serialVersionUID = 1L;
 

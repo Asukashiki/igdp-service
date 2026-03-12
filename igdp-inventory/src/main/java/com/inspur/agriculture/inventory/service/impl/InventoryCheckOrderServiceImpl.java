@@ -4,10 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.agriculture.inventory.domain.InventoryCheckOrder;
 import com.inspur.agriculture.inventory.domain.InventoryCheckOrderDetail;
+import com.inspur.agriculture.inventory.domain.InventoryStock;
+import com.inspur.agriculture.inventory.domain.InventoryWarehouse;
 import com.inspur.agriculture.inventory.mapper.InventoryCheckOrderDetailMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryCheckOrderMapper;
+import com.inspur.agriculture.inventory.mapper.InventoryStockMapper;
 import com.inspur.agriculture.inventory.service.IInventoryCheckOrderService;
-import com.inspur.agriculture.inventory.service.IInventoryCoreService;
+import com.inspur.agriculture.inventory.service.IInventoryWarehouseService;
 import com.inspur.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +28,11 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
     private InventoryCheckOrderDetailMapper detailMapper;
 
     @Autowired
-    private IInventoryCoreService coreService;
+    private IInventoryWarehouseService warehouseService;
+
+    @Autowired
+    private InventoryStockMapper stockMapper;
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -98,28 +105,63 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
         }
 
         existOrder.setStatus("FINISHED"); // 或 AUDITED
+
+        existOrder.setStatus("FINISHED");
         existOrder.setAuditBy(checkOrder.getAuditBy());
         existOrder.setAuditTime(new Date());
         existOrder.setAuditComment(checkOrder.getAuditComment());
         this.updateById(existOrder);
 
-        // 调整库存
         LambdaQueryWrapper<InventoryCheckOrderDetail> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(InventoryCheckOrderDetail::getCheckId, checkOrder.getId());
         List<InventoryCheckOrderDetail> details = detailMapper.selectList(queryWrapper);
 
+        Long warehouseId = resolveWarehouseId(existOrder.getWarehouseCode());
         for (InventoryCheckOrderDetail detail : details) {
-            if ("PROFIT".equals(detail.getDiffType())) {
-                // 盘盈入库
-                coreService.increaseStock(detail.getProductId(), existOrder.getWarehouseCode(), detail.getBatchNo(), detail.getDiffQty(), null, null);
-            } else if ("LOSS".equals(detail.getDiffType())) {
-                // 盘亏出库 (直接扣减，不走锁定流程)
-                // 注意：reduceStock默认扣减锁定库存，这里需要特殊处理或者先锁定再扣减
-                // 简化处理：先锁定再扣减
-                coreService.lockStock(detail.getProductId(), existOrder.getWarehouseCode(), detail.getDiffQty());
-                coreService.reduceStock(detail.getProductId(), existOrder.getWarehouseCode(), detail.getBatchNo(), detail.getDiffQty());
+            InventoryStock stock = resolveStock(warehouseId, detail.getProductId());
+            BigDecimal qty = detail.getDiffQty() == null ? null : detail.getDiffQty().abs();
+            if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ServiceException("Invalid diff quantity.");
             }
+            if ("PROFIT".equals(detail.getDiffType())) {
+                stock.setAvailableQty(stock.getAvailableQty().add(qty));
+            } else if ("LOSS".equals(detail.getDiffType())) {
+                if (stock.getAvailableQty().compareTo(qty) < 0) {
+                    throw new ServiceException("Insufficient stock to reduce.");
+                }
+                stock.setAvailableQty(stock.getAvailableQty().subtract(qty));
+            }
+            stockMapper.updateById(stock);
         }
         return true;
     }
+
+    private Long resolveWarehouseId(String warehouseCode) {
+        if (warehouseCode == null || warehouseCode.trim().isEmpty()) {
+            throw new ServiceException("Warehouse code is required.");
+        }
+        InventoryWarehouse warehouse = warehouseService.selectWarehouseByCode(warehouseCode.trim());
+        if (warehouse == null || warehouse.getId() == null) {
+            throw new ServiceException("Warehouse not found: " + warehouseCode);
+        }
+        return warehouse.getId();
+    }
+
+    private InventoryStock resolveStock(Long warehouseId, Long productId) {
+        if (productId == null) {
+            throw new ServiceException("Product ID is required.");
+        }
+        LambdaQueryWrapper<InventoryStock> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InventoryStock::getWarehouseId, warehouseId)
+                .eq(InventoryStock::getProductId, productId);
+        List<InventoryStock> stocks = stockMapper.selectList(wrapper);
+        if (stocks == null || stocks.isEmpty()) {
+            throw new ServiceException("Inventory stock not found for productId=" + productId + ", warehouseId=" + warehouseId);
+        }
+        if (stocks.size() > 1) {
+            throw new ServiceException("Inventory stock not unique for productId=" + productId + ", warehouseId=" + warehouseId);
+        }
+        return stocks.get(0);
+    }
+
 }

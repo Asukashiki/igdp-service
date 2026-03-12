@@ -14,6 +14,7 @@ import com.inspur.agriculture.inventory.domain.req.StockCheckUpdateReq;
 import com.inspur.agriculture.inventory.domain.vo.StockCheckDetailVO;
 import com.inspur.agriculture.inventory.domain.vo.StockCheckListVO;
 import com.inspur.agriculture.inventory.domain.vo.WarehouseInventoryItemVO;
+import com.inspur.agriculture.inventory.mapper.InventoryStockMapper;
 import com.inspur.agriculture.inventory.mapper.StockCheckMapper;
 import com.inspur.agriculture.inventory.service.IInventoryStockService;
 import com.inspur.agriculture.inventory.service.IStockCheckService;
@@ -39,6 +40,9 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
 
     @Autowired
     private IInventoryStockService inventoryStockService;
+
+    @Autowired
+    private InventoryStockMapper inventoryStockMapper;
 
     @Override
     public List<StockCheckListVO> getList(StockCheckListQuery query) {
@@ -99,13 +103,13 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             sc.setCheckId(checkId);
             sc.setCheckDate(req.getCheckDate());
             sc.setWarehouseId(req.getWarehouseId());
-            sc.setWarehouseName(currentStock.getProductName() + "仓库"); // 如果有具体的名称需补全，此处简化
+            sc.setWarehouseName(currentStock.getProductName()); // 如果有具体的名称需补全，此处简化
 
             sc.setCheckRemark(req.getCheckRemark());
             sc.setCheckerId(userId);
             sc.setCheckerName(nickname);
-            sc.setCheckStatus("DRAFT");
-
+            sc.setCheckStatus("PENDING");
+            sc.setUnit(currentStock.getUnit());
             sc.setProductId(currentStock.getProductId());
             sc.setProductName(currentStock.getProductName());
             sc.setCategoryMajor(currentStock.getCategoryMajor());
@@ -197,6 +201,10 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
 
         StockCheck up = new StockCheck();
         up.setCheckStatus("PENDING");
+        up.setReviewerId(null);
+        up.setReviewerName(null);
+        up.setReviewOpinion(null);
+        up.setReviewDate(null);
         this.update(up, Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
     }
 
@@ -237,29 +245,39 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         String userId = SecurityUtils.getUserId();
         String nickname = SecurityUtils.getNickname();
 
-        if (userId != null && userId.equals(list.get(0).getCheckerId())) {
-            throw new ServiceException("审核人与盘点人不能为同一人 (R006)");
-        }
-
         StockCheck headerUp = new StockCheck();
-        headerUp.setCheckStatus("APPROVED"); // 阶段1
+        headerUp.setCheckStatus("APPROVED");
         headerUp.setReviewerId(userId);
         headerUp.setReviewerName(nickname);
         headerUp.setReviewOpinion(req.getReviewOpinion());
         headerUp.setReviewDate(new Date());
         this.update(headerUp, Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
 
-        // R008 执行库存实际加减逻辑 (模拟）
         for (StockCheck sc : list) {
             if ("NONE".equals(sc.getDiffType())) {
                 continue;
             }
-            // 此处省略：真正对接 inventory_stock 表修改数量的调用。因为 StockCheck 没有 skuId 无法精确定位。
-            // 例如：inventoryStockService.updateStockOptimistic(...)
-            // 及新增溯源记录 InventoryTraceInfo
+            Long warehouseId = parseRequiredLong("warehouseId", sc.getWarehouseId());
+            Long productId = parseRequiredLong("productId", sc.getProductId());
+            BigDecimal qty = sc.getDiffQty() == null ? null : sc.getDiffQty().abs();
+            if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ServiceException("差异数量异常，无法调整库存");
+            }
+            InventoryStock stock = resolveStock(warehouseId, productId);
+            if ("SURPLUS".equals(sc.getDiffType())) {
+                stock.setAvailableQty(stock.getAvailableQty().add(qty));
+            } else if ("LOSS".equals(sc.getDiffType())) {
+                if (stock.getAvailableQty().compareTo(qty) < 0) {
+                    throw new ServiceException("库存不足，无法扣减");
+                }
+                stock.setAvailableQty(stock.getAvailableQty().subtract(qty));
+            }
+            if (sc.getQualityStatus() != null && !sc.getQualityStatus().trim().isEmpty()) {
+                stock.setStockStatus(sc.getQualityStatus().trim());
+            }
+            inventoryStockMapper.updateById(stock);
         }
 
-        // 最终定稿状态
         StockCheck finalUp = new StockCheck();
         finalUp.setCheckStatus("ADJUSTED");
         this.update(finalUp, Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
@@ -297,10 +315,11 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             WarehouseInventoryItemVO vo = new WarehouseInventoryItemVO();
             vo.setProductId(String.valueOf(is.getProductId()));
             vo.setProductName(is.getProductName() != null ? is.getProductName() : "Unknown");
-            vo.setCategoryMajor(is.getMainCategory());
-            vo.setCategoryMinor(is.getSubCategory());
-            // TODO 这里 batchNo 及 expiryDate 从别的地方带入（若 InventoryStock 无直接批次字段，则从批次明细表提取）
-            vo.setBatchNo("BATCH-00x");
+//            vo.setCategoryMajor(is.getMainCategory());
+//            vo.setCategoryMinor(is.getSubCategory());
+            vo.setUnit(is.getUnit());
+            vo.setBatchNo(is.getBatchNo());
+            vo.setBatchId(String.valueOf(is.getBatchId()));
             vo.setQualityStatus(is.getStockStatus());
             vo.setCurrentQty(is.getAvailableQty());
             // unit 省略
@@ -349,4 +368,30 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         }
         return prefix + String.format("%04d", seq);
     }
+
+    private InventoryStock resolveStock(Long warehouseId, Long productId) {
+        LambdaQueryWrapper<InventoryStock> stockQuery = new LambdaQueryWrapper<>();
+        stockQuery.eq(InventoryStock::getProductId, productId)
+                .eq(InventoryStock::getWarehouseId, warehouseId);
+        List<InventoryStock> stocks = inventoryStockMapper.selectList(stockQuery);
+        if (stocks == null || stocks.isEmpty()) {
+            throw new ServiceException("无法找到库存记录，productId=" + productId + ", warehouseId=" + warehouseId);
+        }
+        if (stocks.size() > 1) {
+            throw new ServiceException("库存记录不唯一，productId=" + productId + ", warehouseId=" + warehouseId);
+        }
+        return stocks.get(0);
+    }
+
+    private Long parseRequiredLong(String field, String value) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new ServiceException(field + " 不能为空");
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException ex) {
+            throw new ServiceException(field + " 非法: " + value);
+        }
+    }
+
 }

@@ -18,15 +18,32 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="remark" column="remark"/>
         <result property="productName" column="product_name"/>
         <result property="warehouseName" column="warehouse_name"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="unit" column="unit"/>
     </resultMap>
 
     <sql id="selectInventoryStockVo">
-        SELECT s.id, s.product_id, s.warehouse_id, s.available_qty, s.locked_qty, s.version, 
+        SELECT s.id, s.sku_id, s.warehouse_id, s.available_qty, s.locked_qty, s.version,
                s.create_by, s.create_time, s.update_by, s.update_time, s.remark,
                p.product_name, w.warehouse_name
+               lb.main_category, lb.sub_category, s.product_id,
+               k.sku_code, k.sku_name, p.product_name, w.warehouse_name,
+               lb.batch_id AS batch_id, lb.batch_no AS batch_no, p.unit AS unit
         FROM inventory_stock s
         LEFT JOIN inventory_product p ON s.product_id = p.id
         LEFT JOIN inventory_warehouse w ON s.warehouse_id = w.id
+        LEFT JOIN (
+            SELECT b.sku_id AS sku_id, b.product_id AS product_id, b.warehouse_id AS warehouse_id,
+                   b.id AS batch_id, b.batch_no AS batch_no,
+                   b.main_category AS main_category, b.sub_category AS sub_category
+            FROM inventory_stock_batch b
+            INNER JOIN (
+                SELECT sku_id, product_id, warehouse_id, MAX(id) AS max_id
+                FROM inventory_stock_batch
+                GROUP BY sku_id, product_id, warehouse_id
+            ) m ON b.id = m.max_id
+        ) lb ON s.sku_id = lb.sku_id AND p.id = lb.product_id AND s.warehouse_id = lb.warehouse_id
     </sql>
 
     <select id="selectStockList" parameterType="com.inspur.agriculture.inventory.domain.InventoryStock" resultMap="InventoryStockResult">

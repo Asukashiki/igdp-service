@@ -38,4 +38,5 @@ public class CheckOrderController extends BaseController {
     public AjaxResult audit(@RequestBody InventoryCheckOrder checkOrder) {
         return toAjax(checkOrderService.auditCheckOrder(checkOrder));
     }
+
 }

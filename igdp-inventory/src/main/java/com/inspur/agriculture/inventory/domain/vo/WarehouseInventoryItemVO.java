@@ -13,6 +13,7 @@ public class WarehouseInventoryItemVO {
     private String categoryMajor;
     private String categoryMinor;
     private String batchNo;
+    private String batchId;
     private String unit;
 
     @JsonFormat(pattern = "yyyy-MM-dd")

@@ -54,14 +54,8 @@ public interface IStockCheckService extends IService<StockCheck> {
      */
     void cancelStockCheck(String checkId);
 
-    /**
-     * 审核通过（自动触发库存调整，需事务）
-     */
     void approveStockCheck(String checkId, StockCheckReviewReq req);
 
-    /**
-     * 审核驳回
-     */
     void rejectStockCheck(String checkId, StockCheckReviewReq req);
 
     /**

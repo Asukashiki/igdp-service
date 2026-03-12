@@ -104,33 +104,23 @@ public class StockCheckController extends BaseController {
         return AjaxResult.success("取消成功");
     }
 
-    /**
-     * 8. 审核通过
-     */
     @PostMapping("/{checkId}/approve")
     public AjaxResult approve(@PathVariable("checkId") String checkId,
             @Validated @RequestBody StockCheckReviewReq req) {
         stockCheckService.approveStockCheck(checkId, req);
 
-        // 按照文档，需返回包含 adjustements 的数据等，这里简化回显：
         Map<String, Object> data = new HashMap<>();
         data.put("checkId", checkId);
         data.put("checkStatus", "ADJUSTED");
         return AjaxResult.success("审核通过，库存已自动调整", data);
     }
 
-    /**
-     * 9. 审核驳回
-     */
     @PostMapping("/{checkId}/reject")
     public AjaxResult reject(@PathVariable("checkId") String checkId, @Validated @RequestBody StockCheckReviewReq req) {
         stockCheckService.rejectStockCheck(checkId, req);
         return AjaxResult.success("已驳回");
     }
 
-    /**
-     * 10. 获取仓库当前库存
-     */
     @GetMapping("/warehouse-inventory")
     public AjaxResult warehouseInventory(@RequestParam("warehouseId") String warehouseId) {
         List<WarehouseInventoryItemVO> items = stockCheckService.getWarehouseInventory(warehouseId);
@@ -140,9 +130,6 @@ public class StockCheckController extends BaseController {
         return AjaxResult.success(data);
     }
 
-    /**
-     * 11. 获取仓库盘点状态
-     */
     @GetMapping("/warehouse-status")
     public AjaxResult warehouseStatus(@RequestParam("warehouseId") String warehouseId) {
         boolean isChecking = stockCheckService.isWarehouseChecking(warehouseId);

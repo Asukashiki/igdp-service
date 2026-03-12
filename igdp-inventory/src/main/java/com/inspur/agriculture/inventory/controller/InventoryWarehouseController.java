@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/inventory/warehouse")
+@RequestMapping("/inventory/inventory-warehouse")
 public class InventoryWarehouseController extends BaseController {
 
     @Autowired
