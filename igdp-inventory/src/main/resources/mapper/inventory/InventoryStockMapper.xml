@@ -24,6 +24,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                s.create_by, s.create_time, s.update_by, s.update_time, s.remark, w.warehouse_name
         FROM inventory_stock s
         LEFT JOIN inventory_warehouse w ON s.warehouse_id = w.id
+        LEFT JOIN (
+            SELECT b.product_id AS product_id, b.warehouse_id AS warehouse_id,
+                   b.id AS batch_id, b.batch_no AS batch_no,
+                   b.main_category AS main_category, b.sub_category AS sub_category
+            FROM inventory_stock_batch b
+            INNER JOIN (
+                SELECT product_id, warehouse_id, MAX(id) AS max_id
+                FROM inventory_stock_batch
+                GROUP BY product_id, warehouse_id
+            ) m ON b.id = m.max_id
+        ) lb ON p.id = lb.product_id AND s.warehouse_id = lb.warehouse_id
     </sql>
 
     <select id="selectStockList" parameterType="com.inspur.agriculture.inventory.domain.InventoryStock" resultMap="InventoryStockResult">

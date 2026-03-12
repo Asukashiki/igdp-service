@@ -22,10 +22,6 @@ public interface IInventoryCheckOrderService extends IService<InventoryCheckOrde
      */
     boolean recordCheckResult(InventoryCheckOrder checkOrder);
 
-    /**
-     * 盘点审核 (生效库存调整)
-     * @param checkOrder 盘点单 (含审核信息)
-     * @return 结果
-     */
     boolean auditCheckOrder(InventoryCheckOrder checkOrder);
+
 }

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.AgriDemandConfirmationMapper">
+
+    <resultMap id="AgriDemandConfirmationResult" type="com.inspur.agriculture.input.domain.AgriDemandConfirmation">
+        <id property="confirmationId" column="confirmation_id"/>
+        <result property="fromActor" column="from_actor"/>
+        <result property="toActor" column="to_actor"/>
+        <result property="referenceId" column="reference_id"/>
+        <result property="confirmationType" column="confirmation_type"/>
+        <result property="confirmedTime" column="confirmed_time"/>
+        <result property="createPeople" column="create_people"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updatePeople" column="update_people"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <resultMap id="AgriDemandConfirmationVOResult" type="com.inspur.agriculture.input.vo.demand_confirmation.AgriDemandConfirmationVO">
+        <id property="confirmationId" column="confirmation_id"/>
+        <result property="fromActor" column="from_actor"/>
+        <result property="toActor" column="to_actor"/>
+        <result property="referenceId" column="reference_id"/>
+        <result property="confirmationType" column="confirmation_type"/>
+        <result property="confirmationTypeDesc" column="confirmation_type_desc"/>
+        <result property="confirmedTime" column="confirmed_time"/>
+        <result property="createPeople" column="create_people"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="selectAgriDemandConfirmationVo">
+        select
+            confirmation_id, from_actor, to_actor, reference_id, confirmation_type,
+            confirmed_time, create_people, create_time, update_people, update_time, del_flag
+        from agri_demand_confirmation
+        where del_flag = '0'
+    </sql>
+
+    <sql id="selectAgriDemandConfirmationVO">
+        select
+            confirmation_id, from_actor, to_actor, reference_id, confirmation_type,
+            case confirmation_type
+                when 'Receipt' then '接收确认'
+                when 'Delivery' then '发送确认'
+                else ''
+                end as confirmation_type_desc,
+            confirmed_time, create_people, create_time
+        from agri_demand_confirmation
+        where del_flag = '0'
+    </sql>
+
+    <select id="selectConfirmationList" resultMap="AgriDemandConfirmationResult">
+        <include refid="selectAgriDemandConfirmationVo"/>
+        <where>
+            <if test="fromActor != null and fromActor != ''">
+                and from_actor = #{fromActor}
+            </if>
+            <if test="toActor != null and toActor != ''">
+                and to_actor = #{toActor}
+            </if>
+            <if test="referenceId != null and referenceId != ''">
+                and reference_id = #{referenceId}
+            </if>
+            <if test="confirmationType != null and confirmationType != ''">
+                and confirmation_type = #{confirmationType}
+            </if>
+        </where>
+        order by confirmed_time desc
+    </select>
+
+    <select id="selectConfirmationVOList" resultMap="AgriDemandConfirmationVOResult">
+        <include refid="selectAgriDemandConfirmationVO"/>
+        <where>
+            <if test="fromActor != null and fromActor != ''">
+                and from_actor = #{fromActor}
+            </if>
+            <if test="toActor != null and toActor != ''">
+                and to_actor = #{toActor}
+            </if>
+            <if test="referenceId != null and referenceId != ''">
+                and reference_id = #{referenceId}
+            </if>
+            <if test="confirmationType != null and confirmationType != ''">
+                and confirmation_type = #{confirmationType}
+            </if>
+        </where>
+        order by confirmed_time desc
+    </select>
+
+    <select id="selectConfirmationById" resultMap="AgriDemandConfirmationResult">
+        <include refid="selectAgriDemandConfirmationVo"/>
+        where confirmation_id = #{confirmationId}
+    </select>
+
+    <select id="selectConfirmationVOById" resultMap="AgriDemandConfirmationVOResult">
+        <include refid="selectAgriDemandConfirmationVO"/>
+        where confirmation_id = #{confirmationId}
+    </select>
+
+    <select id="selectConfirmationsByActors" resultMap="AgriDemandConfirmationResult">
+        <include refid="selectAgriDemandConfirmationVo"/>
+        where from_actor = #{fromActor}
+        <if test="toActor != null and toActor != ''">
+            and to_actor = #{toActor}
+        </if>
+        order by confirmed_time desc
+    </select>
+
+    <select id="selectConfirmationVOsByActors" resultMap="AgriDemandConfirmationVOResult">
+        <include refid="selectAgriDemandConfirmationVO"/>
+        where from_actor = #{fromActor}
+        <if test="toActor != null and toActor != ''">
+            and to_actor = #{toActor}
+        </if>
+        order by confirmed_time desc
+    </select>
+
+</mapper>

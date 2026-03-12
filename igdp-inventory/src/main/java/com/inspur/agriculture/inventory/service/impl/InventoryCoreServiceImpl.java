@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 搴撳瓨鏍稿績鏈嶅姟瀹炵幇
+ * 库存核心服务实现
  */
 @Service
 public class InventoryCoreServiceImpl implements IInventoryCoreService {

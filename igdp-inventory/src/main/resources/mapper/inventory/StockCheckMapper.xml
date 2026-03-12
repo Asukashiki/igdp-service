@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.inventory.mapper.StockCheckMapper">
+
+    <resultMap type="StockCheck" id="StockCheckResult">
+        <result property="id"    column="id"    />
+        <result property="checkId"    column="check_id"    />
+        <result property="checkDate"    column="check_date"    />
+        <result property="warehouseId"    column="warehouse_id"    />
+        <result property="warehouseName"    column="warehouse_name"    />
+        <result property="checkerId"    column="checker_id"    />
+        <result property="checkerName"    column="checker_name"    />
+        <result property="checkStatus"    column="check_status"    />
+        <result property="checkRemark"    column="check_remark"    />
+        <result property="productId"    column="product_id"    />
+        <result property="productName"    column="product_name"    />
+        <result property="categoryMajor"    column="category_major"    />
+        <result property="categoryMinor"    column="category_minor"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="unit"    column="unit"    />
+        <result property="expiryDate"    column="expiry_date"    />
+        <result property="qualityStatus"    column="quality_status"    />
+        <result property="systemQty"    column="system_qty"    />
+        <result property="actualQty"    column="actual_qty"    />
+        <result property="diffType"    column="diff_type"    />
+        <result property="diffQty"    column="diff_qty"    />
+        <result property="itemRemark"    column="item_remark"    />
+        <result property="reviewerId"    column="reviewer_id"    />
+        <result property="reviewerName"    column="reviewer_name"    />
+        <result property="reviewDate"    column="review_date"    />
+        <result property="reviewOpinion"    column="review_opinion"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <select id="selectMaxCheckIdByPrefix" resultType="java.lang.String">
+        SELECT MAX(check_id) 
+        FROM t_stock_check 
+        WHERE check_id LIKE concat(#{datePrefix}, '%')
+    </select>
+
+    <select id="selectAggregatedList" resultType="com.inspur.agriculture.inventory.domain.vo.StockCheckListVO">
+        SELECT 
+            check_id AS checkId,
+            MAX(check_date) AS checkDate,
+            MAX(warehouse_id) AS warehouseId,
+            MAX(warehouse_name) AS warehouseName,
+            MAX(checker_id) AS checkerId,
+            MAX(checker_name) AS checkerName,
+            MAX(check_status) AS checkStatus,
+            MAX(check_remark) AS checkRemark,
+            COUNT(*) AS totalItems,
+            SUM(CASE WHEN diff_type != 'NONE' THEN 1 ELSE 0 END) AS diffItems,
+            SUM(CASE WHEN diff_type = 'SURPLUS' THEN 1 ELSE 0 END) AS surplusItems,
+            SUM(CASE WHEN diff_type = 'LOSS' THEN 1 ELSE 0 END) AS lossItems,
+            MAX(create_time) AS createTime,
+            MAX(update_time) AS updateTime
+        FROM t_stock_check
+        <where>
+            <if test="query.warehouseId != null and query.warehouseId != ''">
+                AND warehouse_id = #{query.warehouseId}
+            </if>
+            <if test="query.checkStatus != null and query.checkStatus != ''">
+                <!-- 支持多个状态逗号分隔 -->
+                AND FIND_IN_SET(check_status, #{query.checkStatus}) > 0
+            </if>
+            <if test="query.startDate != null and query.startDate != ''">
+                AND check_date &gt;= #{query.startDate}
+            </if>
+            <if test="query.endDate != null and query.endDate != ''">
+                AND check_date &lt;= #{query.endDate}
+            </if>
+        </where>
+        GROUP BY check_id
+        ORDER BY MAX(create_time) DESC
+    </select>
+</mapper>

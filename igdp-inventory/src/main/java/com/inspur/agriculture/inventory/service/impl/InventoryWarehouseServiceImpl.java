@@ -7,6 +7,8 @@ import com.inspur.agriculture.inventory.mapper.InventoryWarehouseMapper;
 import com.inspur.agriculture.inventory.service.IInventoryWarehouseService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
+import com.inspur.common.utils.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,102 +19,129 @@ import java.util.List;
  * 仓库服务实现
  */
 @Service
-public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehouseMapper, InventoryWarehouse> implements IInventoryWarehouseService {
+public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehouseMapper, InventoryWarehouse>
+        implements IInventoryWarehouseService {
+
+    @Autowired
+    private InventoryWarehouseMapper warehouseMapper;
 
     @Override
     public List<InventoryWarehouse> selectWarehouseList(InventoryWarehouse warehouse) {
+        LambdaQueryWrapper<InventoryWarehouse> queryWrapper = new LambdaQueryWrapper<>();
+        if (warehouse != null) {
+            if (warehouse.getId() != null) {
+                queryWrapper.eq(InventoryWarehouse::getId, warehouse.getId());
+            }
+            if (StringUtils.isNotEmpty(warehouse.getWarehouseCode())) {
+                queryWrapper.like(InventoryWarehouse::getWarehouseCode, warehouse.getWarehouseCode());
+            }
+            if (StringUtils.isNotEmpty(warehouse.getWarehouseName())) {
+                queryWrapper.like(InventoryWarehouse::getWarehouseName, warehouse.getWarehouseName());
+            }
+            if (StringUtils.isNotEmpty(warehouse.getType())) {
+                queryWrapper.eq(InventoryWarehouse::getType, warehouse.getType());
+            }
+            if (StringUtils.isNotEmpty(warehouse.getAddress())) {
+                queryWrapper.like(InventoryWarehouse::getAddress, warehouse.getAddress());
+            }
+            if (StringUtils.isNotEmpty(warehouse.getStatus())) {
+                queryWrapper.eq(InventoryWarehouse::getStatus, warehouse.getStatus());
+            }
+            return baseMapper.selectWarehouseList(warehouse);
+        }
         return baseMapper.selectWarehouseList(warehouse);
     }
 
-    @Override
-    public InventoryWarehouse selectWarehouseById(Long id) {
-        return baseMapper.selectWarehouseById(id);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean createWarehouse(InventoryWarehouse warehouse) {
-        validateWarehouse(warehouse, false);
-        warehouse.setCreateTime(LocalDateTime.now());
-        warehouse.setUpdateTime(LocalDateTime.now());
-        warehouse.setCreateBy(getCurrentUsername());
-        warehouse.setUpdateBy(getCurrentUsername());
-        return this.save(warehouse);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean updateWarehouse(InventoryWarehouse warehouse) {
-        if (warehouse == null || warehouse.getId() == null) {
-            throw new ServiceException("Warehouse ID cannot be null.");
-        }
-        InventoryWarehouse exists = this.getById(warehouse.getId());
-        if (exists == null) {
-            throw new ServiceException("Warehouse not found.");
-        }
-        validateWarehouse(warehouse, true);
-        warehouse.setUpdateTime(LocalDateTime.now());
-        warehouse.setUpdateBy(getCurrentUsername());
-        return this.updateById(warehouse);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteWarehouse(Long id) {
-        if (id == null) {
-            throw new ServiceException("Warehouse ID cannot be null.");
-        }
-        InventoryWarehouse exists = this.getById(id);
-        if (exists == null) {
-            throw new ServiceException("Warehouse not found.");
-        }
-        return this.removeById(id);
-    }
-
-    @Override
-    public InventoryWarehouse selectWarehouseByCode(String warehouseCode) {
-        if (isBlank(warehouseCode)) {
-            return null;
-        }
-        LambdaQueryWrapper<InventoryWarehouse> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(InventoryWarehouse::getWarehouseCode, warehouseCode);
-        return this.getOne(wrapper);
-    }
-
-    private void validateWarehouse(InventoryWarehouse warehouse, boolean isUpdate) {
-        if (warehouse == null) {
-            throw new ServiceException("Warehouse information cannot be null.");
-        }
-        if (isBlank(warehouse.getWarehouseCode())) {
-            throw new ServiceException("Warehouse code cannot be empty.");
-        }
-        if (isBlank(warehouse.getWarehouseName())) {
-            throw new ServiceException("Warehouse name cannot be empty.");
-        }
-        if (warehouse.getCapacity() == null || warehouse.getCapacity().doubleValue() < 0D) {
-            throw new ServiceException("Warehouse capacity cannot be less than 0.");
+        @Override
+        public InventoryWarehouse selectWarehouseById (Long id){
+            return baseMapper.selectWarehouseById(id);
         }
 
-        LambdaQueryWrapper<InventoryWarehouse> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(InventoryWarehouse::getWarehouseCode, warehouse.getWarehouseCode());
-        if (isUpdate && warehouse.getId() != null) {
-            wrapper.ne(InventoryWarehouse::getId, warehouse.getId());
+        @Override
+        @Transactional(rollbackFor = Exception.class)
+        public boolean createWarehouse (InventoryWarehouse warehouse){
+            validateWarehouse(warehouse, false);
+            warehouse.setCreateTime(LocalDateTime.now());
+            warehouse.setUpdateTime(LocalDateTime.now());
+            warehouse.setCreateBy(getCurrentUsername());
+            warehouse.setUpdateBy(getCurrentUsername());
+            return this.save(warehouse);
         }
-        long count = this.count(wrapper);
-        if (count > 0) {
-            throw new ServiceException("Warehouse code already exists.");
-        }
-    }
 
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
-    }
+        @Override
+        @Transactional(rollbackFor = Exception.class)
+        public boolean updateWarehouse (InventoryWarehouse warehouse){
+            if (warehouse == null || warehouse.getId() == null) {
+                throw new ServiceException("仓库ID不能为空");
+            }
+            InventoryWarehouse exists = this.getById(warehouse.getId());
+            if (exists == null) {
+                throw new ServiceException("仓库不存在");
+            }
+            validateWarehouse(warehouse, true);
+            warehouse.setUpdateTime(LocalDateTime.now());
+            warehouse.setUpdateBy(getCurrentUsername());
+            return this.updateById(warehouse);
+        }
 
-    private String getCurrentUsername() {
-        try {
-            return SecurityUtils.getUsername();
-        } catch (Exception ex) {
-            return "system";
+        @Override
+        @Transactional(rollbackFor = Exception.class)
+        public boolean deleteWarehouse (Long id){
+            if (id == null) {
+                throw new ServiceException("仓库ID不能为空");
+            }
+            InventoryWarehouse exists = this.getById(id);
+            if (exists == null) {
+                throw new ServiceException("仓库不存在");
+            }
+            return this.removeById(id);
+        }
+
+        private void validateWarehouse (InventoryWarehouse warehouse,boolean isUpdate){
+            if (warehouse == null) {
+                throw new ServiceException("仓库信息不能为空");
+            }
+            if (isBlank(warehouse.getWarehouseCode())) {
+                throw new ServiceException("仓库编码不能为空");
+            }
+            if (isBlank(warehouse.getWarehouseName())) {
+                throw new ServiceException("仓库名称不能为空");
+            }
+            if (warehouse.getCapacity() == null || warehouse.getCapacity().doubleValue() < 0D) {
+                throw new ServiceException("仓库容量不能小于0");
+            }
+
+            LambdaQueryWrapper<InventoryWarehouse> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(InventoryWarehouse::getWarehouseCode, warehouse.getWarehouseCode());
+            if (isUpdate && warehouse.getId() != null) {
+                wrapper.ne(InventoryWarehouse::getId, warehouse.getId());
+            }
+            long count = this.count(wrapper);
+            if (count > 0) {
+                throw new ServiceException("仓库编码已存在");
+            }
+        }
+
+        private boolean isBlank (String value){
+            return value == null || value.trim().isEmpty();
+        }
+
+        @Override
+        public InventoryWarehouse selectWarehouseByCode(String warehouseCode) {
+            if (isBlank(warehouseCode)) {
+                return null;
+            }
+            LambdaQueryWrapper<InventoryWarehouse> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(InventoryWarehouse::getWarehouseCode, warehouseCode);
+            return this.getOne(wrapper);
+        }
+
+        private String getCurrentUsername () {
+            try {
+                return SecurityUtils.getUsername();
+            } catch (Exception ex) {
+                return "system";
+            }
+//            return warehouseMapper.selectList(queryWrapper);
         }
     }
-}
