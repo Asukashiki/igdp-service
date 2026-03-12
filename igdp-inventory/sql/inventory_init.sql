@@ -303,3 +303,56 @@ CREATE TABLE inventory_trace_info (
   PRIMARY KEY (id),
   UNIQUE KEY uk_trace_code (trace_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='溯源信息表';
+
+-- 15. 仓库所有权表
+DROP TABLE IF EXISTS inventory_warehouse_owner;
+CREATE TABLE inventory_warehouse_owner (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  warehouse_id BIGINT NOT NULL COMMENT '仓库ID',
+  owner_user_id VARCHAR(64) NOT NULL COMMENT '所有人用户ID',
+  owner_user_name VARCHAR(100) DEFAULT '' COMMENT '所有人姓名',
+  owner_org_id VARCHAR(64) DEFAULT NULL COMMENT '所有人所属机构ID',
+  owner_org_name VARCHAR(100) DEFAULT '' COMMENT '所有人所属机构',
+  owner_role VARCHAR(20) DEFAULT 'PRIMARY' COMMENT '所有权角色（PRIMARY主所有者/CO_OWNER协同所有者）',
+  start_time DATETIME COMMENT '生效时间',
+  end_time DATETIME COMMENT '失效时间',
+  status CHAR(1) DEFAULT '1' COMMENT '状态（1有效 0失效）',
+  is_primary CHAR(1) DEFAULT '0' COMMENT '是否主所有者（1是 0否）',
+  create_by VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  create_time DATETIME COMMENT '创建时间',
+  update_by VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  update_time DATETIME COMMENT '更新时间',
+  remark VARCHAR(500) DEFAULT '' COMMENT '备注',
+  PRIMARY KEY (id),
+  KEY idx_owner_warehouse (warehouse_id),
+  KEY idx_owner_user (owner_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='仓库所有权表';
+
+-- 16. 仓库使用权表（部门权限）
+DROP TABLE IF EXISTS inventory_warehouse_permission;
+CREATE TABLE inventory_warehouse_permission (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+  warehouse_id BIGINT NOT NULL COMMENT '仓库ID',
+  dept_id VARCHAR(64) NOT NULL COMMENT '部门ID',
+  dept_name VARCHAR(100) DEFAULT '' COMMENT '部门名称',
+  allow_inbound CHAR(1) DEFAULT '0' COMMENT '是否允许入库（1是 0否）',
+  allow_outbound CHAR(1) DEFAULT '0' COMMENT '是否允许出库（1是 0否）',
+  allow_transfer CHAR(1) DEFAULT '0' COMMENT '是否允许调拨（1是 0否）',
+  allow_adjust CHAR(1) DEFAULT '0' COMMENT '是否允许库存调整（1是 0否）',
+  allow_view CHAR(1) DEFAULT '1' COMMENT '是否允许查看（1是 0否）',
+  start_time DATETIME COMMENT '生效时间',
+  end_time DATETIME COMMENT '失效时间',
+  status CHAR(1) DEFAULT '1' COMMENT '状态（1启用 0停用）',
+  assigner_id BIGINT DEFAULT NULL COMMENT '分配人ID',
+  assigner_name VARCHAR(100) DEFAULT '' COMMENT '分配人姓名',
+  assign_time DATETIME COMMENT '分配时间',
+  assign_reason VARCHAR(500) DEFAULT '' COMMENT '分配说明',
+  create_by VARCHAR(64) DEFAULT '' COMMENT '创建者',
+  create_time DATETIME COMMENT '创建时间',
+  update_by VARCHAR(64) DEFAULT '' COMMENT '更新者',
+  update_time DATETIME COMMENT '更新时间',
+  remark VARCHAR(500) DEFAULT '' COMMENT '备注',
+  PRIMARY KEY (id),
+  KEY idx_perm_warehouse (warehouse_id),
+  KEY idx_perm_dept (dept_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='仓库使用权表';

@@ -49,4 +49,12 @@ public interface IInventoryWarehouseService extends IService<InventoryWarehouse>
      * @return 结果
      */
     boolean deleteWarehouse(Long id);
+
+    /**
+     * 生成仓库编码
+     *
+     * @param warehouseType 仓库类型（ZY/LM/HZS/QY）
+     * @return 生成的仓库编码
+     */
+    String generateWarehouseCode(String warehouseType);
 }
