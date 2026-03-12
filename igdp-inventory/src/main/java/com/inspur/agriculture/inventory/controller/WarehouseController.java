@@ -21,12 +21,24 @@ public class WarehouseController extends BaseController {
     @Autowired
     private IInventoryWarehouseService warehouseService;
 
+    /**
+     * 查询仓库列表（需要权限）
+     */
     @PreAuthorize("@ss.hasPermi('inventory:warehouse:list')")
     @GetMapping("/list")
     public TableDataInfo list(InventoryWarehouse warehouse) {
         startPage();
         List<InventoryWarehouse> list = warehouseService.selectWarehouseList(warehouse);
         return getDataTable(list);
+    }
+
+    /**
+     * 查询仓库选项列表（不需要权限，供下拉选择使用）
+     */
+    @GetMapping("/options")
+    public AjaxResult getOptions(InventoryWarehouse warehouse) {
+        List<InventoryWarehouse> list = warehouseService.selectWarehouseList(warehouse);
+        return AjaxResult.success(list);
     }
 
     @PreAuthorize("@ss.hasPermi('inventory:warehouse:query')")

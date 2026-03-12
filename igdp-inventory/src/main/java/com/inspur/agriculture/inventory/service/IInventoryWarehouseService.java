@@ -49,4 +49,12 @@ public interface IInventoryWarehouseService extends IService<InventoryWarehouse>
      * @return 结果
      */
     boolean deleteWarehouse(Long id);
+
+    /**
+     * 根据仓库编码查询仓库
+     *
+     * @param warehouseCode 仓库编码
+     * @return 仓库信息
+     */
+    InventoryWarehouse selectWarehouseByCode(String warehouseCode);
 }

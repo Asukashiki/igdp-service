@@ -1,13 +1,17 @@
 package com.inspur.agriculture.inventory.domain;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.inspur.common.core.domain.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 库存调拨明细表
@@ -21,23 +25,30 @@ public class InventoryTransferDetail extends BaseEntity {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
     private Long transferId;
 
+    @TableField(insertStrategy = FieldStrategy.IGNORED)
     private Long productId;
 
-    private String productName;
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
+    private String mainCategory;
 
-    private Long inputId;
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
+    private String subCategory;
 
-    private String inputCode;
-
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
     private String batchNo;
 
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
     private String supplier;
 
-    private BigDecimal applyQty;
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
+    private BigDecimal qty;
 
-    private BigDecimal realQty;
-
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
     private String unit;
+
+    @TableField(insertStrategy = FieldStrategy.NOT_NULL)
+    private Date expireDate;
 }

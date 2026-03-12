@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -54,6 +55,25 @@ public class TransferServiceImpl implements ITransferService {
         transfer.setTransferNo(generateTransferNo());
         transfer.setApplyDate(new Date());
         transfer.setStatus("DRAFT");
+        
+        if (dto.getTransferType() != null) {
+            transfer.setTransferType(dto.getTransferType());
+        }
+        if (dto.getExpectedDate() != null) {
+            transfer.setExpectedDate(dto.getExpectedDate());
+        }
+        if (dto.getOutWarehouseCode() != null) {
+            transfer.setOutWarehouseCode(dto.getOutWarehouseCode());
+        }
+        if (dto.getInWarehouseCode() != null) {
+            transfer.setInWarehouseCode(dto.getInWarehouseCode());
+        }
+        if (dto.getRemark() != null) {
+            transfer.setRemark(dto.getRemark());
+        }
+        if (dto.getDepartment() != null) {
+            transfer.setDepartment(dto.getDepartment());
+        }
 
         String username = getCurrentUsername();
         transfer.setApplicant(username);
@@ -65,6 +85,8 @@ public class TransferServiceImpl implements ITransferService {
             for (InventoryTransferDetail detail : dto.getDetailList()) {
                 detail.setTransferId(transfer.getId());
                 detail.setCreateBy(username);
+                detail.setCreateTime(LocalDateTime.now());
+                // product_id 可以为空，不需要特殊处理
                 detailMapper.insert(detail);
             }
         }
@@ -93,6 +115,8 @@ public class TransferServiceImpl implements ITransferService {
             for (InventoryTransferDetail detail : dto.getDetailList()) {
                 detail.setTransferId(dto.getId());
                 detail.setCreateBy(username);
+                detail.setCreateTime(LocalDateTime.now());
+                // product_id 可以为空，不需要特殊处理
                 detailMapper.insert(detail);
             }
         }
@@ -102,14 +126,16 @@ public class TransferServiceImpl implements ITransferService {
 
     @Override
     public int deleteTransferByIds(Long[] ids) {
+        int count = 0;
         for (Long id : ids) {
             InventoryTransfer transfer = transferMapper.selectById(id);
             if (transfer != null && !"DRAFT".equals(transfer.getStatus())) {
                 throw new ServiceException("Only draft orders can be deleted");
             }
             detailMapper.deleteByTransferId(id);
+            count += transferMapper.deleteById(id);
         }
-        return transferMapper.deleteBatchIds(java.util.Arrays.asList(ids));
+        return count;
     }
 
     @Override
@@ -130,6 +156,7 @@ public class TransferServiceImpl implements ITransferService {
         transfer.setStatus("SUBMITTED");
         String username = getCurrentUsername();
         transfer.setUpdateBy(username);
+        transfer.setUpdateTime(LocalDateTime.now());
 
         return transferMapper.updateById(transfer);
     }
@@ -149,6 +176,7 @@ public class TransferServiceImpl implements ITransferService {
         transfer.setAuditTime(new Date());
         transfer.setAuditComment(auditComment);
         transfer.setUpdateBy(username);
+        transfer.setUpdateTime(LocalDateTime.now());
 
         if (approved) {
             transfer.setStatus("APPROVED");

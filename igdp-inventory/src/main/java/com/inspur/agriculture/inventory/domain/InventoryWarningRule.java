@@ -23,7 +23,6 @@ public class InventoryWarningRule extends BaseEntity {
 
     private Long warehouseId;
     private Long productId;
-    private Long skuId;
     private BigDecimal minStock;
     private BigDecimal maxStock;
 }

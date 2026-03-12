@@ -6,14 +6,13 @@
         <id property="id" column="id"/>
         <result property="transferId" column="transfer_id"/>
         <result property="productId" column="product_id"/>
-        <result property="productName" column="product_name"/>
-        <result property="inputId" column="input_id"/>
-        <result property="inputCode" column="input_code"/>
+        <result property="mainCategory" column="main_category"/>
+        <result property="subCategory" column="sub_category"/>
         <result property="batchNo" column="batch_no"/>
         <result property="supplier" column="supplier"/>
-        <result property="applyQty" column="apply_qty"/>
-        <result property="realQty" column="real_qty"/>
+        <result property="qty" column="qty"/>
         <result property="unit" column="unit"/>
+        <result property="expireDate" column="expire_date"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>
@@ -21,8 +20,8 @@
     </resultMap>
 
     <sql id="selectTransferDetailVo">
-        SELECT id, transfer_id, product_id, product_name, input_id, input_code,
-               batch_no, supplier, apply_qty, real_qty, unit,
+        SELECT id, transfer_id, product_id, main_category, sub_category,
+               batch_no, supplier, qty, unit, expire_date,
                create_by, create_time, update_by, update_time
         FROM inventory_transfer_detail
     </sql>

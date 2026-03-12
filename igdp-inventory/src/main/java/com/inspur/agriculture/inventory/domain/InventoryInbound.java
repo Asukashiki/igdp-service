@@ -1,6 +1,7 @@
 package com.inspur.agriculture.inventory.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -24,7 +25,7 @@ public class InventoryInbound extends BaseEntity {
     private Long id;
 
     private String inboundNo;
-    private Long warehouseId;
+    private String warehouseCode;
     private String type;
     private String status;
     private String bizNo;
@@ -37,8 +38,13 @@ public class InventoryInbound extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date auditTime;
     private String auditComment;
+    private String remark;
+
+    /** 仓库名称（非数据库字段，查询时通过JOIN获取） */
+    @TableField(exist = false)
+    private String warehouseName;
 
     /** 明细列表 */
-    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    @TableField(exist = false)
     private List<InventoryInboundDetail> detailList;
 }

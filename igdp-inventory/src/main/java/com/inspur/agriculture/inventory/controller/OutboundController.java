@@ -1,4 +1,4 @@
-package com.inspur.agriculture.inventory.controller;
+ package com.inspur.agriculture.inventory.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -26,36 +26,30 @@ public class OutboundController extends BaseController {
                               @RequestParam(required = false) String type,
                               @RequestParam(required = false) String status) {
         startPage();
-        LambdaQueryWrapper<InventoryOutbound> wrapper = new LambdaQueryWrapper<>();
         
-        if (StringUtils.isNotBlank(outboundNo)) {
-            wrapper.like(InventoryOutbound::getOutboundNo, outboundNo);
-        }
-        if (StringUtils.isNotBlank(type)) {
-            wrapper.eq(InventoryOutbound::getType, type);
-        }
-        if (StringUtils.isNotBlank(status)) {
-            if (status.contains(",")) {
-                wrapper.in(InventoryOutbound::getStatus, Arrays.asList(status.split(",")));
-            } else {
-                wrapper.eq(InventoryOutbound::getStatus, status);
-            }
-        }
-        wrapper.orderByDesc(InventoryOutbound::getCreateTime);
+        InventoryOutbound query = new InventoryOutbound();
+        query.setOutboundNo(outboundNo);
+        query.setType(type);
+        query.setStatus(status);
         
-        List<InventoryOutbound> list = outboundService.list(wrapper);
+        List<InventoryOutbound> list = outboundService.selectOutboundListWithWarehouse(query);
         return getDataTable(list);
     }
 
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable Long id) {
-        InventoryOutbound outbound = outboundService.getById(id);
+        InventoryOutbound outbound = outboundService.selectOutboundWithWarehouse(id);
         return AjaxResult.success(outbound);
     }
 
     @PostMapping("/create")
     public AjaxResult create(@RequestBody InventoryOutbound outbound) {
         return toAjax(outboundService.createOutbound(outbound));
+    }
+
+    @PutMapping
+    public AjaxResult update(@RequestBody InventoryOutbound outbound) {
+        return toAjax(outboundService.updateOutbound(outbound));
     }
 
     @PostMapping("/submit")
