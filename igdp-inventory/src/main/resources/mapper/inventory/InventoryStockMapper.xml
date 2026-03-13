@@ -6,29 +6,32 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <resultMap type="com.inspur.agriculture.inventory.domain.InventoryStock" id="InventoryStockResult">
         <id property="id" column="id"/>
-        <result property="skuId" column="sku_id"/>
+        <result property="productId" column="product_id"/>
         <result property="warehouseId" column="warehouse_id"/>
         <result property="availableQty" column="available_qty"/>
         <result property="lockedQty" column="locked_qty"/>
+        <result property="qualityGrade" column="quality_grade"/>
+        <result property="stockStatus" column="stock_status"/>
         <result property="version" column="version"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
-        <result property="skuCode" column="sku_code"/>
-        <result property="skuName" column="sku_name"/>
         <result property="productName" column="product_name"/>
+        <result property="productCode" column="product_code"/>
+        <result property="mainCategory" column="main_category"/>
+        <result property="subCategory" column="sub_category"/>
         <result property="warehouseName" column="warehouse_name"/>
     </resultMap>
 
     <sql id="selectInventoryStockVo">
-        SELECT s.id, s.sku_id, s.warehouse_id, s.available_qty, s.locked_qty, s.version, 
+        SELECT s.id, s.product_id, s.warehouse_id,
+               s.available_qty, s.locked_qty, s.quality_grade, s.stock_status, s.version,
                s.create_by, s.create_time, s.update_by, s.update_time, s.remark,
-               k.sku_code, k.sku_name, p.product_name, w.warehouse_name
+               p.product_name, p.product_code, p.main_category, p.sub_category, w.warehouse_name
         FROM inventory_stock s
-        LEFT JOIN inventory_sku k ON s.sku_id = k.id
-        LEFT JOIN inventory_product p ON k.product_id = p.id
+        LEFT JOIN inventory_product p ON s.product_id = p.id
         LEFT JOIN inventory_warehouse w ON s.warehouse_id = w.id
     </sql>
 
@@ -36,10 +39,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectInventoryStockVo"/>
         <where>
             <if test="warehouseId != null"> AND s.warehouse_id = #{warehouseId} </if>
-            <if test="skuId != null"> AND s.sku_id = #{skuId} </if>
+            <if test="productId != null"> AND s.product_id = #{productId} </if>
             <if test="productName != null and productName != ''"> AND p.product_name LIKE concat('%', #{productName}, '%') </if>
             <if test="warehouseName != null and warehouseName != ''"> AND w.warehouse_name LIKE concat('%', #{warehouseName}, '%') </if>
         </where>
+    </select>
+
+    <select id="selectStockById" parameterType="java.lang.Long" resultMap="InventoryStockResult">
+        <include refid="selectInventoryStockVo"/>
+        WHERE s.id = #{id}
     </select>
 
     <update id="updateStockOptimistic">

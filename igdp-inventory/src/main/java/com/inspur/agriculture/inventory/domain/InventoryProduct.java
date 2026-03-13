@@ -26,6 +26,7 @@ public class InventoryProduct extends BaseEntity {
     private String productName;
     private Long categoryId;
     private String categoryName;
+    private Long parentId;
     private String mainCategory;
     private String subCategory;
     private String brand;

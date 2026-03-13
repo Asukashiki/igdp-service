@@ -33,6 +33,8 @@ public class InventoryWarehouse extends BaseEntity {
     private String location;
     private BigDecimal capacity;
     private BigDecimal maxStock;
+    @TableField(exist = false)
+    private BigDecimal stockQty;
     private String address;
     private String status;
     private String remark;

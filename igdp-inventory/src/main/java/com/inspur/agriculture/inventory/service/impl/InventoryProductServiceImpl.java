@@ -31,6 +31,11 @@ public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMap
     }
 
     @Override
+    public List<InventoryProduct> selectMainCategoryList() {
+        return baseMapper.selectMainCategoryList();
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean createProduct(InventoryProduct product) {
         validateProduct(product, false);
@@ -82,6 +87,9 @@ public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMap
         }
         if (isBlank(product.getMainCategory())) {
             throw new ServiceException("商品大类不能为空");
+        }
+        if (product.getParentId() == null && !isBlank(product.getSubCategory())) {
+            throw new ServiceException("自定义商品大类时商品小类必须为空");
         }
         if (isBlank(product.getUnit())) {
             throw new ServiceException("单位不能为空");

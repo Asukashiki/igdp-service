@@ -19,4 +19,9 @@ public class InventoryStockServiceImpl extends ServiceImpl<InventoryStockMapper,
     public List<InventoryStock> selectStockList(InventoryStock stock) {
         return stockMapper.selectStockList(stock);
     }
+
+    @Override
+    public InventoryStock selectStockById(Long id) {
+        return stockMapper.selectStockById(id);
+    }
 }

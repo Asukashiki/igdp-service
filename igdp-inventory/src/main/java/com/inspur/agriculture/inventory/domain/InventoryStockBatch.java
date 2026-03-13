@@ -22,7 +22,7 @@ public class InventoryStockBatch extends BaseEntity {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long skuId;
+    private Long stockId;
     private Long productId;
     private Long warehouseId;
     private String batchNo;
@@ -31,4 +31,7 @@ public class InventoryStockBatch extends BaseEntity {
     private BigDecimal qty;
     private String qualityGrade;
     private String stockStatus;
+    private String remark;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private java.util.List<Long> stockIds;
 }

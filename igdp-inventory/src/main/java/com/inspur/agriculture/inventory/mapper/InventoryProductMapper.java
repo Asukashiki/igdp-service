@@ -10,4 +10,10 @@ public interface InventoryProductMapper extends BaseMapper<InventoryProduct> {
     List<InventoryProduct> selectProductList(InventoryProduct product);
 
     InventoryProduct selectProductById(Long id);
+
+    /**
+     * 查询商品大类列表(parent_id 为空)
+     * @return 商品大类列表
+     */
+    List<InventoryProduct> selectMainCategoryList();
 }

@@ -44,7 +44,7 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
                 detailMapper.insert(detail);
                 
                 // 锁定库存
-                coreService.lockStock(detail.getSkuId(), outbound.getWarehouseId(), detail.getQty());
+                coreService.lockStock(detail.getProductId(), outbound.getWarehouseId(), detail.getQty());
             }
         }
         return true;
@@ -89,7 +89,7 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
 
             // Deduct stock
             for (InventoryOutboundDetail detail : details) {
-                coreService.reduceStock(detail.getSkuId(), existOutbound.getWarehouseId(), detail.getBatchNo(), detail.getQty());
+                coreService.reduceStock(detail.getProductId(), existOutbound.getWarehouseId(), detail.getBatchNo(), detail.getQty());
             }
         } else if ("REJECTED".equals(outbound.getStatus())) {
             existOutbound.setStatus("REJECTED");
@@ -97,7 +97,7 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
 
             // Release locked stock
             for (InventoryOutboundDetail detail : details) {
-                coreService.releaseStock(detail.getSkuId(), existOutbound.getWarehouseId(), detail.getQty());
+                coreService.releaseStock(detail.getProductId(), existOutbound.getWarehouseId(), detail.getQty());
             }
         } else {
             throw new ServiceException("无效的审批状态");

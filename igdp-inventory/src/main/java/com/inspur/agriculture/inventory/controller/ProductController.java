@@ -29,6 +29,12 @@ public class ProductController extends BaseController {
         return getDataTable(list);
     }
 
+    @PreAuthorize("@ss.hasPermi('inventory:product:list')")
+    @GetMapping("/main-categories")
+    public AjaxResult mainCategories() {
+        return AjaxResult.success(productService.selectMainCategoryList());
+    }
+
     @PreAuthorize("@ss.hasPermi('inventory:product:query')")
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable Long id) {

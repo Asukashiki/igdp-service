@@ -16,6 +16,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="location" column="location"/>
         <result property="capacity" column="capacity"/>
         <result property="maxStock" column="max_stock"/>
+        <result property="stockQty" column="stock_qty"/>
         <result property="address" column="address"/>
         <result property="status" column="status"/>
         <result property="createBy" column="create_by"/>
@@ -38,6 +39,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                w.location,
                w.capacity,
                w.max_stock,
+               (SELECT COALESCE(SUM(s.available_qty), 0) FROM inventory_stock s WHERE s.warehouse_id = w.id) AS stock_qty,
                w.address,
                w.status,
                w.create_by,

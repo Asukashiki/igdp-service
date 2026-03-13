@@ -17,6 +17,13 @@ public interface InventoryStockMapper extends BaseMapper<InventoryStock> {
     List<InventoryStock> selectStockList(InventoryStock stock);
 
     /**
+     * 根据ID查询库存
+     * @param id 库存ID
+     * @return 库存信息
+     */
+    InventoryStock selectStockById(@Param("id") Long id);
+
+    /**
      * 乐观锁更新库存
      * @param id 库存ID
      * @param qty 变动数量

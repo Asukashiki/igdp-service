@@ -26,7 +26,6 @@ public class InventoryInboundDetail extends BaseEntity {
     private Long inputId;
     private String inputCode;
     private Long productId;
-    private Long skuId;
     private String mainCategory;
     private String subCategory;
     private String batchNo;

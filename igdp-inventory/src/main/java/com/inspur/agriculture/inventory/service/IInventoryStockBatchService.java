@@ -1,11 +1,11 @@
-package com.inspur.agriculture.inventory.mapper;
+package com.inspur.agriculture.inventory.service;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.inspur.agriculture.inventory.domain.InventoryStockBatch;
 
 import java.util.List;
 
-public interface InventoryStockBatchMapper extends BaseMapper<InventoryStockBatch> {
+public interface IInventoryStockBatchService extends IService<InventoryStockBatch> {
 
     /**
      * 查询批次库存列表
