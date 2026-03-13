@@ -23,19 +23,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="mainCategory" column="main_category"/>
         <result property="subCategory" column="sub_category"/>
         <result property="warehouseName" column="warehouse_name"/>
+        <result property="unit" column="unit"/>
+        <result property="batchId" column="batch_id"/>
+        <result property="batchNo" column="batch_no"/>
     </resultMap>
 
     <sql id="selectInventoryStockVo">
         SELECT s.id, s.product_id, s.warehouse_id,
                s.available_qty, s.locked_qty, s.quality_grade, s.stock_status, s.version,
                s.create_by, s.create_time, s.update_by, s.update_time, s.remark,
-               p.product_name, p.product_code, p.main_category, p.sub_category, w.warehouse_name
+               p.product_name, p.product_code, p.main_category, p.sub_category, w.warehouse_name,
+               lb.batch_id AS batch_id, lb.batch_no AS batch_no, lb.unit AS unit
         FROM inventory_stock s
         LEFT JOIN inventory_product p ON s.product_id = p.id
         LEFT JOIN inventory_warehouse w ON s.warehouse_id = w.id
         LEFT JOIN (
             SELECT b.product_id AS product_id, b.warehouse_id AS warehouse_id,
-                   b.id AS batch_id, b.batch_no AS batch_no,
+                   b.id AS batch_id, b.batch_no AS batch_no,b.unit AS unit,
                    b.main_category AS main_category, b.sub_category AS sub_category
             FROM inventory_stock_batch b
             INNER JOIN (
@@ -73,4 +77,3 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
 </mapper>
-

@@ -315,8 +315,8 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             WarehouseInventoryItemVO vo = new WarehouseInventoryItemVO();
             vo.setProductId(String.valueOf(is.getProductId()));
             vo.setProductName(is.getProductName() != null ? is.getProductName() : "Unknown");
-//            vo.setCategoryMajor(is.getMainCategory());
-//            vo.setCategoryMinor(is.getSubCategory());
+            vo.setCategoryMajor(is.getMainCategory());
+            vo.setCategoryMinor(is.getSubCategory());
             vo.setUnit(is.getUnit());
             vo.setBatchNo(is.getBatchNo());
             vo.setBatchId(String.valueOf(is.getBatchId()));
