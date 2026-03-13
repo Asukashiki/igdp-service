@@ -12,32 +12,25 @@ public interface IInventoryCoreService {
      * 锁定库存 (下单/申请出库)
      * @param productId Product ID
      * @param warehouseCode 仓库编码
-     * @param productId 商品ID
-     * @param warehouseId 仓库ID
      * @param qty 数量
      */
-    void lockStock(Long productId, Long warehouseId, BigDecimal qty);
     void lockStock(Long productId, String warehouseCode, BigDecimal qty);
 
     /**
      * 释放锁定库存 (取消订单)
+     * @param productId Product ID
      * @param warehouseCode 仓库编码
-     * @param productId 商品ID
-     * @param warehouseId 仓库ID
      * @param qty 数量
      */
-    void releaseStock(Long productId, Long warehouseId, BigDecimal qty);
     void releaseStock(Long productId, String warehouseCode, BigDecimal qty);
 
     /**
      * 扣减库存 (确认出库)
+     * @param productId Product ID
      * @param warehouseCode 仓库编码
-     * @param productId 商品ID
-     * @param warehouseId 仓库ID
      * @param batchNo 批次号
      * @param qty 数量
      */
-    void reduceStock(Long productId, Long warehouseId, String batchNo, BigDecimal qty);
     void reduceStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty);
 
     /**
@@ -52,15 +45,13 @@ public interface IInventoryCoreService {
 
     /**
      * 增加库存 (确认入库)
-     * @param productId 商品ID
-     * @param warehouseId 仓库ID
+     * @param productId Product ID
      * @param warehouseCode 仓库编码
      * @param batchNo 批次号
      * @param qty 数量
      * @param prodDate 生产日期
      * @param expDate 过期日期
      */
-    void increaseStock(Long productId, Long warehouseId, String batchNo, BigDecimal qty, Date prodDate, Date expDate);
     void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate);
 
     /**
@@ -80,8 +71,6 @@ public interface IInventoryCoreService {
      * 增加库存 (确认入库) - 支持商品分类
      * @param productId Product ID
      * @param warehouseCode 仓库编码
-     * @param productId 商品ID
-     * @param warehouseId 仓库ID
      * @param batchNo 批次号
      * @param qty 数量
      * @param prodDate 生产日期
@@ -110,16 +99,12 @@ public interface IInventoryCoreService {
      */
     void increaseStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty, String batchUnit,
                                 Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory);
-    void increaseStock(Long productId, Long warehouseId, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus);
 
     /**
      * 预占库存 (可选)
-     * @param productId 商品ID
-     * @param warehouseId 仓库ID
      * @param productId Product ID
      * @param warehouseCode 仓库编码
      * @param qty 数量
      */
-    void reserveStock(Long productId, Long warehouseId, BigDecimal qty);
     void reserveStock(Long productId, String warehouseCode, BigDecimal qty);
 }

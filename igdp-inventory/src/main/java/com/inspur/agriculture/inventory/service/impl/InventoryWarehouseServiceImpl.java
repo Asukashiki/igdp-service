@@ -122,6 +122,17 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
     }
 
     @Override
+    public InventoryWarehouse selectWarehouseByCode(String warehouseCode) {
+        if (isBlank(warehouseCode)) {
+            return null;
+        }
+        LambdaQueryWrapper<InventoryWarehouse> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InventoryWarehouse::getWarehouseCode, warehouseCode);
+        return this.getOne(wrapper);
+    }
+
+
+    @Override
     public String generateWarehouseCode(String warehouseType) {
         if (isBlank(warehouseType)) {
             throw new ServiceException("仓库类型不能为空");
@@ -190,14 +201,14 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
         }
 
         // 如果是联盟或合作社仓库，上级仓库必选
-        if (("LM".equals(warehouse.getType()) || "HZS".equals(warehouse.getType())) 
-            && (warehouse.getParentId() == null || warehouse.getParentId() <= 0)) {
+        if (("LM".equals(warehouse.getType()) || "HZS".equals(warehouse.getType()))
+                && (warehouse.getParentId() == null || warehouse.getParentId() <= 0)) {
             throw new ServiceException("联盟/合作社仓库必须选择上级仓库");
         }
 
         // 检查编码唯一性
-        int count = baseMapper.checkWarehouseCodeExists(warehouse.getWarehouseCode(), 
-            isUpdate ? warehouse.getId() : null);
+        int count = baseMapper.checkWarehouseCodeExists(warehouse.getWarehouseCode(),
+                isUpdate ? warehouse.getId() : null);
         if (count > 0) {
             throw new ServiceException("仓库编码已存在");
         }

@@ -51,7 +51,7 @@ public class InventoryStockBatchServiceImpl extends ServiceImpl<InventoryStockBa
         wrapper.eq(InventoryStockBatch::getWarehouseId, warehouse.getId())
                 .eq(InventoryStockBatch::getBatchNo, batchNo);
         return this.getOne(wrapper, false);
-}
+    }
 
     @Override
     public List<InventoryStockBatch> selectBatchList(InventoryStockBatch batch) {

@@ -124,15 +124,8 @@ public class InventoryCheckOrderServiceImpl extends ServiceImpl<InventoryCheckOr
                 throw new ServiceException("Invalid diff quantity.");
             }
             if ("PROFIT".equals(detail.getDiffType())) {
-                // 盘盈入库
-                coreService.increaseStock(detail.getProductId(), existOrder.getWarehouseId(), detail.getBatchNo(), detail.getDiffQty(), null, null);
                 stock.setAvailableQty(stock.getAvailableQty().add(qty));
             } else if ("LOSS".equals(detail.getDiffType())) {
-                // 盘亏出库 (直接扣减，不走锁定流程)
-                // 注意：reduceStock默认扣减锁定库存，这里需要特殊处理或者先锁定再扣减
-                // 简化处理：先锁定再扣减
-                coreService.lockStock(detail.getProductId(), existOrder.getWarehouseId(), detail.getDiffQty());
-                coreService.reduceStock(detail.getProductId(), existOrder.getWarehouseId(), detail.getBatchNo(), detail.getDiffQty());
                 if (stock.getAvailableQty().compareTo(qty) < 0) {
                     throw new ServiceException("Insufficient stock to reduce.");
                 }

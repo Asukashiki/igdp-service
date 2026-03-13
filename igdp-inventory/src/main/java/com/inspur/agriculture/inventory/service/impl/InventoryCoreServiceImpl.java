@@ -26,10 +26,10 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
     @Autowired
     private InventoryStockMapper stockMapper;
-    
+
     @Autowired
     private InventoryStockBatchMapper stockBatchMapper;
-    
+
     @Autowired
     private InventoryStockLogMapper stockLogMapper;
 
@@ -70,9 +70,9 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
         stock = stockMapper.selectById(stock.getId());
         if (stock.getLockedQty().compareTo(qty) < 0) {
-             throw new ServiceException("Release quantity is greater than locked quantity.");
+            throw new ServiceException("Release quantity is greater than locked quantity.");
         }
-        
+
         stock.setAvailableQty(stock.getAvailableQty().add(qty));
         stock.setLockedQty(stock.getLockedQty().subtract(qty));
         int rows = stockMapper.updateById(stock);
@@ -220,7 +220,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         }
         LambdaQueryWrapper<InventoryStock> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(InventoryStock::getWarehouseId, warehouseId)
-                    .eq(InventoryStock::getProductId, productId);
+                .eq(InventoryStock::getProductId, productId);
         InventoryStock stock = stockMapper.selectOne(queryWrapper);
         if (stock == null) {
             stock = new InventoryStock();
@@ -234,7 +234,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         return stock;
     }
 
-    private void recordLog(Long productId, Long warehouseId, String batchNo, String type, BigDecimal changeQty, 
+    private void recordLog(Long productId, Long warehouseId, String batchNo, String type, BigDecimal changeQty,
                            BigDecimal beforeQty, BigDecimal afterQty, String bizType, Long bizId, String bizNo) {
         InventoryStockLog log = new InventoryStockLog();
         log.setProductId(productId);
