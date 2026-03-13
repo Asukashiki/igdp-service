@@ -2,9 +2,15 @@ package com.inspur.agriculture.inventory.service.impl;
 
 import com.inspur.agriculture.inventory.domain.InventoryTransfer;
 import com.inspur.agriculture.inventory.domain.InventoryTransferDetail;
+import com.inspur.agriculture.inventory.domain.InventoryOutbound;
+import com.inspur.agriculture.inventory.domain.InventoryOutboundDetail;
+import com.inspur.agriculture.inventory.domain.InventoryInbound;
+import com.inspur.agriculture.inventory.domain.InventoryInboundDetail;
 import com.inspur.agriculture.inventory.dto.TransferDTO;
 import com.inspur.agriculture.inventory.mapper.TransferDetailMapper;
 import com.inspur.agriculture.inventory.mapper.TransferMapper;
+import com.inspur.agriculture.inventory.service.IInventoryInboundService;
+import com.inspur.agriculture.inventory.service.IInventoryOutboundService;
 import com.inspur.agriculture.inventory.service.ITransferService;
 import com.inspur.agriculture.inventory.vo.TransferVO;
 import com.inspur.common.exception.ServiceException;
@@ -19,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * 调拨服务实现
@@ -32,6 +39,12 @@ public class TransferServiceImpl implements ITransferService {
 
     @Autowired
     private TransferDetailMapper detailMapper;
+
+    @Autowired
+    private IInventoryOutboundService outboundService;
+
+    @Autowired
+    private IInventoryInboundService inboundService;
 
     @Override
     public List<TransferVO> selectTransferList(TransferDTO dto) {
@@ -182,11 +195,102 @@ public class TransferServiceImpl implements ITransferService {
             transfer.setStatus("APPROVED");
             transfer.setOutTime(new Date());
             transfer.setInTime(new Date());
+
+            List<InventoryTransferDetail> details = detailMapper.selectByTransferId(id);
+            if (details == null || details.isEmpty()) {
+                throw new ServiceException("Transfer details cannot be empty");
+            }
+
+            // Create outbound order (from out-warehouse)
+            InventoryOutbound outbound = buildOutboundFromTransfer(transfer, details, username);
+            outboundService.createOutbound(outbound);
+            outboundService.submitOutbound(outbound.getId());
+
+            InventoryOutbound auditOutbound = new InventoryOutbound();
+            auditOutbound.setId(outbound.getId());
+            auditOutbound.setStatus("APPROVED");
+            auditOutbound.setAuditBy(username);
+            auditOutbound.setAuditComment(auditComment != null ? auditComment : "Transfer approved");
+            outboundService.auditOutbound(auditOutbound);
+
+            // Create inbound order (to in-warehouse)
+            InventoryInbound inbound = buildInboundFromTransfer(transfer, details, username);
+            inboundService.createInbound(inbound);
+            inboundService.submitInbound(inbound.getId());
+
+            InventoryInbound auditInbound = new InventoryInbound();
+            auditInbound.setId(inbound.getId());
+            auditInbound.setStatus("APPROVED");
+            auditInbound.setAuditComment(auditComment != null ? auditComment : "Transfer approved");
+            inboundService.auditInbound(auditInbound);
+
+            transfer.setRelatedOutboundId(outbound.getId());
+            transfer.setRelatedInboundId(inbound.getId());
         } else {
             transfer.setStatus("REJECTED");
         }
 
         return transferMapper.updateById(transfer);
+    }
+
+    private InventoryOutbound buildOutboundFromTransfer(InventoryTransfer transfer, List<InventoryTransferDetail> details, String username) {
+        InventoryOutbound outbound = new InventoryOutbound();
+        outbound.setOutboundNo("TF-OUT-" + transfer.getTransferNo());
+        outbound.setWarehouseCode(transfer.getOutWarehouseCode());
+        outbound.setWarehouseName(transfer.getOutWarehouseName());
+        outbound.setType("TRANSFER");
+        outbound.setReceiverType("WAREHOUSE");
+        outbound.setReceiver(transfer.getInWarehouseName());
+        outbound.setBizNo(transfer.getTransferNo());
+        outbound.setOperator(username);
+        outbound.setOrderDate(new Date());
+        outbound.setRemark("Auto created from transfer");
+        outbound.setDetailList(buildOutboundDetails(details));
+        return outbound;
+    }
+
+    private List<InventoryOutboundDetail> buildOutboundDetails(List<InventoryTransferDetail> details) {
+        return details.stream().map(detail -> {
+            InventoryOutboundDetail outboundDetail = new InventoryOutboundDetail();
+            outboundDetail.setProductId(detail.getProductId());
+            outboundDetail.setMainCategory(detail.getMainCategory());
+            outboundDetail.setSubCategory(detail.getSubCategory());
+            outboundDetail.setBatchNo(detail.getBatchNo());
+            outboundDetail.setSupplier(detail.getSupplier());
+            outboundDetail.setQty(detail.getQty());
+            outboundDetail.setUnit(detail.getUnit());
+            outboundDetail.setExpireDate(detail.getExpireDate());
+            return outboundDetail;
+        }).collect(Collectors.toList());
+    }
+
+    private InventoryInbound buildInboundFromTransfer(InventoryTransfer transfer, List<InventoryTransferDetail> details, String username) {
+        InventoryInbound inbound = new InventoryInbound();
+        inbound.setInboundNo("TF-IN-" + transfer.getTransferNo());
+        inbound.setWarehouseCode(transfer.getInWarehouseCode());
+        inbound.setWarehouseName(transfer.getInWarehouseName());
+        inbound.setType("TRANSFER");
+        inbound.setBizNo(transfer.getTransferNo());
+        inbound.setOperator(username);
+        inbound.setOrderDate(new Date());
+        inbound.setRemark("Auto created from transfer");
+        inbound.setDetailList(buildInboundDetails(details));
+        return inbound;
+    }
+
+    private List<InventoryInboundDetail> buildInboundDetails(List<InventoryTransferDetail> details) {
+        return details.stream().map(detail -> {
+            InventoryInboundDetail inboundDetail = new InventoryInboundDetail();
+            inboundDetail.setProductId(detail.getProductId());
+            inboundDetail.setMainCategory(detail.getMainCategory());
+            inboundDetail.setSubCategory(detail.getSubCategory());
+            inboundDetail.setBatchNo(detail.getBatchNo());
+            inboundDetail.setSupplier(detail.getSupplier());
+            inboundDetail.setQty(detail.getQty());
+            inboundDetail.setUnit(detail.getUnit());
+            inboundDetail.setExpireDate(detail.getExpireDate());
+            return inboundDetail;
+        }).collect(Collectors.toList());
     }
 
     private String getCurrentUsername() {
