@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 仓库表
@@ -31,10 +32,16 @@ public class InventoryWarehouse extends BaseEntity {
     private Long parentId;
     private String location;
     private BigDecimal capacity;
+    private BigDecimal maxStock;
+    @TableField(exist = false)
+    private BigDecimal stockQty;
     private String address;
     private String status;
     private String remark;
 
     @TableField(exist = false)
     private String parentWarehouseName;
+
+    @TableField(exist = false)
+    private List<Long> ids;
 }

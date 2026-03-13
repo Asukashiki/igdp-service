@@ -8,10 +8,14 @@ import java.util.List;
 public interface IInventoryStockBatchService extends IService<InventoryStockBatch> {
 
     /**
+     * 查询批次库存列表
+     * @param batch 批次库存信息
+     * @return 批次库存集合
      * 根据仓库编码查询批次库存列表
      * @param warehouseCode 仓库编码
      * @return 批次库存列表
      */
+    List<InventoryStockBatch> selectBatchList(InventoryStockBatch batch);
     List<InventoryStockBatch> listByWarehouseCode(String warehouseCode);
 
     /**

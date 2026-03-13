@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.inventory.mapper.InventoryStockBatchMapper">
+
+    <resultMap type="com.inspur.agriculture.inventory.domain.InventoryStockBatch" id="InventoryStockBatchResult">
+        <id property="id" column="id"/>
+        <result property="stockId" column="stock_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="warehouseId" column="warehouse_id"/>
+        <result property="batchNo" column="batch_no"/>
+        <result property="productionDate" column="production_date"/>
+        <result property="expireDate" column="expire_date"/>
+        <result property="qty" column="qty"/>
+        <result property="qualityGrade" column="quality_grade"/>
+        <result property="stockStatus" column="stock_status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectInventoryStockBatchVo">
+        SELECT b.id, b.stock_id, b.product_id, b.warehouse_id,
+               b.batch_no, b.production_date, b.expire_date, b.qty, b.quality_grade, b.stock_status,
+               b.create_by, b.create_time, b.update_by, b.update_time, b.remark
+        FROM inventory_stock_batch b
+    </sql>
+
+    <select id="selectBatchList" parameterType="com.inspur.agriculture.inventory.domain.InventoryStockBatch" resultMap="InventoryStockBatchResult">
+        <include refid="selectInventoryStockBatchVo"/>
+        <where>
+            <if test="stockId != null"> AND b.stock_id = #{stockId} </if>
+            <if test="stockIds != null and stockIds.size() > 0">
+                AND b.stock_id IN
+                <foreach collection="stockIds" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="warehouseId != null"> AND b.warehouse_id = #{warehouseId} </if>
+            <if test="productId != null"> AND b.product_id = #{productId} </if>
+            <if test="batchNo != null and batchNo != ''"> AND b.batch_no LIKE concat('%', #{batchNo}, '%') </if>
+        </where>
+        ORDER BY b.create_time DESC, b.id DESC
+    </select>
+</mapper>

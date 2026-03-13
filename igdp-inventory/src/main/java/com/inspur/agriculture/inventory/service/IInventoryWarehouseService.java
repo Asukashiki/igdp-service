@@ -57,4 +57,12 @@ public interface IInventoryWarehouseService extends IService<InventoryWarehouse>
      * @return 仓库信息
      */
     InventoryWarehouse selectWarehouseByCode(String warehouseCode);
+
+    /**
+     * 生成仓库编码
+     *
+     * @param warehouseType 仓库类型（ZY/LM/HZS/QY）
+     * @return 生成的仓库编码
+     */
+    String generateWarehouseCode(String warehouseType);
 }

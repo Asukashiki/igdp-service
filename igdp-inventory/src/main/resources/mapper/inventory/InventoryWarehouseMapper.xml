@@ -15,6 +15,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="parentId" column="parent_id"/>
         <result property="location" column="location"/>
         <result property="capacity" column="capacity"/>
+        <result property="maxStock" column="max_stock"/>
+        <result property="stockQty" column="stock_qty"/>
         <result property="address" column="address"/>
         <result property="status" column="status"/>
         <result property="createBy" column="create_by"/>
@@ -36,6 +38,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                w.parent_id,
                w.location,
                w.capacity,
+               w.max_stock,
+               (SELECT COALESCE(SUM(s.available_qty), 0) FROM inventory_stock s WHERE s.warehouse_id = w.id) AS stock_qty,
                w.address,
                w.status,
                w.create_by,
@@ -69,6 +73,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">
                 AND w.status = #{status}
             </if>
+            <if test="ids != null and ids.size() > 0">
+                AND w.id IN
+                <foreach collection="ids" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
         </where>
         ORDER BY w.create_time DESC, w.id DESC
     </select>
@@ -76,6 +86,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectWarehouseById" parameterType="java.lang.Long" resultMap="InventoryWarehouseResult">
         <include refid="selectInventoryWarehouseVo"/>
         WHERE w.id = #{id}
+    </select>
+
+    <select id="selectMaxSequence" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(warehouse_code, '_', -1) AS UNSIGNED)), 0)
+        FROM inventory_warehouse
+        WHERE warehouse_code LIKE #{pattern}
+    </select>
+
+    <select id="checkWarehouseCodeExists" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM inventory_warehouse
+        WHERE warehouse_code = #{warehouseCode}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
     </select>
 
 </mapper>

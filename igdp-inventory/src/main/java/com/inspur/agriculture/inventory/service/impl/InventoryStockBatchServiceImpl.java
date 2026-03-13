@@ -15,11 +15,11 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-public class InventoryStockBatchServiceImpl extends ServiceImpl<InventoryStockBatchMapper, InventoryStockBatch>
-        implements IInventoryStockBatchService {
+public class InventoryStockBatchServiceImpl extends ServiceImpl<InventoryStockBatchMapper, InventoryStockBatch> implements IInventoryStockBatchService {
 
     @Autowired
     private IInventoryWarehouseService warehouseService;
+    private InventoryStockBatchMapper batchMapper;
 
     @Override
     public List<InventoryStockBatch> listByWarehouseCode(String warehouseCode) {
@@ -51,5 +51,10 @@ public class InventoryStockBatchServiceImpl extends ServiceImpl<InventoryStockBa
         wrapper.eq(InventoryStockBatch::getWarehouseId, warehouse.getId())
                 .eq(InventoryStockBatch::getBatchNo, batchNo);
         return this.getOne(wrapper, false);
+}
+
+    @Override
+    public List<InventoryStockBatch> selectBatchList(InventoryStockBatch batch) {
+        return batchMapper.selectBatchList(batch);
     }
 }

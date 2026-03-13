@@ -10,6 +10,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="productName" column="product_name"/>
         <result property="categoryId" column="category_id"/>
         <result property="categoryName" column="category_name"/>
+        <result property="parentId" column="parent_id"/>
         <result property="mainCategory" column="main_category"/>
         <result property="subCategory" column="sub_category"/>
         <result property="brand" column="brand"/>
@@ -32,6 +33,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                product_name,
                category_id,
                category_name,
+               parent_id,
                main_category,
                sub_category,
                brand,
@@ -93,6 +95,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
         </where>
         ORDER BY create_time DESC, id DESC
+    </select>
+
+    <select id="selectMainCategoryList" resultMap="InventoryProductResult">
+        SELECT id,
+               parent_id,
+               main_category
+        FROM inventory_product
+        WHERE parent_id IS NULL
+        ORDER BY id DESC
     </select>
 
     <select id="selectProductById" parameterType="java.lang.Long" resultMap="InventoryProductResult">

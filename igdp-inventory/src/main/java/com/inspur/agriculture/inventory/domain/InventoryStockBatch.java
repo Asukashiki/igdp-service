@@ -34,4 +34,7 @@ public class InventoryStockBatch extends BaseEntity {
     private Date expireDate;
     private String qualityGrade;
     private String stockStatus;
+    private String remark;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private java.util.List<Long> stockIds;
 }

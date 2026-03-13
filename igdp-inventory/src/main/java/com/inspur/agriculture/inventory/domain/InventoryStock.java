@@ -40,7 +40,7 @@ public class InventoryStock extends BaseEntity {
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String warehouseName;
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
-    private String skuName;
+    private String productCode;
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String skuCode;
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
@@ -49,4 +49,7 @@ public class InventoryStock extends BaseEntity {
     private Long batchId;
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String batchNo;
+    private String mainCategory;
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String subCategory;
 }

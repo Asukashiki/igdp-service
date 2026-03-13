@@ -27,6 +27,12 @@ public interface IInventoryProductService extends IService<InventoryProduct> {
     InventoryProduct selectProductById(Long id);
 
     /**
+     * 查询商品大类列表(parent_id 为空)
+     * @return 商品大类列表
+     */
+    List<InventoryProduct> selectMainCategoryList();
+
+    /**
      * 新增商品
      *
      * @param product 商品信息
