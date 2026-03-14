@@ -52,6 +52,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LEFT JOIN inventory_warehouse p ON w.parent_id = p.id
     </sql>
 
+
     <select id="selectWarehouseList" parameterType="com.inspur.agriculture.inventory.domain.InventoryWarehouse" resultMap="InventoryWarehouseResult">
         <include refid="selectInventoryWarehouseVo"/>
         <where>
@@ -100,6 +101,36 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="excludeId != null">
             AND id != #{excludeId}
         </if>
+    </select>
+
+    <select id="selectWarehouseListByDeptId" parameterType="java.lang.String" resultMap="InventoryWarehouseResult">
+        <include refid="selectInventoryWarehouseVo"/>
+        WHERE w.id IN (
+            SELECT p.warehouse_id
+            FROM inventory_warehouse_permission p
+            WHERE p.dept_id = #{deptId}
+        )
+        ORDER BY w.create_time DESC, w.id DESC
+    </select>
+
+    <select id="selectDeptCategoryStock" resultType="com.inspur.agriculture.inventory.domain.vo.DeptCategoryStockVO">
+        SELECT s.main_category AS mainCategory,
+               s.sub_category AS subCategory,
+               COALESCE(SUM(s.available_qty), 0) AS availableQty
+        FROM inventory_stock s
+        WHERE s.warehouse_id IN (
+            SELECT p.warehouse_id
+            FROM inventory_warehouse_permission p
+            WHERE p.dept_id = #{deptId}
+        )
+        <if test="mainCategory != null and mainCategory != ''">
+            AND s.main_category = #{mainCategory}
+        </if>
+        <if test="subCategory != null and subCategory != ''">
+            AND s.sub_category = #{subCategory}
+        </if>
+        GROUP BY s.main_category, s.sub_category
+        ORDER BY s.main_category ASC, s.sub_category ASC
     </select>
 
 </mapper>

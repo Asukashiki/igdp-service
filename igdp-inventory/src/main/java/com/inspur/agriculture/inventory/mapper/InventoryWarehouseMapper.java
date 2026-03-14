@@ -29,4 +29,10 @@ public interface InventoryWarehouseMapper extends BaseMapper<InventoryWarehouse>
      * @return 存在数量
      */
     int checkWarehouseCodeExists(@Param("warehouseCode") String warehouseCode, @Param("excludeId") Long excludeId);
+
+    List<InventoryWarehouse> selectWarehouseListByDeptId(@Param("deptId") String deptId);
+
+    List<com.inspur.agriculture.inventory.domain.vo.DeptCategoryStockVO> selectDeptCategoryStock(@Param("deptId") String deptId,
+                                                                                                 @Param("mainCategory") String mainCategory,
+                                                                                                 @Param("subCategory") String subCategory);
 }

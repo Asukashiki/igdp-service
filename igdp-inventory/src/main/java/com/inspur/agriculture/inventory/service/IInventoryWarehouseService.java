@@ -65,4 +65,8 @@ public interface IInventoryWarehouseService extends IService<InventoryWarehouse>
      * @return 生成的仓库编码
      */
     String generateWarehouseCode(String warehouseType);
+
+    List<InventoryWarehouse> selectWarehouseListByDeptId(String deptId);
+
+    List<com.inspur.agriculture.inventory.domain.vo.DeptCategoryStockVO> selectDeptCategoryStock(String deptId, String mainCategory, String subCategory);
 }

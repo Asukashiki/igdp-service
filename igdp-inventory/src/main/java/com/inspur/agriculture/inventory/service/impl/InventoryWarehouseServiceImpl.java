@@ -38,6 +38,22 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
     }
 
     @Override
+    public List<InventoryWarehouse> selectWarehouseListByDeptId(String deptId) {
+        if (isBlank(deptId)) {
+            return java.util.Collections.emptyList();
+        }
+        return baseMapper.selectWarehouseListByDeptId(deptId);
+    }
+
+    @Override
+    public List<com.inspur.agriculture.inventory.domain.vo.DeptCategoryStockVO> selectDeptCategoryStock(String deptId, String mainCategory, String subCategory) {
+        if (isBlank(deptId)) {
+            return java.util.Collections.emptyList();
+        }
+        return baseMapper.selectDeptCategoryStock(deptId, mainCategory, subCategory);
+    }
+
+    @Override
     public InventoryWarehouse selectWarehouseById(Long id) {
         return baseMapper.selectWarehouseById(id);
     }

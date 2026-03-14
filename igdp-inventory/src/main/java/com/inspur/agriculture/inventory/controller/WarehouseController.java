@@ -73,6 +73,15 @@ public class WarehouseController extends BaseController {
         return AjaxResult.success(list);
     }
 
+    @GetMapping("/list-by-dept")
+    public AjaxResult listByDept(@RequestParam("dept_id") String deptId,
+                                 @RequestParam(value = "main_category", required = false) String mainCategory,
+                                 @RequestParam(value = "sub_category", required = false) String subCategory) {
+        return AjaxResult.success(warehouseService.selectDeptCategoryStock(deptId, mainCategory, subCategory));
+    }
+
+
+
     @PreAuthorize("@ss.hasPermi('inventory:warehouse:query')")
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable Long id) {
@@ -162,4 +171,9 @@ public class WarehouseController extends BaseController {
     public AjaxResult remove(@PathVariable Long id) {
         return toAjax(warehouseService.deleteWarehouse(id));
     }
+
+
+
+
+    
 }
