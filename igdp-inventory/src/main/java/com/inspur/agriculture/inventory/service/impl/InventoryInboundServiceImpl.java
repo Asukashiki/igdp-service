@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.agriculture.inventory.domain.InventoryInbound;
 import com.inspur.agriculture.inventory.domain.InventoryInboundDetail;
+import com.inspur.agriculture.inventory.domain.InventoryProduct;
 import com.inspur.agriculture.inventory.domain.InventoryStock;
 import com.inspur.agriculture.inventory.domain.InventoryWarehouse;
 import com.inspur.agriculture.inventory.mapper.InventoryInboundDetailMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryInboundMapper;
+import com.inspur.agriculture.inventory.mapper.InventoryProductMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryStockMapper;
 import com.inspur.agriculture.inventory.service.IInventoryCoreService;
 import com.inspur.agriculture.inventory.service.IInventoryInboundDetailService;
@@ -40,6 +42,9 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
 
     @Autowired
     private InventoryStockMapper stockMapper;
+
+    @Autowired
+    private InventoryProductMapper productMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -140,6 +145,9 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             LambdaQueryWrapper<InventoryInboundDetail> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(InventoryInboundDetail::getInboundId, inbound.getId());
             List<InventoryInboundDetail> details = detailMapper.selectList(queryWrapper);
+            for (InventoryInboundDetail detail : details) {
+                detail.setProductId(resolveProductId(detail));
+            }
 
             InventoryWarehouse warehouse = warehouseService.selectWarehouseByCode(existInbound.getWarehouseCode());
             if (warehouse == null) {
@@ -264,5 +272,29 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
 
     private String safeString(String value) {
         return value == null ? "-" : value;
+    }
+
+    private Long resolveProductId(InventoryInboundDetail detail) {
+        if (detail == null) {
+            throw new ServiceException("Inbound detail cannot be null.");
+        }
+        if (detail.getProductId() != null) {
+            return detail.getProductId();
+        }
+        String mainCategory = detail.getMainCategory();
+        String subCategory = detail.getSubCategory();
+        if (mainCategory == null || mainCategory.isEmpty() || subCategory == null || subCategory.isEmpty()) {
+            throw new ServiceException("Product ID is required when mainCategory or subCategory is missing.");
+        }
+
+        LambdaQueryWrapper<InventoryProduct> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InventoryProduct::getMainCategory, mainCategory)
+                .eq(InventoryProduct::getSubCategory, subCategory)
+                .last("limit 1");
+        InventoryProduct product = productMapper.selectOne(wrapper);
+        if (product == null) {
+            throw new ServiceException("Product not found for category: " + mainCategory + " / " + subCategory);
+        }
+        return product.getId();
     }
 }

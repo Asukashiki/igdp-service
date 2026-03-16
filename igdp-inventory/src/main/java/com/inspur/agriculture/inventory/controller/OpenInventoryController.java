@@ -29,7 +29,11 @@ public class OpenInventoryController extends BaseController {
     public AjaxResult createInbound(@RequestBody InventoryInbound inbound) {
         boolean ok = inboundService.createInbound(inbound);
         if (ok) {
-            return AjaxResult.success("Inbound order created.", inbound.getId());
+            boolean submitted = inboundService.submitInbound(inbound.getId());
+            if (!submitted) {
+                return AjaxResult.error("Inbound order created but failed to submit for approval.");
+            }
+            return AjaxResult.success("Inbound order created and submitted for approval.", inbound.getId());
         }
         return AjaxResult.error("Failed to create inbound order.");
     }
@@ -38,7 +42,11 @@ public class OpenInventoryController extends BaseController {
     public AjaxResult createOutbound(@RequestBody InventoryOutbound outbound) {
         boolean ok = outboundService.createOutbound(outbound);
         if (ok) {
-            return AjaxResult.success("Outbound order created.", outbound.getId());
+            boolean submitted = outboundService.submitOutbound(outbound.getId());
+            if (!submitted) {
+                return AjaxResult.error("Outbound order created but failed to submit for approval.");
+            }
+            return AjaxResult.success("Outbound order created and submitted for approval.", outbound.getId());
         }
         return AjaxResult.error("Failed to create outbound order.");
     }

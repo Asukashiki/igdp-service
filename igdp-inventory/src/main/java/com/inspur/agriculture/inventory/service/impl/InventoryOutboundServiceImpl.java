@@ -4,11 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.agriculture.inventory.domain.InventoryOutbound;
 import com.inspur.agriculture.inventory.domain.InventoryOutboundDetail;
+import com.inspur.agriculture.inventory.domain.InventoryProduct;
 import com.inspur.agriculture.inventory.domain.InventoryStock;
 import com.inspur.agriculture.inventory.domain.InventoryStockBatch;
 import com.inspur.agriculture.inventory.domain.InventoryWarehouse;
 import com.inspur.agriculture.inventory.mapper.InventoryOutboundDetailMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryOutboundMapper;
+import com.inspur.agriculture.inventory.mapper.InventoryProductMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryStockBatchMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryStockMapper;
 import com.inspur.agriculture.inventory.service.IInventoryCoreService;
@@ -45,6 +47,9 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
 
     @Autowired
     private InventoryStockBatchMapper stockBatchMapper;
+
+    @Autowired
+    private InventoryProductMapper productMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -144,6 +149,9 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
             LambdaQueryWrapper<InventoryOutboundDetail> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(InventoryOutboundDetail::getOutboundId, outbound.getId());
             List<InventoryOutboundDetail> details = detailMapper.selectList(queryWrapper);
+            for (InventoryOutboundDetail detail : details) {
+                detail.setProductId(resolveProductId(detail));
+            }
 
             InventoryWarehouse warehouse = warehouseService.selectWarehouseByCode(existOutbound.getWarehouseCode());
             if (warehouse == null) {
@@ -334,5 +342,29 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
 
     private String safeString(String value) {
         return value == null ? "-" : value;
+    }
+
+    private Long resolveProductId(InventoryOutboundDetail detail) {
+        if (detail == null) {
+            throw new ServiceException("Outbound detail cannot be null.");
+        }
+        if (detail.getProductId() != null) {
+            return detail.getProductId();
+        }
+        String mainCategory = detail.getMainCategory();
+        String subCategory = detail.getSubCategory();
+        if (mainCategory == null || mainCategory.isEmpty() || subCategory == null || subCategory.isEmpty()) {
+            throw new ServiceException("Product ID is required when mainCategory or subCategory is missing.");
+        }
+
+        LambdaQueryWrapper<InventoryProduct> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InventoryProduct::getMainCategory, mainCategory)
+                .eq(InventoryProduct::getSubCategory, subCategory)
+                .last("limit 1");
+        InventoryProduct product = productMapper.selectOne(wrapper);
+        if (product == null) {
+            throw new ServiceException("Product not found for category: " + mainCategory + " / " + subCategory);
+        }
+        return product.getId();
     }
 }

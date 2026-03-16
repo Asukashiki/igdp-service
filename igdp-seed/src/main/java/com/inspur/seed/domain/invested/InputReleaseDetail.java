@@ -79,6 +79,26 @@ public class InputReleaseDetail extends BaseEntity {
     private String unit;
 
     /**
+     * Outbound warehouse code
+     */
+    private String outWarehouseCode;
+
+    /**
+     * Outbound warehouse name
+     */
+    private String outWarehouseName;
+
+    /**
+     * Inbound warehouse code
+     */
+    private String inWarehouseCode;
+
+    /**
+     * Inbound warehouse name
+     */
+    private String inWarehouseName;
+
+    /**
      * 单价
      */
     private BigDecimal unitPrice;

@@ -6,13 +6,18 @@
 - **Controller**: `OpenInventoryController.createInbound`
 - **鉴权**: Sa-Token（`Authorization: Bearer <token>`）
 
+## 业务说明
+- 该接口仅创建“待审批”的入库单（状态为 `SUBMITTED`），不会执行实际入库与库存变更。
+- 需要审批人员在后台审核通过后，才会执行入库逻辑与库存更新。
+- `productId` 可不传，系统将根据 `mainCategory + subCategory` 匹配商品。
+
 ## 请求参数
 ### Body 参数（JSON）
-> 接口接收 `InventoryInbound` 作为入参，其中 `detailList` 为明细列表。
+接口接收 `InventoryInbound` 作为入参，其中 `detailList` 为明细列表。
 
 | 参数名 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| inboundNo | string | 否 | 入库单号（不传可由外系统生成；系统不会自动生成） |
+| inboundNo | string | 否 | 入库单号（不传可由外部系统生成；系统不自动生成） |
 | warehouseCode | string | 是 | 仓库编码 |
 | type | string | 否 | 入库类型（GENERAL/TRANSFER） |
 | bizNo | string | 否 | 关联业务单号 |
@@ -24,7 +29,7 @@
 ### detailList 字段（InventoryInboundDetail）
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| productId | number | 是 | 商品 ID |
+| productId | number | 否 | 商品 ID（可为空，系统根据 mainCategory + subCategory 匹配） |
 | mainCategory | string | 否 | 商品大类 |
 | subCategory | string | 否 | 商品小类 |
 | batchNo | string | 否 | 批次号 |
@@ -39,7 +44,7 @@
 ### 返回结构
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| code | number | 状态码（200 表示成功） |
+| code | number | 状态码，200 表示成功 |
 | msg | string | 提示信息 |
 | data | number | 入库单 ID |
 
@@ -75,7 +80,7 @@ Content-Type: application/json
 ```json
 {
   "code": 200,
-  "msg": "Inbound order created.",
+  "msg": "Inbound order created and submitted for approval.",
   "data": 101
 }
 ```

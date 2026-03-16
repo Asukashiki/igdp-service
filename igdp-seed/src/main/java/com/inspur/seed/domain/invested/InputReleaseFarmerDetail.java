@@ -79,6 +79,26 @@ public class InputReleaseFarmerDetail extends BaseEntity {
     private String unit;
 
     /**
+     * Outbound warehouse code
+     */
+    private String outWarehouseCode;
+
+    /**
+     * Outbound warehouse name
+     */
+    private String outWarehouseName;
+
+    /**
+     * Inbound warehouse code
+     */
+    private String inWarehouseCode;
+
+    /**
+     * Inbound warehouse name
+     */
+    private String inWarehouseName;
+
+    /**
      * 分发数量
      */
     private BigDecimal quantity;
