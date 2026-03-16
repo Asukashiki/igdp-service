@@ -12,7 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Product service implementation.
@@ -34,6 +37,45 @@ public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMap
     @Override
     public List<InventoryProduct> selectMainCategoryList() {
         return baseMapper.selectMainCategoryList();
+    }
+
+    @Override
+    public List<Map<String, Object>> selectCategoryTree() {
+        LambdaQueryWrapper<InventoryProduct> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(InventoryProduct::getStatus, "0");
+        List<InventoryProduct> products = this.list(wrapper);
+
+        Map<Long, Map<String, Object>> parentMap = new HashMap<>();
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (InventoryProduct item : products) {
+            if (item.getParentId() == null) {
+                Map<String, Object> node = new HashMap<>();
+                node.put("id", item.getId());
+                node.put("label", item.getMainCategory());
+                node.put("value", item.getMainCategory());
+                node.put("children", new ArrayList<>());
+                parentMap.put(item.getId(), node);
+                result.add(node);
+            }
+        }
+
+        for (InventoryProduct item : products) {
+            if (item.getParentId() != null) {
+                Map<String, Object> parent = parentMap.get(item.getParentId());
+                if (parent == null) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> children = (List<Map<String, Object>>) parent.get("children");
+                Map<String, Object> child = new HashMap<>();
+                child.put("id", item.getId());
+                child.put("label", item.getSubCategory());
+                child.put("value", item.getSubCategory());
+                children.add(child);
+            }
+        }
+        return result;
     }
 
     @Override
