@@ -101,17 +101,13 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         if (stock.getLockedQty().compareTo(stockQtyKg) < 0) {
             throw new ServiceException("Reduce quantity is greater than locked quantity (please lock first).");
         }
-        stock.setLockedQty(stock.getLockedQty().subtract(stockQtyKg));
-        int rows = stockMapper.updateById(stock);
-        if (rows == 0) {
-            throw new ServiceException("Stock update failed, please retry.");
-        }
 
+        InventoryStockBatch batch = null;
         if (batchNo != null && !batchNo.isEmpty()) {
             LambdaQueryWrapper<InventoryStockBatch> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(InventoryStockBatch::getStockId, stock.getId())
                     .eq(InventoryStockBatch::getBatchNo, batchNo);
-            InventoryStockBatch batch = stockBatchMapper.selectOne(queryWrapper);
+            batch = stockBatchMapper.selectOne(queryWrapper);
             if (batch == null || batch.getQty() == null) {
                 throw new ServiceException("Batch stock not found.");
             }
@@ -121,6 +117,21 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
             if (batch.getQty().compareTo(batchQty) < 0) {
                 throw new ServiceException("Insufficient batch stock.");
             }
+        }
+
+        if ((stock.getMainCategory() == null || stock.getMainCategory().isEmpty()) && batch != null) {
+            stock.setMainCategory(batch.getMainCategory());
+        }
+        if ((stock.getSubCategory() == null || stock.getSubCategory().isEmpty()) && batch != null) {
+            stock.setSubCategory(batch.getSubCategory());
+        }
+        stock.setLockedQty(stock.getLockedQty().subtract(stockQtyKg));
+        int rows = stockMapper.updateById(stock);
+        if (rows == 0) {
+            throw new ServiceException("Stock update failed, please retry.");
+        }
+
+        if (batch != null) {
             BigDecimal newQty = batch.getQty().subtract(batchQty);
             if (newQty.compareTo(BigDecimal.ZERO) == 0) {
                 stockBatchMapper.deleteById(batch.getId());
@@ -156,19 +167,35 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         if (stockQtyKg == null || stockQtyKg.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException("Increase quantity must be greater than 0.");
         }
+        String normalizedStockStatus = (stockStatus != null && !stockStatus.isEmpty()) ? stockStatus : "AVAILABLE";
 
         InventoryStock stock = getOrCreateStock(productId, warehouseId);
         BigDecimal before = stock.getAvailableQty();
         stock.setAvailableQty(stock.getAvailableQty().add(stockQtyKg));
         if (qualityGrade != null) stock.setQualityGrade(qualityGrade);
-        if (stockStatus != null) stock.setStockStatus(stockStatus);
+        stock.setStockStatus(normalizedStockStatus);
+        if (mainCategory != null && !mainCategory.isEmpty()) {
+            stock.setMainCategory(mainCategory);
+        }
+        if (subCategory != null && !subCategory.isEmpty()) {
+            stock.setSubCategory(subCategory);
+        }
 
         stockMapper.updateById(stock);
 
         if (batchNo != null && !batchNo.isEmpty()) {
             LambdaQueryWrapper<InventoryStockBatch> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(InventoryStockBatch::getStockId, stock.getId())
-                    .eq(InventoryStockBatch::getBatchNo, batchNo);
+                    .eq(InventoryStockBatch::getBatchNo, batchNo)
+                    .eq(InventoryStockBatch::getProductId, productId)
+                    .eq(InventoryStockBatch::getWarehouseId, warehouseId);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getUnit, batchUnit);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getProductionDate, prodDate);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getExpireDate, expDate);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getMainCategory, mainCategory);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getSubCategory, subCategory);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getQualityGrade, qualityGrade);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getStockStatus, normalizedStockStatus);
             InventoryStockBatch batch = stockBatchMapper.selectOne(queryWrapper);
             if (batch == null) {
                 batch = new InventoryStockBatch();
@@ -181,7 +208,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
                 batch.setProductionDate(prodDate);
                 batch.setExpireDate(expDate);
                 batch.setQualityGrade(qualityGrade);
-                batch.setStockStatus(stockStatus != null ? stockStatus : "AVAILABLE");
+                batch.setStockStatus(normalizedStockStatus);
                 batch.setMainCategory(mainCategory);
                 batch.setSubCategory(subCategory);
                 stockBatchMapper.insert(batch);
@@ -196,6 +223,16 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         }
 
         recordLog(productId, warehouseId, batchNo, "INBOUND", stockQtyKg, before, stock.getAvailableQty(), "INCREASE_STOCK", null, null);
+    }
+
+    private <T> void applyEqOrIsNull(LambdaQueryWrapper<InventoryStockBatch> wrapper,
+                                     com.baomidou.mybatisplus.core.toolkit.support.SFunction<InventoryStockBatch, T> column,
+                                     T value) {
+        if (value == null) {
+            wrapper.isNull(column);
+        } else {
+            wrapper.eq(column, value);
+        }
     }
 
     @Override

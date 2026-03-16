@@ -30,9 +30,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectInventoryStockVo">
         SELECT s.id, s.product_id, s.warehouse_id,
+               s.main_category, s.sub_category,
                s.available_qty, s.locked_qty, s.quality_grade, s.stock_status, s.version,
                s.create_by, s.create_time, s.update_by, s.update_time, s.remark,
-               p.product_name, p.product_code, p.main_category, p.sub_category, w.warehouse_name,
+               p.product_name, p.product_code, w.warehouse_name,
                lb.batch_id AS batch_id, lb.batch_no AS batch_no, lb.unit AS unit
         FROM inventory_stock s
         LEFT JOIN inventory_product p ON s.product_id = p.id

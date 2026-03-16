@@ -151,7 +151,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             for (InventoryInboundDetail detail : details) {
                 validateInboundDetailExpiry(detail);
                 BigDecimal qtyKg = convertToKg(detail.getQty(), detail.getUnit(), "Inbound detail quantity");
-                Date prodDate = new Date();
+                Date prodDate = null;
                 Date expDate = detail.getExpireDate() != null ? detail.getExpireDate() : new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000);
                 coreService.increaseStockWithBatch(
                     detail.getProductId(),
