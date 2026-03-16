@@ -53,7 +53,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
     public StockCheckDetailVO getDetail(String checkId) {
         List<StockCheck> list = this.list(Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
         if (CollUtil.isEmpty(list)) {
-            throw new ServiceException("盘点单不存在");
+            throw new ServiceException("Stock check order not found.");
         }
         StockCheck head = list.get(0);
         StockCheckDetailVO vo = new StockCheckDetailVO();
@@ -72,7 +72,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
                 .eq(StockCheck::getCheckDate, DateUtil.beginOfDay(req.getCheckDate()))
                 .in(StockCheck::getCheckStatus, "DRAFT", "PENDING"));
         if (count > 0) {
-            throw new ServiceException("该仓库今日已有未完成的全面盘点单");
+            throw new ServiceException("A full stock check already exists for this warehouse today.");
         }
 
         // 生成盘点编号
@@ -90,13 +90,13 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         // 获取所有提交的明细，进行校验防并发
         for (StockCheckCreateReq.DetailReq dReq : req.getDetails()) {
             if (dReq.getActualQty() != null && dReq.getActualQty().compareTo(BigDecimal.ZERO) < 0) {
-                throw new ServiceException("实盘数量不能为负数 (R001)");
+                throw new ServiceException("Actual quantity cannot be negative. (R001)");
             }
             // 从底表找出对应的商品信息，这避免了前台传假数据，且补全了冗余字段
             String key = dReq.getProductId() + "_" + dReq.getBatchNo();
             WarehouseInventoryItemVO currentStock = stockMap.get(key);
             if (currentStock == null) {
-                throw new ServiceException("当前仓库找不到商品 " + dReq.getProductId() + " 的库存批次 " + dReq.getBatchNo());
+                throw new ServiceException("Batch not found for product " + dReq.getProductId() + ", batch " + dReq.getBatchNo() + " in current warehouse.");
             }
 
             StockCheck sc = new StockCheck();
@@ -136,11 +136,11 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
     public void updateStockCheck(String checkId, StockCheckUpdateReq req) {
         List<StockCheck> list = this.list(Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
         if (CollUtil.isEmpty(list)) {
-            throw new ServiceException("盘点单不存在");
+            throw new ServiceException("Stock check order not found.");
         }
         String status = list.get(0).getCheckStatus();
         if (!"DRAFT".equals(status) && !"REJECTED".equals(status)) {
-            throw new ServiceException("当前状态不允许编辑 (R009)");
+            throw new ServiceException("Current status does not allow editing. (R009)");
         }
 
         Map<Long, StockCheck> map = list.stream().collect(Collectors.toMap(StockCheck::getId, s -> s));
@@ -151,7 +151,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
                 continue;
 
             if (dReq.getActualQty() != null && dReq.getActualQty().compareTo(BigDecimal.ZERO) < 0) {
-                throw new ServiceException("实盘数量不能为负数 (R001)");
+                throw new ServiceException("Actual quantity cannot be negative. (R001)");
             }
             sc.setActualQty(dReq.getActualQty());
             sc.setItemRemark(dReq.getItemRemark());
@@ -182,20 +182,20 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
     public void submitStockCheck(String checkId) {
         List<StockCheck> list = this.list(Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
         if (CollUtil.isEmpty(list))
-            throw new ServiceException("盘点单不存在");
+            throw new ServiceException("Stock check order not found.");
 
         String status = list.get(0).getCheckStatus();
         if (!"DRAFT".equals(status) && !"REJECTED".equals(status)) {
-            throw new ServiceException("当前状态不允许提交");
+            throw new ServiceException("Current status does not allow submission.");
         }
 
         for (StockCheck sc : list) {
             if (sc.getActualQty() == null) {
-                throw new ServiceException("请填写全部商品的实盘数量 (R003)");
+                throw new ServiceException("Please fill in actual quantities for all items. (R003)");
             }
             if (!"NONE".equals(sc.getDiffType())
                     && (sc.getItemRemark() == null || sc.getItemRemark().trim().isEmpty())) {
-                throw new ServiceException("存在差异商品未填写盘点说明 (R004)");
+                throw new ServiceException("Please provide remarks for items with differences. (R004)");
             }
         }
 
@@ -215,7 +215,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         if (CollUtil.isEmpty(list))
             return;
         if (!"DRAFT".equals(list.get(0).getCheckStatus())) {
-            throw new ServiceException("仅草稿状态允许删除 (R009)");
+            throw new ServiceException("Only draft status allows deletion. (R009)");
         }
         this.remove(Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
     }
@@ -228,7 +228,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         int res = baseMapper.update(up, Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId)
                 .eq(StockCheck::getCheckStatus, "DRAFT"));
         if (res == 0) {
-            throw new ServiceException("取消失败，只允许取消草稿盘点");
+            throw new ServiceException("Cancellation failed. Only draft checks can be cancelled.");
         }
     }
 
@@ -237,9 +237,9 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
     public void approveStockCheck(String checkId, StockCheckReviewReq req) {
         List<StockCheck> list = this.list(Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
         if (CollUtil.isEmpty(list))
-            throw new ServiceException("盘点单不存在");
+            throw new ServiceException("Stock check order not found.");
         if (!"PENDING".equals(list.get(0).getCheckStatus())) {
-            throw new ServiceException("订单并非待审核状态");
+            throw new ServiceException("Order is not pending review.");
         }
 
         String userId = SecurityUtils.getUserId();
@@ -261,14 +261,14 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             Long productId = parseRequiredLong("productId", sc.getProductId());
             BigDecimal qty = sc.getDiffQty() == null ? null : sc.getDiffQty().abs();
             if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new ServiceException("差异数量异常，无法调整库存");
+                throw new ServiceException("Invalid difference quantity. Unable to adjust inventory.");
             }
             InventoryStock stock = resolveStock(warehouseId, productId);
             if ("SURPLUS".equals(sc.getDiffType())) {
                 stock.setAvailableQty(stock.getAvailableQty().add(qty));
             } else if ("LOSS".equals(sc.getDiffType())) {
                 if (stock.getAvailableQty().compareTo(qty) < 0) {
-                    throw new ServiceException("库存不足，无法扣减");
+                    throw new ServiceException("Insufficient inventory to deduct.");
                 }
                 stock.setAvailableQty(stock.getAvailableQty().subtract(qty));
             }
@@ -287,7 +287,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
     @Transactional(rollbackFor = Exception.class)
     public void rejectStockCheck(String checkId, StockCheckReviewReq req) {
         if (req.getReviewOpinion() == null || req.getReviewOpinion().trim().isEmpty()) {
-            throw new ServiceException("驳回时必须填写审核意见 (R007)");
+            throw new ServiceException("Review comments are required for rejection. (R007)");
         }
         StockCheck up = new StockCheck();
         up.setCheckStatus("REJECTED");
@@ -299,7 +299,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         int res = baseMapper.update(up, Wrappers.<StockCheck>lambdaQuery()
                 .eq(StockCheck::getCheckId, checkId).eq(StockCheck::getCheckStatus, "PENDING"));
         if (res == 0) {
-            throw new ServiceException("驳回失败，单据并非待审核状态");
+            throw new ServiceException("Rejection failed. Order is not pending review.");
         }
     }
 
@@ -375,22 +375,22 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
                 .eq(InventoryStock::getWarehouseId, warehouseId);
         List<InventoryStock> stocks = inventoryStockMapper.selectList(stockQuery);
         if (stocks == null || stocks.isEmpty()) {
-            throw new ServiceException("无法找到库存记录，productId=" + productId + ", warehouseId=" + warehouseId);
+            throw new ServiceException("Inventory record not found, productId=" + productId + ", warehouseId=" + warehouseId);
         }
         if (stocks.size() > 1) {
-            throw new ServiceException("库存记录不唯一，productId=" + productId + ", warehouseId=" + warehouseId);
+            throw new ServiceException("Inventory record is not unique, productId=" + productId + ", warehouseId=" + warehouseId);
         }
         return stocks.get(0);
     }
 
     private Long parseRequiredLong(String field, String value) {
         if (value == null || value.trim().isEmpty()) {
-            throw new ServiceException(field + " 不能为空");
+            throw new ServiceException(field + " cannot be empty.");
         }
         try {
             return Long.valueOf(value);
         } catch (NumberFormatException ex) {
-            throw new ServiceException(field + " 非法: " + value);
+            throw new ServiceException(field + " is invalid: " + value);
         }
     }
 

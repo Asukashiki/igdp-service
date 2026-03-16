@@ -79,14 +79,14 @@ public class WarehouseController extends BaseController {
         if (!SecurityUtils.isSuperAdmin()) {
             String userId = SecurityUtils.getUserId();
             if (userId == null || userId.trim().isEmpty()) {
-                return AjaxResult.error("无权限查看该仓库");
+                return AjaxResult.error("No permission to view this warehouse.");
             }
             LambdaQueryWrapper<InventoryWarehouseOwner> ownerWrapper = new LambdaQueryWrapper<>();
             ownerWrapper.eq(InventoryWarehouseOwner::getWarehouseId, id);
             ownerWrapper.eq(InventoryWarehouseOwner::getOwnerUserId, userId);
             boolean hasOwner = ownerService.count(ownerWrapper) > 0;
             if (!hasOwner) {
-                return AjaxResult.error("无权限查看该仓库");
+                return AjaxResult.error("No permission to view this warehouse.");
             }
         }
         return AjaxResult.success(warehouseService.selectWarehouseById(id));
@@ -100,7 +100,7 @@ public class WarehouseController extends BaseController {
         try {
             String warehouseType = params.get("warehouseType");
             if (warehouseType == null || warehouseType.isEmpty()) {
-                return AjaxResult.error("仓库类型不能为空");
+                return AjaxResult.error("Warehouse type cannot be empty.");
             }
 
             String warehouseCode = warehouseService.generateWarehouseCode(warehouseType);
@@ -110,7 +110,7 @@ public class WarehouseController extends BaseController {
 
             return AjaxResult.success(result);
         } catch (Exception e) {
-            return AjaxResult.error("生成仓库编码失败: " + e.getMessage());
+            return AjaxResult.error("Failed to generate warehouse code: " + e.getMessage());
         }
     }
 
@@ -131,7 +131,7 @@ public class WarehouseController extends BaseController {
     public AjaxResult updateWarning(@RequestBody Map<String, Object> params) {
         Object idValue = params.get("id");
         if (idValue == null) {
-            return AjaxResult.error("仓库ID不能为空");
+            return AjaxResult.error("Warehouse ID cannot be empty.");
         }
 
         Object maxStockValue = params.get("maxStock");
@@ -151,7 +151,7 @@ public class WarehouseController extends BaseController {
         Long warehouseId = Long.valueOf(idValue.toString());
         InventoryWarehouse warehouse = warehouseService.selectWarehouseById(warehouseId);
         if (warehouse == null) {
-            return AjaxResult.error("仓库不存在");
+            return AjaxResult.error("Warehouse not found.");
         }
         warehouse.setMaxStock(maxStock);
         return toAjax(warehouseService.updateWarehouse(warehouse));

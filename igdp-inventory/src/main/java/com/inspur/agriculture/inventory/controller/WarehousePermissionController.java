@@ -58,7 +58,7 @@ public class WarehousePermissionController extends BaseController {
     @PutMapping("/owner")
     public AjaxResult editOwner(@RequestBody InventoryWarehouseOwner owner) {
         if (owner.getId() == null) {
-            throw new ServiceException("所有权记录ID不能为空");
+            throw new ServiceException("Ownership record ID cannot be empty.");
         }
         validateOwner(owner);
         fillOwnerAudit(owner, false);
@@ -101,7 +101,7 @@ public class WarehousePermissionController extends BaseController {
     @PutMapping("/permission")
     public AjaxResult editPermission(@RequestBody InventoryWarehousePermission permission) {
         if (permission.getId() == null) {
-            throw new ServiceException("使用权记录ID不能为空");
+            throw new ServiceException("Usage record ID cannot be empty.");
         }
         validatePermission(permission);
         fillPermissionAudit(permission, false);
@@ -117,13 +117,13 @@ public class WarehousePermissionController extends BaseController {
 
     private void validateOwner(InventoryWarehouseOwner owner) {
         if (owner == null) {
-            throw new ServiceException("仓库所有权不能为空");
+            throw new ServiceException("Warehouse ownership cannot be empty.");
         }
         if (owner.getWarehouseId() == null) {
-            throw new ServiceException("仓库ID不能为空");
+            throw new ServiceException("Warehouse ID cannot be empty.");
         }
         if (owner.getOwnerUserId() == null) {
-            throw new ServiceException("所有人用户ID不能为空");
+            throw new ServiceException("Owner user ID cannot be empty.");
         }
         if (owner.getOwnerRole() == null || owner.getOwnerRole().trim().isEmpty()) {
             owner.setOwnerRole("PRIMARY");
@@ -138,13 +138,13 @@ public class WarehousePermissionController extends BaseController {
 
     private void validatePermission(InventoryWarehousePermission permission) {
         if (permission == null) {
-            throw new ServiceException("仓库使用权不能为空");
+            throw new ServiceException("Warehouse permission cannot be empty.");
         }
         if (permission.getWarehouseId() == null) {
-            throw new ServiceException("仓库ID不能为空");
+            throw new ServiceException("Warehouse ID cannot be empty.");
         }
         if (permission.getDeptId() == null) {
-            throw new ServiceException("部门ID不能为空");
+            throw new ServiceException("Department ID cannot be empty.");
         }
     }
 

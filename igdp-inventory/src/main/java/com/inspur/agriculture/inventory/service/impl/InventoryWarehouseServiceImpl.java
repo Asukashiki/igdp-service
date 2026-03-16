@@ -96,11 +96,11 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
     @Transactional(rollbackFor = Exception.class)
     public boolean updateWarehouse(InventoryWarehouse warehouse) {
         if (warehouse == null || warehouse.getId() == null) {
-            throw new ServiceException("仓库ID不能为空");
+            throw new ServiceException("Warehouse ID cannot be empty.");
         }
         InventoryWarehouse exists = this.getById(warehouse.getId());
         if (exists == null) {
-            throw new ServiceException("仓库不存在");
+            throw new ServiceException("Warehouse not found.");
         }
         validateWarehouse(warehouse, true);
         warehouse.setUpdateTime(LocalDateTime.now());
@@ -112,11 +112,11 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteWarehouse(Long id) {
         if (id == null) {
-            throw new ServiceException("仓库ID不能为空");
+            throw new ServiceException("Warehouse ID cannot be empty.");
         }
         InventoryWarehouse exists = this.getById(id);
         if (exists == null) {
-            throw new ServiceException("仓库不存在");
+            throw new ServiceException("Warehouse not found.");
         }
         return this.removeById(id);
     }
@@ -135,7 +135,7 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
     @Override
     public String generateWarehouseCode(String warehouseType) {
         if (isBlank(warehouseType)) {
-            throw new ServiceException("仓库类型不能为空");
+            throw new ServiceException("Warehouse type cannot be empty.");
         }
 
         // 1. 获取仓库类型前缀
@@ -170,47 +170,47 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
             case "QY":
                 return "QY";  // 企业仓库
             default:
-                throw new ServiceException("未知的仓库类型: " + warehouseType);
+                throw new ServiceException("Unknown warehouse type: " + warehouseType);
         }
     }
 
     private void validateWarehouse(InventoryWarehouse warehouse, boolean isUpdate) {
         if (warehouse == null) {
-            throw new ServiceException("仓库信息不能为空");
+            throw new ServiceException("Warehouse information cannot be empty.");
         }
         if (isBlank(warehouse.getWarehouseCode())) {
-            throw new ServiceException("仓库编码不能为空");
+            throw new ServiceException("Warehouse code cannot be empty.");
         }
         if (isBlank(warehouse.getWarehouseName())) {
-            throw new ServiceException("仓库名称不能为空");
+            throw new ServiceException("Warehouse name cannot be empty.");
         }
         if (isBlank(warehouse.getType())) {
-            throw new ServiceException("仓库类型不能为空");
+            throw new ServiceException("Warehouse type cannot be empty.");
         }
         if (isBlank(warehouse.getStoreType())) {
-            throw new ServiceException("存储类型不能为空");
+            throw new ServiceException("Storage type cannot be empty.");
         }
         if (isBlank(warehouse.getOrgName())) {
-            throw new ServiceException("所属机构不能为空");
+            throw new ServiceException("Owning organization cannot be empty.");
         }
         if (isBlank(warehouse.getAdminLevel())) {
-            throw new ServiceException("行政层级不能为空");
+            throw new ServiceException("Administrative level cannot be empty.");
         }
         if (warehouse.getCapacity() == null || warehouse.getCapacity().doubleValue() < 0D) {
-            throw new ServiceException("仓库容量不能小于0");
+            throw new ServiceException("Warehouse capacity cannot be less than 0.");
         }
 
         // 如果是联盟或合作社仓库，上级仓库必选
         if (("LM".equals(warehouse.getType()) || "HZS".equals(warehouse.getType()))
                 && (warehouse.getParentId() == null || warehouse.getParentId() <= 0)) {
-            throw new ServiceException("联盟/合作社仓库必须选择上级仓库");
+            throw new ServiceException("Union/Cooperative warehouses must select a parent warehouse.");
         }
 
         // 检查编码唯一性
         int count = baseMapper.checkWarehouseCodeExists(warehouse.getWarehouseCode(),
                 isUpdate ? warehouse.getId() : null);
         if (count > 0) {
-            throw new ServiceException("仓库编码已存在");
+            throw new ServiceException("Warehouse code already exists.");
         }
     }
 
