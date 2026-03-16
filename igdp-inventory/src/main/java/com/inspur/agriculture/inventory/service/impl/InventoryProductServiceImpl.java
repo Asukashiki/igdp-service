@@ -89,8 +89,20 @@ public class InventoryProductServiceImpl extends ServiceImpl<InventoryProductMap
         if (isBlank(product.getMainCategory())) {
             throw new ServiceException("Main category cannot be empty.");
         }
+        if (product.getParentId() == null) {
+            LambdaQueryWrapper<InventoryProduct> mainCategoryWrapper = new LambdaQueryWrapper<>();
+            mainCategoryWrapper.isNull(InventoryProduct::getParentId)
+                    .eq(InventoryProduct::getMainCategory, product.getMainCategory());
+            if (isUpdate && product.getId() != null) {
+                mainCategoryWrapper.ne(InventoryProduct::getId, product.getId());
+            }
+            long mainCategoryCount = this.count(mainCategoryWrapper);
+            if (mainCategoryCount > 0) {
+                throw new ServiceException("Main category already exists.");
+            }
+        }
         if (product.getParentId() == null && !isBlank(product.getSubCategory())) {
-            throw new ServiceException("自定义商品大类时商品小类必须为空");
+            throw new ServiceException("Subcategory must be empty when main category is custom.");
         }
         if (isBlank(product.getUnit())) {
             throw new ServiceException("Unit cannot be empty.");

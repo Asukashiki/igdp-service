@@ -42,7 +42,7 @@ public class StockCheckController extends BaseController {
 
         TableDataInfo rspData = new TableDataInfo();
         rspData.setCode(200);
-        rspData.setMsg("查询成功");
+        rspData.setMsg("Query succeeded.");
         rspData.setRows(list);
         rspData.setTotal(pageInfo.getTotal());
         return rspData;
@@ -65,7 +65,7 @@ public class StockCheckController extends BaseController {
         String checkId = stockCheckService.createStockCheck(req);
         Map<String, String> data = new HashMap<>();
         data.put("checkId", checkId);
-        return AjaxResult.success("盘点单创建成功", data);
+        return AjaxResult.success("Stock check created successfully.", data);
     }
 
     /**
@@ -74,7 +74,7 @@ public class StockCheckController extends BaseController {
     @PutMapping("/{checkId}")
     public AjaxResult edit(@PathVariable("checkId") String checkId, @Validated @RequestBody StockCheckUpdateReq req) {
         stockCheckService.updateStockCheck(checkId, req);
-        return AjaxResult.success("更新成功");
+        return AjaxResult.success("Updated successfully.");
     }
 
     /**
@@ -83,7 +83,7 @@ public class StockCheckController extends BaseController {
     @DeleteMapping("/{checkId}")
     public AjaxResult remove(@PathVariable("checkId") String checkId) {
         stockCheckService.deleteStockCheck(checkId);
-        return AjaxResult.success("删除成功");
+        return AjaxResult.success("Deleted successfully.");
     }
 
     /**
@@ -92,7 +92,7 @@ public class StockCheckController extends BaseController {
     @PostMapping("/{checkId}/submit")
     public AjaxResult submit(@PathVariable("checkId") String checkId) {
         stockCheckService.submitStockCheck(checkId);
-        return AjaxResult.success("提交成功");
+        return AjaxResult.success("Submitted successfully.");
     }
 
     /**
@@ -101,7 +101,7 @@ public class StockCheckController extends BaseController {
     @PostMapping("/{checkId}/cancel")
     public AjaxResult cancel(@PathVariable("checkId") String checkId) {
         stockCheckService.cancelStockCheck(checkId);
-        return AjaxResult.success("取消成功");
+        return AjaxResult.success("Cancelled successfully.");
     }
 
     @PostMapping("/{checkId}/approve")
@@ -112,13 +112,13 @@ public class StockCheckController extends BaseController {
         Map<String, Object> data = new HashMap<>();
         data.put("checkId", checkId);
         data.put("checkStatus", "ADJUSTED");
-        return AjaxResult.success("审核通过，库存已自动调整", data);
+        return AjaxResult.success("Approved. Inventory has been adjusted.", data);
     }
 
     @PostMapping("/{checkId}/reject")
     public AjaxResult reject(@PathVariable("checkId") String checkId, @Validated @RequestBody StockCheckReviewReq req) {
         stockCheckService.rejectStockCheck(checkId, req);
-        return AjaxResult.success("已驳回");
+        return AjaxResult.success("Rejected.");
     }
 
     @GetMapping("/warehouse-inventory")
@@ -137,9 +137,9 @@ public class StockCheckController extends BaseController {
         data.put("warehouseId", warehouseId);
         data.put("isChecking", isChecking);
         if (isChecking) {
-            data.put("message", "该仓库正在盘点中，建议盘点完成后再操作");
+            data.put("message", "This warehouse is under stock check. Please try again after it completes.");
         } else {
-            data.put("message", "仓库状态正常");
+            data.put("message", "Warehouse status is normal.");
         }
         return AjaxResult.success(data);
     }
