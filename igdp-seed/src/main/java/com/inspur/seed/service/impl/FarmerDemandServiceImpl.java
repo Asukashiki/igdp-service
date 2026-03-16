@@ -159,6 +159,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
                 inputItemMapper.insert(inputItem);
             }else if(type.equals("IN02")){
                 fertItems.add(inputItem);
+            }else {
+                inputItemMapper.insert(inputItem);
             }
         }
         for(DemandFarmerInputItem fertItem : fertItems){
@@ -264,6 +266,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
                 inputItemMapper.insert(inputItem);
             }else if(type.equals("IN02")){
                 fertItems.add(inputItem);
+            }else {
+                inputItemMapper.insert(inputItem);
             }
         }
         for(DemandFarmerInputItem fertItem : fertItems){
@@ -387,7 +391,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         // 3. 获取投入品明细（重点修改这部分）
         LambdaQueryWrapper<DemandFarmerInputItem> itemWrapper = new LambdaQueryWrapper<>();
         itemWrapper.eq(DemandFarmerInputItem::getDemandId, id);
-        itemWrapper.eq(DemandFarmerInputItem::getIsDeleted, 0);
+        itemWrapper.and(wrapper -> wrapper.eq(DemandFarmerInputItem::getIsDeleted, 0)
+                .or()
+                .isNull(DemandFarmerInputItem::getIsDeleted));
         List<DemandFarmerInputItem> inputItems = inputItemMapper.selectList(itemWrapper);
 
         List<FarmerDemandDetailVO.InputItemVO> inputItemVOs = inputItems.stream().map(item -> {
@@ -395,11 +401,15 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             itemVO.setId(item.getId());
             itemVO.setSeason(item.getSeason());
             itemVO.setCropLand(item.getCropLand());
-            // ========== 关键修正：字段映射 ==========
-            // 表的 input_type（大类）→ VO 的 inputCategory（前端显示的大类）
-            itemVO.setInputCategory(item.getInputType());
-            // 表的 input_category（小类）→ VO 的 inputType（前端可新增显示小类）
-            itemVO.setInputType(item.getInputCategory());
+            String inputType = item.getInputType();
+            String inputCategory = item.getInputCategory();
+            if (isLegacyMajorCategory(inputCategory) && isLegacySubCategory(inputType)) {
+                itemVO.setInputCategory(inputType);
+                itemVO.setInputType(inputCategory);
+            } else {
+                itemVO.setInputCategory(inputCategory);
+                itemVO.setInputType(inputType);
+            }
 
             // 原有字段赋值（不变）
             itemVO.setVariety(item.getVariety());
@@ -409,8 +419,11 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             itemVO.setCropLand(item.getCropLand());
             itemVO.setSeason(item.getSeason());
             itemVO.setFertilizerAmount(item.getFertilizerAmount());
-            // 修正：用表的 input_type（大类）匹配 CategoryEnum，获取大类名称
-            CategoryEnum categoryEnum = CategoryEnum.getByCode(item.getInputType());
+            // 兼容旧编码值，匹配 CategoryEnum
+            String categoryCode = isLegacyMajorCategory(item.getInputCategory())
+                    ? item.getInputCategory()
+                    : item.getInputType();
+            CategoryEnum categoryEnum = CategoryEnum.getByCode(categoryCode);
             if (categoryEnum != null) {
                 itemVO.setInputCategoryName(categoryEnum.getDesc());
             }
@@ -539,6 +552,14 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         voPage.setRecords(voList);
 
         return voPage;
+    }
+
+    private boolean isLegacyMajorCategory(String value) {
+        return value != null && value.matches("^IN\\d{2}$");
+    }
+
+    private boolean isLegacySubCategory(String value) {
+        return value != null && value.matches("^IN\\d{4}$");
     }
 
     @Override

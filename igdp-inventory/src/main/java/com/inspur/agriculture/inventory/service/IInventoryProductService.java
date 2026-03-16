@@ -33,6 +33,12 @@ public interface IInventoryProductService extends IService<InventoryProduct> {
     List<InventoryProduct> selectMainCategoryList();
 
     /**
+     * 查询商品分类树(parent_id 关系，两级)
+     * @return 分类树
+     */
+    java.util.List<java.util.Map<String, Object>> selectCategoryTree();
+
+    /**
      * 新增商品
      *
      * @param product 商品信息

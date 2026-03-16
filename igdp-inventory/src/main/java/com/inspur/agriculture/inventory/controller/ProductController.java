@@ -35,6 +35,12 @@ public class ProductController extends BaseController {
         return AjaxResult.success(productService.selectMainCategoryList());
     }
 
+    @PreAuthorize("@ss.hasPermi('inventory:product:list')")
+    @GetMapping("/category-tree")
+    public AjaxResult categoryTree() {
+        return AjaxResult.success(productService.selectCategoryTree());
+    }
+
     @PreAuthorize("@ss.hasPermi('inventory:product:query')")
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable Long id) {
