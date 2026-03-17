@@ -19,7 +19,6 @@ public class InventoryStockBatchServiceImpl extends ServiceImpl<InventoryStockBa
 
     @Autowired
     private IInventoryWarehouseService warehouseService;
-    private InventoryStockBatchMapper batchMapper;
 
     @Override
     public List<InventoryStockBatch> listByWarehouseCode(String warehouseCode) {
@@ -55,6 +54,6 @@ public class InventoryStockBatchServiceImpl extends ServiceImpl<InventoryStockBa
 
     @Override
     public List<InventoryStockBatch> selectBatchList(InventoryStockBatch batch) {
-        return batchMapper.selectBatchList(batch);
+        return baseMapper.selectBatchList(batch);
     }
 }
