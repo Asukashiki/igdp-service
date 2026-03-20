@@ -248,7 +248,7 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
      */
     public java.util.Map<String, CreateTaskResult> createAllMainTask(String year) {
 //        String year = String.valueOf(java.time.Year.now().getValue());
-        String regionCode = "102000000";
+        String regionCode = "000000000000";
 
         // 初始化各层级统计结果
         CreateTaskResult regionResult = new CreateTaskResult("Region");
