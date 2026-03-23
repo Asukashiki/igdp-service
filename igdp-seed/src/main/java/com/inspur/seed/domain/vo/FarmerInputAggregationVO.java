@@ -24,6 +24,8 @@ public class FarmerInputAggregationVO {
      */
     private String inputType;
 
+    private String variety;
+
     /**
      * Total Count of Items
      */

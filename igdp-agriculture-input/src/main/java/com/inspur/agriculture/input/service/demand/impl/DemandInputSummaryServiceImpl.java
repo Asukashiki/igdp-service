@@ -98,11 +98,19 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
         PubRegion region = regionMapper.selectByRegionCode(dto.getSourceCode());
         String sourceName = region.getName();
         String targetCode = region.getParentCode();
-        PubRegion fatherRegion = regionMapper.selectByRegionCode(targetCode);
-        String targetName = fatherRegion.getName();
         dto.setSourceName(sourceName);
-        dto.setTargetName(targetName);
-        dto.setTargetCode(targetCode);
+        //处理顶级
+        if(targetCode.equals("#")){
+            dto.setTargetCode("#");
+            dto.setTargetName("#");
+        }else{
+            PubRegion fatherRegion = regionMapper.selectByRegionCode(targetCode);
+            String targetName = fatherRegion.getName();
+            dto.setSourceName(sourceName);
+            dto.setTargetCode(targetCode);
+            dto.setTargetName(targetName);
+        }
+
 
         // 处理分发需求单时的下级数量，
 

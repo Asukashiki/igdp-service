@@ -17,4 +17,6 @@ public class DemandOrganDTO {
 
     private String demandSummaryId;
 
+    private String variety;
+
 }

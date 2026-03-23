@@ -19,6 +19,8 @@ public class InputAggregationSummaryVO {
      */
     private String inputCategory;
 
+    private String variety;
+
     /**
      * 农资类型
      */

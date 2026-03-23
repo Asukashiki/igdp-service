@@ -176,7 +176,7 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
             item.setInputType(aggregation.getInputType());
             item.setTotalCount(aggregation.getTotalCount());
             item.setTotalQuantity(aggregation.getTotalQuantity());
-
+            item.setVarieties(aggregation.getVariety());
             item.setSourceCode(sourceCode);
             item.setSourceName(sourceName);
             item.setTargetCode(targetCode);

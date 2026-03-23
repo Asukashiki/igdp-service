@@ -646,6 +646,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             dto.setTargetName(targetName);
             dto.setInputCategory(d.getInputCategory());
             dto.setInputType(d.getInputType());
+            dto.setVarieties(d.getVariety());
             dto.setTotalQuantity(d.getTotalQuantity());
             dto.setTotalCount(d.getTotalCount());
             dto.setSummaryId(demandOrganDTO.getDemandSummaryId());

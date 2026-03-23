@@ -101,6 +101,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT
             input_category AS inputCategory,
             input_type AS inputType,
+            varieties AS variety,
             COUNT(*) AS totalCount,
             SUM(total_quantity) AS totalQuantity
         FROM demand_input_summary_item i INNER JOIN demand_input_summary s
@@ -117,6 +118,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT
             input_category AS inputCategory,
             input_type AS inputType,
+            varieties AS variety,
             COUNT(*) AS totalCount,
             SUM(total_quantity) AS totalQuantity
         FROM demand_input_summary_item i INNER JOIN demand_input_summary s

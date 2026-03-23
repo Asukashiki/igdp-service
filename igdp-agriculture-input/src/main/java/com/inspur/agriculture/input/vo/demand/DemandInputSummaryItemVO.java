@@ -24,6 +24,7 @@ public class DemandInputSummaryItemVO {
     /** 农资类型 */
     private String inputType;
 
+
     /** 总数量 */
     private BigDecimal totalQuantity;
 
