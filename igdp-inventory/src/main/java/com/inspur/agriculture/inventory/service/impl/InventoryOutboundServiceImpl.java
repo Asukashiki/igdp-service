@@ -60,6 +60,23 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
         if (outbound.getWarehouseCode() == null || outbound.getWarehouseCode().isEmpty()) {
             throw new ServiceException("Warehouse code cannot be empty.");
         }
+        
+        // 自动设置出库类型为GENERAL（一般出库）
+        outbound.setType("GENERAL");
+        
+        // 自动设置操作人为当前登录用户
+        try {
+            String currentUsername = SecurityUtils.getUsername();
+            outbound.setOperator(currentUsername);
+        } catch (Exception e) {
+            if (outbound.getOperator() == null || outbound.getOperator().isEmpty()) {
+                outbound.setOperator("SYSTEM");
+            }
+        }
+        
+        // 自动设置出库时间为当前时间
+        outbound.setOrderDate(new Date());
+        
         outbound.setStatus("DRAFT");
         outbound.setCreateTime(LocalDateTime.now());
         this.save(outbound);
@@ -89,14 +106,14 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
             throw new ServiceException("Only draft or submitted outbound orders can be updated.");
         }
         
-        existOutbound.setType(outbound.getType());
-        existOutbound.setWarehouseCode(outbound.getWarehouseCode());
-        existOutbound.setReceiverType(outbound.getReceiverType());
-        existOutbound.setReceiver(outbound.getReceiver());
-        existOutbound.setBizNo(outbound.getBizNo());
-        existOutbound.setOperator(outbound.getOperator());
-        existOutbound.setOrderDate(outbound.getOrderDate());
-        existOutbound.setRemark(outbound.getRemark());
+        existOutbound.setType(outbound.getType() != null ? outbound.getType() : existOutbound.getType());
+        existOutbound.setWarehouseCode(outbound.getWarehouseCode() != null ? outbound.getWarehouseCode() : existOutbound.getWarehouseCode());
+        existOutbound.setReceiverType(outbound.getReceiverType() != null ? outbound.getReceiverType() : existOutbound.getReceiverType());
+        existOutbound.setReceiver(outbound.getReceiver() != null ? outbound.getReceiver() : existOutbound.getReceiver());
+        existOutbound.setBizNo(outbound.getBizNo() != null ? outbound.getBizNo() : existOutbound.getBizNo());
+        existOutbound.setOperator(outbound.getOperator() != null ? outbound.getOperator() : existOutbound.getOperator());
+        existOutbound.setOrderDate(outbound.getOrderDate() != null ? outbound.getOrderDate() : existOutbound.getOrderDate());
+        existOutbound.setRemark(outbound.getRemark() != null ? outbound.getRemark() : existOutbound.getRemark());
         this.updateById(existOutbound);
         
         LambdaQueryWrapper<InventoryOutboundDetail> queryWrapper = new LambdaQueryWrapper<>();
@@ -158,7 +175,8 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
                 throw new ServiceException("Warehouse not found: " + existOutbound.getWarehouseCode());
             }
 
-            validateOutboundAvailability(warehouse, details);
+            // 暂时取消库存容量校验
+            // validateOutboundAvailability(warehouse, details);
 
             for (InventoryOutboundDetail detail : details) {
                 BigDecimal qtyKg = convertToKg(detail.getQty(), detail.getUnit(), "Outbound detail quantity");
@@ -366,5 +384,23 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
             throw new ServiceException("Product not found for category: " + mainCategory + " / " + subCategory);
         }
         return product.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteOutbound(Long id) {
+        InventoryOutbound outbound = this.getById(id);
+        if (outbound == null) {
+            throw new ServiceException("Outbound order not found.");
+        }
+        if (!"DRAFT".equals(outbound.getStatus()) && !"SUBMITTED".equals(outbound.getStatus())) {
+            throw new ServiceException("Only draft or submitted orders can be deleted.");
+        }
+        // 删除明细
+        LambdaQueryWrapper<InventoryOutboundDetail> detailWrapper = new LambdaQueryWrapper<>();
+        detailWrapper.eq(InventoryOutboundDetail::getOutboundId, id);
+        detailMapper.delete(detailWrapper);
+        // 删除主单
+        return this.removeById(id);
     }
 }

@@ -27,6 +27,7 @@ public class InventoryWarehouse extends BaseEntity {
     private String warehouseName;
     private String type;
     private String storeType;
+    private String orgId;
     private String orgName;
     private String adminLevel;
     private Long parentId;

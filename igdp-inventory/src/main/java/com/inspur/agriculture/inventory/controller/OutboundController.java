@@ -61,4 +61,9 @@ public class OutboundController extends BaseController {
     public AjaxResult audit(@RequestBody InventoryOutbound outbound) {
         return toAjax(outboundService.auditOutbound(outbound));
     }
+
+    @DeleteMapping("/{id}")
+    public AjaxResult delete(@PathVariable Long id) {
+        return toAjax(outboundService.deleteOutbound(id));
+    }
 }

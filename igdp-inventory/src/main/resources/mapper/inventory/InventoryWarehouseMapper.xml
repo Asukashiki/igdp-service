@@ -10,6 +10,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="warehouseName" column="warehouse_name"/>
         <result property="type" column="type"/>
         <result property="storeType" column="store_type"/>
+        <result property="orgId" column="org_id"/>
         <result property="orgName" column="org_name"/>
         <result property="adminLevel" column="admin_level"/>
         <result property="parentId" column="parent_id"/>
@@ -33,6 +34,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                w.warehouse_name,
                w.type,
                w.store_type,
+               w.org_id,
                w.org_name,
                w.admin_level,
                w.parent_id,
@@ -67,6 +69,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
             <if test="orgName != null and orgName != ''">
                 AND w.org_name LIKE concat('%', #{orgName}, '%')
+            </if>
+            <if test="orgId != null and orgId != ''">
+                AND w.org_id = #{orgId}
             </if>
             <if test="adminLevel != null and adminLevel != ''">
                 AND w.admin_level = #{adminLevel}

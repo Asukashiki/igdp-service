@@ -206,6 +206,9 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
         if (isBlank(warehouse.getStoreType())) {
             throw new ServiceException("Storage type cannot be empty.");
         }
+        if (isBlank(warehouse.getOrgId())) {
+            throw new ServiceException("Owning organization ID cannot be empty.");
+        }
         if (isBlank(warehouse.getOrgName())) {
             throw new ServiceException("Owning organization cannot be empty.");
         }

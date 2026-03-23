@@ -69,9 +69,15 @@ public class TransferServiceImpl implements ITransferService {
         transfer.setApplyDate(new Date());
         transfer.setStatus("DRAFT");
         
-        if (dto.getTransferType() != null) {
-            transfer.setTransferType(dto.getTransferType());
-        }
+        // 自动设置调拨类型为"库存预警"
+        transfer.setTransferType("STOCK_WARNING");
+        
+        // 自动设置申请人和申请人归属部门为当前用户
+        String username = getCurrentUsername();
+        transfer.setApplicant(username);
+        transfer.setDepartment(getCurrentUserDepartment());
+        transfer.setCreateBy(username);
+
         if (dto.getExpectedDate() != null) {
             transfer.setExpectedDate(dto.getExpectedDate());
         }
@@ -84,13 +90,6 @@ public class TransferServiceImpl implements ITransferService {
         if (dto.getRemark() != null) {
             transfer.setRemark(dto.getRemark());
         }
-        if (dto.getDepartment() != null) {
-            transfer.setDepartment(dto.getDepartment());
-        }
-
-        String username = getCurrentUsername();
-        transfer.setApplicant(username);
-        transfer.setCreateBy(username);
 
         transferMapper.insert(transfer);
 
@@ -117,7 +116,29 @@ public class TransferServiceImpl implements ITransferService {
             throw new ServiceException("Only draft or submitted orders can be updated");
         }
 
-        BeanUtils.copyProperties(dto, transfer);
+        // 只更新前端传递的字段，保持其他字段原值
+        if (dto.getTransferType() != null) {
+            transfer.setTransferType(dto.getTransferType());
+        }
+        if (dto.getExpectedDate() != null) {
+            transfer.setExpectedDate(dto.getExpectedDate());
+        }
+        if (dto.getOutWarehouseCode() != null) {
+            transfer.setOutWarehouseCode(dto.getOutWarehouseCode());
+        }
+        if (dto.getInWarehouseCode() != null) {
+            transfer.setInWarehouseCode(dto.getInWarehouseCode());
+        }
+        if (dto.getRemark() != null) {
+            transfer.setRemark(dto.getRemark());
+        }
+        if (dto.getApplicant() != null) {
+            transfer.setApplicant(dto.getApplicant());
+        }
+        if (dto.getDepartment() != null) {
+            transfer.setDepartment(dto.getDepartment());
+        }
+
         String username = getCurrentUsername();
         transfer.setUpdateBy(username);
 
@@ -298,6 +319,14 @@ public class TransferServiceImpl implements ITransferService {
             return SecurityUtils.getUsername() != null ? SecurityUtils.getUsername() : "admin";
         } catch (Exception e) {
             return "admin";
+        }
+    }
+
+    private String getCurrentUserDepartment() {
+        try {
+            return SecurityUtils.getDeptName() != null ? SecurityUtils.getDeptName() : "";
+        } catch (Exception e) {
+            return "";
         }
     }
 
