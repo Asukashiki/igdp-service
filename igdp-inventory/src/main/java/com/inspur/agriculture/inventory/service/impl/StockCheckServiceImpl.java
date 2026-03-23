@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.agriculture.inventory.domain.InventoryStock;
+import com.inspur.agriculture.inventory.domain.InventoryStockBatch;
 import com.inspur.agriculture.inventory.domain.StockCheck;
 import com.inspur.agriculture.inventory.domain.req.StockCheckCreateReq;
 import com.inspur.agriculture.inventory.domain.req.StockCheckListQuery;
@@ -14,6 +15,7 @@ import com.inspur.agriculture.inventory.domain.req.StockCheckUpdateReq;
 import com.inspur.agriculture.inventory.domain.vo.StockCheckDetailVO;
 import com.inspur.agriculture.inventory.domain.vo.StockCheckListVO;
 import com.inspur.agriculture.inventory.domain.vo.WarehouseInventoryItemVO;
+import com.inspur.agriculture.inventory.mapper.InventoryStockBatchMapper;
 import com.inspur.agriculture.inventory.mapper.InventoryStockMapper;
 import com.inspur.agriculture.inventory.mapper.StockCheckMapper;
 import com.inspur.agriculture.inventory.service.IInventoryStockService;
@@ -44,6 +46,9 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
     @Autowired
     private InventoryStockMapper inventoryStockMapper;
 
+    @Autowired
+    private InventoryStockBatchMapper inventoryStockBatchMapper;
+
     @Override
     public List<StockCheckListVO> getList(StockCheckListQuery query) {
         return baseMapper.selectAggregatedList(query);
@@ -58,8 +63,10 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         StockCheck head = list.get(0);
         StockCheckDetailVO vo = new StockCheckDetailVO();
         BeanUtils.copyProperties(head, vo);
+
         vo.setDetails(list);
         return vo;
+
     }
 
     @Override
@@ -108,6 +115,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             sc.setCheckRemark(req.getCheckRemark());
             sc.setCheckerId(userId);
             sc.setCheckerName(nickname);
+
             sc.setCheckStatus("PENDING");
             sc.setUnit(currentStock.getUnit());
             sc.setProductId(currentStock.getProductId());
@@ -166,6 +174,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             this.updateById(sc);
 
             // 为了保持同行其他记录一致同步整体头信息：(优化可以批量更新头部信息)
+
             LambdaQueryWrapper<StockCheck> updateHead = Wrappers.lambdaQuery();
             updateHead.eq(StockCheck::getCheckId, checkId);
             StockCheck updater = new StockCheck();
@@ -175,6 +184,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
                 updater.setCheckRemark(req.getCheckRemark());
             this.update(updater, updateHead);
         }
+
     }
 
     @Override
@@ -195,6 +205,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             }
             if (!"NONE".equals(sc.getDiffType())
                     && (sc.getItemRemark() == null || sc.getItemRemark().trim().isEmpty())) {
+
                 throw new ServiceException("Please provide remarks for items with differences. (R004)");
             }
         }
@@ -217,6 +228,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         if (!"DRAFT".equals(list.get(0).getCheckStatus())) {
             throw new ServiceException("Only draft status allows deletion. (R009)");
         }
+
         this.remove(Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
     }
 
@@ -248,7 +260,9 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         StockCheck headerUp = new StockCheck();
         headerUp.setCheckStatus("APPROVED");
         headerUp.setReviewerId(userId);
+
         headerUp.setReviewerName(nickname);
+
         headerUp.setReviewOpinion(req.getReviewOpinion());
         headerUp.setReviewDate(new Date());
         this.update(headerUp, Wrappers.<StockCheck>lambdaQuery().eq(StockCheck::getCheckId, checkId));
@@ -259,23 +273,44 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             }
             Long warehouseId = parseRequiredLong("warehouseId", sc.getWarehouseId());
             Long productId = parseRequiredLong("productId", sc.getProductId());
+            String batchNo = sc.getBatchNo();
             BigDecimal qty = sc.getDiffQty() == null ? null : sc.getDiffQty().abs();
             if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
+
                 throw new ServiceException("Invalid difference quantity. Unable to adjust inventory.");
             }
             InventoryStock stock = resolveStock(warehouseId, productId);
+
             if ("SURPLUS".equals(sc.getDiffType())) {
                 stock.setAvailableQty(stock.getAvailableQty().add(qty));
             } else if ("LOSS".equals(sc.getDiffType())) {
                 if (stock.getAvailableQty().compareTo(qty) < 0) {
+
                     throw new ServiceException("Insufficient inventory to deduct.");
                 }
+
                 stock.setAvailableQty(stock.getAvailableQty().subtract(qty));
             }
+
             if (sc.getQualityStatus() != null && !sc.getQualityStatus().trim().isEmpty()) {
                 stock.setStockStatus(sc.getQualityStatus().trim());
             }
+
             inventoryStockMapper.updateById(stock);
+
+            // 同时更新批次库存表 inventory_stock_batch
+            InventoryStockBatch batchStock = resolveBatchStock(stock.getId(), batchNo);
+            if (batchStock != null) {
+                if ("SURPLUS".equals(sc.getDiffType())) {
+                    batchStock.setQty(batchStock.getQty().add(qty));
+                } else if ("LOSS".equals(sc.getDiffType())) {
+                    batchStock.setQty(batchStock.getQty().subtract(qty));
+                }
+                if (sc.getQualityStatus() != null && !sc.getQualityStatus().trim().isEmpty()) {
+                    batchStock.setStockStatus(sc.getQualityStatus().trim());
+                }
+                inventoryStockBatchMapper.updateById(batchStock);
+            }
         }
 
         StockCheck finalUp = new StockCheck();
@@ -289,6 +324,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         if (req.getReviewOpinion() == null || req.getReviewOpinion().trim().isEmpty()) {
             throw new ServiceException("Review comments are required for rejection. (R007)");
         }
+
         StockCheck up = new StockCheck();
         up.setCheckStatus("REJECTED");
         up.setReviewerId(SecurityUtils.getUserId());
@@ -301,6 +337,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
         if (res == 0) {
             throw new ServiceException("Rejection failed. Order is not pending review.");
         }
+
     }
 
     @Override
@@ -312,6 +349,7 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
 
         List<WarehouseInventoryItemVO> res = new ArrayList<>();
         for (InventoryStock is : baseList) {
+
             WarehouseInventoryItemVO vo = new WarehouseInventoryItemVO();
             vo.setProductId(String.valueOf(is.getProductId()));
             vo.setProductName(is.getProductName() != null ? is.getProductName() : "Unknown");
@@ -324,8 +362,10 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             vo.setCurrentQty(is.getAvailableQty());
             // unit 省略
             res.add(vo);
+
         }
         return res;
+
     }
 
     @Override
@@ -342,20 +382,27 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             sc.setDiffQty(null);
             sc.setDiffType(null);
             return;
+
         }
+
         BigDecimal diff = sc.getActualQty().subtract(sc.getSystemQty());
         sc.setDiffQty(diff);
+
         if (diff.compareTo(BigDecimal.ZERO) > 0) {
             sc.setDiffType("SURPLUS");
         } else if (diff.compareTo(BigDecimal.ZERO) < 0) {
+
             sc.setDiffType("LOSS");
         } else {
+
             sc.setDiffType("NONE");
         }
+
     }
 
     /** 线程安全的号段生成 */
     private synchronized String generateCheckId() {
+
         String prefix = "PD" + DateUtil.format(new Date(), "yyyyMMdd");
         String maxId = baseMapper.selectMaxCheckIdByPrefix(prefix);
         int seq = 1;
@@ -364,8 +411,10 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
             try {
                 seq = Integer.parseInt(seqStr) + 1;
             } catch (Exception ignored) {
+
             }
         }
+
         return prefix + String.format("%04d", seq);
     }
 
@@ -375,23 +424,52 @@ public class StockCheckServiceImpl extends ServiceImpl<StockCheckMapper, StockCh
                 .eq(InventoryStock::getWarehouseId, warehouseId);
         List<InventoryStock> stocks = inventoryStockMapper.selectList(stockQuery);
         if (stocks == null || stocks.isEmpty()) {
+
             throw new ServiceException("Inventory record not found, productId=" + productId + ", warehouseId=" + warehouseId);
         }
+
         if (stocks.size() > 1) {
+
             throw new ServiceException("Inventory record is not unique, productId=" + productId + ", warehouseId=" + warehouseId);
         }
+
         return stocks.get(0);
+
+    }
+
+    /**
+     * 根据库存ID和批次号查询批次库存记录
+     * @param stockId 库存记录ID
+     * @param batchNo 批次号
+     * @return 批次库存记录
+     */
+    private InventoryStockBatch resolveBatchStock(Long stockId, String batchNo) {
+        if (batchNo == null || batchNo.trim().isEmpty()) {
+            return null;
+        }
+        LambdaQueryWrapper<InventoryStockBatch> batchQuery = new LambdaQueryWrapper<>();
+        batchQuery.eq(InventoryStockBatch::getStockId, stockId)
+                .eq(InventoryStockBatch::getBatchNo, batchNo);
+        List<InventoryStockBatch> batches = inventoryStockBatchMapper.selectList(batchQuery);
+        if (batches == null || batches.isEmpty()) {
+            return null;
+        }
+        return batches.get(0);
     }
 
     private Long parseRequiredLong(String field, String value) {
         if (value == null || value.trim().isEmpty()) {
+
             throw new ServiceException(field + " cannot be empty.");
         }
+
         try {
             return Long.valueOf(value);
+
         } catch (NumberFormatException ex) {
             throw new ServiceException(field + " is invalid: " + value);
         }
+
     }
 
 }
