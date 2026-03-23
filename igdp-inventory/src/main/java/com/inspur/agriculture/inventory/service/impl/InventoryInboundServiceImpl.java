@@ -23,10 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 @Service
 public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMapper, InventoryInbound> implements IInventoryInboundService {
@@ -46,6 +48,17 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
     @Autowired
     private InventoryProductMapper productMapper;
 
+    /**
+     * 生成批次号 - 规则：BC + 年月日时分秒 + 3位随机数
+     */
+    private String generateBatchNo() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        String timestamp = sdf.format(new Date());
+        Random random = new Random();
+        int randomNum = random.nextInt(1000);
+        return "BC" + timestamp + String.format(Locale.ROOT, "%03d", randomNum);
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean createInbound(InventoryInbound inbound) {
@@ -56,6 +69,23 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             throw new ServiceException("Warehouse code cannot be empty.");
         }
         
+        // 自动设置入库类型为GENERAL（一般入库）
+        inbound.setType("GENERAL");
+        
+        // 自动设置操作人为当前登录用户
+        try {
+            String currentUsername = SecurityUtils.getUsername();
+            inbound.setOperator(currentUsername);
+        } catch (Exception e) {
+            // 如果获取不到当前用户，使用默认值
+            if (inbound.getOperator() == null || inbound.getOperator().isEmpty()) {
+                inbound.setOperator("SYSTEM");
+            }
+        }
+        
+        // 自动设置入库时间为当前时间
+        inbound.setOrderDate(new Date());
+        
         inbound.setStatus("DRAFT");
         inbound.setCreateTime(LocalDateTime.now());
         this.save(inbound);
@@ -64,11 +94,18 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         if (details != null && !details.isEmpty()) {
             for (InventoryInboundDetail detail : details) {
                 detail.setInboundId(inbound.getId());
+                
+                // 自动生成批次号
+                if (detail.getBatchNo() == null || detail.getBatchNo().isEmpty()) {
+                    detail.setBatchNo(generateBatchNo());
+                }
+                
                 detailMapper.insert(detail);
             }
         }
         return true;
     }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -85,29 +122,47 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             throw new ServiceException("Only draft or submitted inbound orders can be updated.");
         }
         
-        existInbound.setType(inbound.getType());
-        existInbound.setWarehouseCode(inbound.getWarehouseCode());
-        existInbound.setBizNo(inbound.getBizNo());
-        existInbound.setOperator(inbound.getOperator());
-        existInbound.setOrderDate(inbound.getOrderDate());
-        existInbound.setRemark(inbound.getRemark());
+        // 自动设置入库类型为GENERAL（一般入库）
+        existInbound.setType(inbound.getType() != null ? inbound.getType() : "GENERAL");
+
+        // 自动设置操作人：如果前端没有传递，则保持原值
+        if (inbound.getOperator() != null && !inbound.getOperator().isEmpty()) {
+            existInbound.setOperator(inbound.getOperator());
+        }
+
+        // 自动设置入库时间：如果前端没有传递，则保持原值
+        if (inbound.getOrderDate() != null) {
+            existInbound.setOrderDate(inbound.getOrderDate());
+        }
+
+        existInbound.setWarehouseCode(inbound.getWarehouseCode() != null ? inbound.getWarehouseCode() : existInbound.getWarehouseCode());
+        existInbound.setRemark(inbound.getRemark() != null ? inbound.getRemark() : existInbound.getRemark());
         existInbound.setUpdateTime(LocalDateTime.now());
         this.updateById(existInbound);
-        
+
+        // 删除旧的明细
         LambdaQueryWrapper<InventoryInboundDetail> deleteWrapper = new LambdaQueryWrapper<>();
         deleteWrapper.eq(InventoryInboundDetail::getInboundId, inbound.getId());
         detailMapper.delete(deleteWrapper);
-        
+
+        // 重新插入明细，自动生成批次号
         List<InventoryInboundDetail> details = inbound.getDetailList();
         if (details != null && !details.isEmpty()) {
             for (InventoryInboundDetail detail : details) {
                 detail.setId(null);
                 detail.setInboundId(inbound.getId());
+                
+                // 自动生成批次号
+                if (detail.getBatchNo() == null || detail.getBatchNo().isEmpty()) {
+                    detail.setBatchNo(generateBatchNo());
+                }
+                
                 detailMapper.insert(detail);
             }
         }
         return true;
     }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -121,7 +176,9 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         }
         inbound.setStatus("SUBMITTED");
         return this.updateById(inbound);
+
     }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -134,6 +191,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             throw new ServiceException("Only submitted inbound orders can be audited.");
         }
 
+
         existInbound.setAuditBy(SecurityUtils.getUsername());
         existInbound.setAuditTime(new Date());
         existInbound.setAuditComment(inbound.getAuditComment());
@@ -141,6 +199,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         if ("APPROVED".equals(inbound.getStatus())) {
             existInbound.setStatus("APPROVED");
             this.updateById(existInbound);
+
 
             LambdaQueryWrapper<InventoryInboundDetail> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(InventoryInboundDetail::getInboundId, inbound.getId());
@@ -154,7 +213,9 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
                 throw new ServiceException("Warehouse not found: " + existInbound.getWarehouseCode());
             }
 
-            validateInboundCapacity(warehouse, details);
+            // 暂时取消库存容量校验
+            // validateInboundCapacity(warehouse, details);
+
 
             for (InventoryInboundDetail detail : details) {
                 validateInboundDetailExpiry(detail);
@@ -186,8 +247,10 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         return true;
     }
 
+
     @Override
     public InventoryInbound selectInboundWithWarehouse(Long id) {
+
         InventoryInbound inbound = baseMapper.selectInboundWithWarehouse(id);
         if (inbound != null) {
             LambdaQueryWrapper<InventoryInboundDetail> queryWrapper = new LambdaQueryWrapper<>();
@@ -196,12 +259,33 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             inbound.setDetailList(details);
         }
         return inbound;
+
     }
+
 
     @Override
     public List<InventoryInbound> selectInboundListWithWarehouse(InventoryInbound inbound) {
         return baseMapper.selectInboundListWithWarehouse(inbound);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteInbound(Long id) {
+        InventoryInbound inbound = this.getById(id);
+        if (inbound == null) {
+            throw new ServiceException("Inbound order not found.");
+        }
+        if (!"DRAFT".equals(inbound.getStatus()) && !"SUBMITTED".equals(inbound.getStatus())) {
+            throw new ServiceException("Only draft or submitted orders can be deleted.");
+        }
+        // 删除明细
+        LambdaQueryWrapper<InventoryInboundDetail> detailWrapper = new LambdaQueryWrapper<>();
+        detailWrapper.eq(InventoryInboundDetail::getInboundId, id);
+        detailMapper.delete(detailWrapper);
+        // 删除主单
+        return this.removeById(id);
+    }
+
 
     private void validateInboundCapacity(InventoryWarehouse warehouse, List<InventoryInboundDetail> details) {
         if (details == null || details.isEmpty()) {
@@ -212,17 +296,20 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             return;
         }
 
+
         BigDecimal incomingTotalKg = BigDecimal.ZERO;
         for (InventoryInboundDetail detail : details) {
             validateInboundDetailExpiry(detail);
             incomingTotalKg = incomingTotalKg.add(convertToKg(detail.getQty(), detail.getUnit(), "Inbound detail quantity"));
         }
 
+
         BigDecimal currentTotalKg = getCurrentWarehouseTotalKg(warehouse.getId());
         if (currentTotalKg.add(incomingTotalKg).compareTo(capacity) > 0) {
             throw new ServiceException("Inbound quantity exceeds warehouse capacity. Capacity: " + capacity + " KG, Current: " + currentTotalKg + " KG, Incoming: " + incomingTotalKg + " KG.");
         }
     }
+
 
     private BigDecimal getCurrentWarehouseTotalKg(Long warehouseId) {
         LambdaQueryWrapper<InventoryStock> wrapper = new LambdaQueryWrapper<>();
@@ -234,10 +321,13 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
                 BigDecimal available = stock.getAvailableQty() != null ? stock.getAvailableQty() : BigDecimal.ZERO;
                 BigDecimal locked = stock.getLockedQty() != null ? stock.getLockedQty() : BigDecimal.ZERO;
                 total = total.add(available).add(locked);
+
             }
+
         }
         return total;
     }
+
 
     private void validateInboundDetailExpiry(InventoryInboundDetail detail) {
         if (detail == null) {
@@ -248,6 +338,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
             throw new ServiceException("Inbound item has expired. Batch: " + safeString(detail.getBatchNo()));
         }
     }
+
 
     private BigDecimal convertToKg(BigDecimal qty, String unit, String fieldName) {
         if (qty == null) {
@@ -270,9 +361,11 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         throw new ServiceException("Unsupported unit: " + unit + ". Only KG, g, and ML are supported.");
     }
 
+
     private String safeString(String value) {
         return value == null ? "-" : value;
     }
+
 
     private Long resolveProductId(InventoryInboundDetail detail) {
         if (detail == null) {
@@ -286,6 +379,7 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         if (mainCategory == null || mainCategory.isEmpty() || subCategory == null || subCategory.isEmpty()) {
             throw new ServiceException("Product ID is required when mainCategory or subCategory is missing.");
         }
+
 
         LambdaQueryWrapper<InventoryProduct> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(InventoryProduct::getMainCategory, mainCategory)

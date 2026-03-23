@@ -39,6 +39,13 @@ public interface IInventoryOutboundService extends IService<InventoryOutbound> {
     boolean auditOutbound(InventoryOutbound outbound);
 
     /**
+     * 删除出库单
+     * @param id 出库单ID
+     * @return 结果
+     */
+    boolean deleteOutbound(Long id);
+
+    /**
      * 查询出库单（包含仓库名称）
      * @param id 出库单ID
      * @return 出库单

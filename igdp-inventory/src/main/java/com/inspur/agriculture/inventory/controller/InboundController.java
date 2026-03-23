@@ -61,4 +61,9 @@ public class InboundController extends BaseController {
     public AjaxResult audit(@RequestBody InventoryInbound inbound) {
         return toAjax(inboundService.auditInbound(inbound));
     }
+
+    @DeleteMapping("/{id}")
+    public AjaxResult delete(@PathVariable Long id) {
+        return toAjax(inboundService.deleteInbound(id));
+    }
 }
