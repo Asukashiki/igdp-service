@@ -17,6 +17,17 @@ public interface IInventoryCoreService {
     void lockStock(Long productId, String warehouseCode, BigDecimal qty);
 
     /**
+     * 锁定库存 (下单/申请出库) - 带分类和品种信息
+     * @param productId Product ID
+     * @param warehouseCode 仓库编码
+     * @param qty 数量
+     * @param mainCategory 商品大类
+     * @param subCategory 商品小类
+     * @param productName 商品名称(品种)
+     */
+    void lockStock(Long productId, String warehouseCode, BigDecimal qty, String mainCategory, String subCategory, String productName);
+
+    /**
      * 释放锁定库存 (取消订单)
      * @param productId Product ID
      * @param warehouseCode 仓库编码
@@ -67,6 +78,8 @@ public interface IInventoryCoreService {
      */
     void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus);
 
+    void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory);
+
     /**
      * 增加库存 (确认入库) - 支持商品分类
      * @param productId Product ID
@@ -79,8 +92,9 @@ public interface IInventoryCoreService {
      * @param stockStatus 库存状态
      * @param mainCategory 商品大类
      * @param subCategory 商品小类
+     * @param productName 商品名称(品种)
      */
-    void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory);
+    void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory, String productName);
 
     /**
      * Increase stock with separate batch quantity and unit.
@@ -96,9 +110,10 @@ public interface IInventoryCoreService {
      * @param stockStatus Stock status
      * @param mainCategory Main category
      * @param subCategory Sub category
+     * @param productName Product name (variety)
      */
     void increaseStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty, String batchUnit,
-                                Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory);
+                                Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory, String productName);
 
     /**
      * 预占库存 (可选)

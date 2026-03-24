@@ -6,6 +6,7 @@
         <id property="id" column="id"/>
         <result property="transferId" column="transfer_id"/>
         <result property="productId" column="product_id"/>
+        <result property="productName" column="product_name"/>
         <result property="mainCategory" column="main_category"/>
         <result property="subCategory" column="sub_category"/>
         <result property="batchNo" column="batch_no"/>
@@ -20,7 +21,7 @@
     </resultMap>
 
     <sql id="selectTransferDetailVo">
-        SELECT id, transfer_id, product_id, main_category, sub_category,
+        SELECT id, transfer_id, product_id, product_name, main_category, sub_category,
                batch_no, supplier, qty, unit, expire_date,
                create_by, create_time, update_by, update_time
         FROM inventory_transfer_detail

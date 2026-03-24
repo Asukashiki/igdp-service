@@ -23,6 +23,7 @@ public class InventoryStock extends BaseEntity {
     private Long id;
 
     private Long productId;
+    private String productName;
     private Long warehouseId;
     private String mainCategory;
     private String subCategory;
@@ -35,8 +36,6 @@ public class InventoryStock extends BaseEntity {
     @Version
     private Long version;
 
-    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
-    private String productName;
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)
     private String warehouseName;
     @com.baomidou.mybatisplus.annotation.TableField(exist = false)

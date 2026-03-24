@@ -33,6 +33,8 @@ public class InventoryTransferDetail extends BaseEntity {
     @TableField(insertStrategy = FieldStrategy.IGNORED)
     private Long productId;
 
+    private String productName;
+
     @TableField(insertStrategy = FieldStrategy.NOT_NULL)
     private String mainCategory;
 

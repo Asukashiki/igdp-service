@@ -180,7 +180,7 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
 
             for (InventoryOutboundDetail detail : details) {
                 BigDecimal qtyKg = convertToKg(detail.getQty(), detail.getUnit(), "Outbound detail quantity");
-                coreService.lockStock(detail.getProductId(), existOutbound.getWarehouseCode(), qtyKg);
+                coreService.lockStock(detail.getProductId(), existOutbound.getWarehouseCode(), qtyKg, detail.getMainCategory(), detail.getSubCategory(), detail.getProductName());
                 if (detail.getBatchNo() != null && !detail.getBatchNo().isEmpty()) {
                     InventoryStock stock = getStockByProductAndWarehouse(detail.getProductId(), warehouse.getId());
                     if (stock == null) {
@@ -371,17 +371,21 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
         }
         String mainCategory = detail.getMainCategory();
         String subCategory = detail.getSubCategory();
+        String productName = detail.getProductName();
         if (mainCategory == null || mainCategory.isEmpty() || subCategory == null || subCategory.isEmpty()) {
             throw new ServiceException("Product ID is required when mainCategory or subCategory is missing.");
         }
 
         LambdaQueryWrapper<InventoryProduct> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(InventoryProduct::getMainCategory, mainCategory)
-                .eq(InventoryProduct::getSubCategory, subCategory)
-                .last("limit 1");
+                .eq(InventoryProduct::getSubCategory, subCategory);
+        if (productName != null && !productName.isEmpty()) {
+            wrapper.eq(InventoryProduct::getProductName, productName);
+        }
+        wrapper.last("limit 1");
         InventoryProduct product = productMapper.selectOne(wrapper);
         if (product == null) {
-            throw new ServiceException("Product not found for category: " + mainCategory + " / " + subCategory);
+            throw new ServiceException("Product not found for category: " + mainCategory + " / " + subCategory + (productName != null ? " / " + productName : ""));
         }
         return product.getId();
     }

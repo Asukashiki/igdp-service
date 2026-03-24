@@ -234,7 +234,8 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
                     detail.getQualityGrade(),
                     detail.getStockStatus(),
                     detail.getMainCategory(),
-                    detail.getSubCategory()
+                    detail.getSubCategory(),
+                    detail.getProductName()
                 );
             }
         } else if ("REJECTED".equals(inbound.getStatus())) {
@@ -374,20 +375,23 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         if (detail.getProductId() != null) {
             return detail.getProductId();
         }
-        String mainCategory = detail.getMainCategory();
-        String subCategory = detail.getSubCategory();
-        if (mainCategory == null || mainCategory.isEmpty() || subCategory == null || subCategory.isEmpty()) {
-            throw new ServiceException("Product ID is required when mainCategory or subCategory is missing.");
-        }
-
 
         LambdaQueryWrapper<InventoryProduct> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(InventoryProduct::getMainCategory, mainCategory)
-                .eq(InventoryProduct::getSubCategory, subCategory)
-                .last("limit 1");
+
+        if (detail.getProductName() != null && !detail.getProductName().isEmpty()) {
+            wrapper.eq(InventoryProduct::getProductName, detail.getProductName());
+        }
+        if (detail.getMainCategory() != null && !detail.getMainCategory().isEmpty()) {
+            wrapper.eq(InventoryProduct::getMainCategory, detail.getMainCategory());
+        }
+        if (detail.getSubCategory() != null && !detail.getSubCategory().isEmpty()) {
+            wrapper.eq(InventoryProduct::getSubCategory, detail.getSubCategory());
+        }
+
+        wrapper.last("limit 1");
         InventoryProduct product = productMapper.selectOne(wrapper);
         if (product == null) {
-            throw new ServiceException("Product not found for category: " + mainCategory + " / " + subCategory);
+            throw new ServiceException("Product not found for: " + detail.getMainCategory() + " / " + detail.getSubCategory() + " / " + detail.getProductName());
         }
         return product.getId();
     }

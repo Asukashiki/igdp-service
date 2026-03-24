@@ -25,6 +25,7 @@ public class InventoryOutboundDetail extends BaseEntity {
 
     private Long outboundId;
     private Long productId;
+    private String productName;
     private String mainCategory;
     private String subCategory;
     private String batchNo;
