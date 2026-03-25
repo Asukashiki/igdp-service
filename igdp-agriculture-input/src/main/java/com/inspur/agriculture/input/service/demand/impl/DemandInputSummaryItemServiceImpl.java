@@ -172,6 +172,7 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
         int count = 0;
         for (InputAggregationSummaryVO aggregation : aggregationList){
             DemandInputSummaryItem item = new DemandInputSummaryItem();
+            item.setSeason(aggregation.getSeason());
             item.setInputCategory(aggregation.getInputCategory());
             item.setInputType(aggregation.getInputType());
             item.setTotalCount(aggregation.getTotalCount());

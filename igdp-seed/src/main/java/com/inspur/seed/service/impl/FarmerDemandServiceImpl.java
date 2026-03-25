@@ -637,6 +637,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
 
         List<FarmerInputAggregationVO> demands = inputItemMapper.getInputAggregation(sourceCode, demandOrganDTO.getYear());
+        if (demands == null || demands.isEmpty()) {
+            throw new ServiceException("No approved demand data found for aggregation");
+        }
         int count = 0;
         for(FarmerInputAggregationVO d:demands){
             DemandInputSummaryItemDTO dto = new DemandInputSummaryItemDTO();
@@ -644,6 +647,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             dto.setSourceName(sourceName);
             dto.setTargetCode(targetCode);
             dto.setTargetName(targetName);
+            dto.setSeason(d.getSeason());
             dto.setInputCategory(d.getInputCategory());
             dto.setInputType(d.getInputType());
             dto.setVarieties(d.getVariety());
@@ -652,6 +656,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             dto.setSummaryId(demandOrganDTO.getDemandSummaryId());
             int tempCount = demandInputSummaryItemService.addDemandInputSummaryItem(dto);
             count = count + tempCount;
+        }
+        if (count == 0) {
+            throw new ServiceException("Failed to insert aggregated demand data");
         }
         return count;
     }

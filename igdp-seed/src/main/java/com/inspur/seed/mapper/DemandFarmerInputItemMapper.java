@@ -24,6 +24,7 @@ public interface DemandFarmerInputItemMapper extends BaseMapper<DemandFarmerInpu
      * @return List of aggregated input items grouped by category and type
      */
     @Select("SELECT " +
+            "    i.season AS season, " +
             "    i.input_category AS inputCategory, " +  // 别名对应DTO属性名（驼峰命名）
             "    i.input_type AS inputType, " +
             "    i.variety AS variety, " +
@@ -33,10 +34,11 @@ public interface DemandFarmerInputItemMapper extends BaseMapper<DemandFarmerInpu
             "FROM demand_farmer_input_item i, demand_farmer_detail d " +
             "WHERE " +
             "    i.demand_id = d.id " +
+            "    AND d.is_deleted = 0 " +
             "    AND d.kebele = #{kebele} " +
             "    AND d.year = #{year}" +
             "    AND d.status = '2' " +       // 字符串常量用单引号
             "    AND i.is_deleted = 0 " +
-            "GROUP BY i.input_category, i.input_type")
+            "GROUP BY i.season, i.input_category, i.input_type")
     List<FarmerInputAggregationVO> getInputAggregation(@Param("kebele") String kebele,@Param("year") String year);
 }

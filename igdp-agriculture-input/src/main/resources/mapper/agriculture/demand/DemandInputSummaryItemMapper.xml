@@ -18,6 +18,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="sourceCode" column="source_code"/>
         <result property="targetName" column="target_name"/>
         <result property="targetCode" column="target_code"/>
+        <result property="season" column="season"/>
         <result property="status" column="status"/>
         <result property="statusDesc" column="status_desc"/>
         <result property="createdTime" column="created_time"/>
@@ -28,7 +29,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select
             d.id, d.input_category, d.input_type, d.total_quantity, d.total_count,
             d.demand_count, d.varieties, d.specifications, d.units,
-            d.source_name, d.source_code, d.target_name, d.target_code, d.status,
+            d.source_name, d.source_code, d.target_name, d.target_code, d.season, d.status,
             CASE d.status
                 WHEN '0' THEN '待审核'
                 WHEN '1' THEN '成功'
@@ -99,6 +100,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="getInputAggregation" resultType="com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO">
         SELECT
+            i.season AS season,
             input_category AS inputCategory,
             input_type AS inputType,
             varieties AS variety,
@@ -110,12 +112,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         AND i.target_code = #{query.sourceCode}
         AND i.status = '1'
 
-        GROUP BY i.input_category, i.input_type
+        GROUP BY i.season, i.input_category, i.input_type
     </select>
 
 
     <select id="getInputAggregationZone" resultType="com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO">
         SELECT
+            i.season AS season,
             input_category AS inputCategory,
             input_type AS inputType,
             varieties AS variety,
@@ -127,7 +130,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           AND i.target_code = #{query.sourceCode}
           AND i.status = '0'
 
-        GROUP BY i.input_category, i.input_type
+        GROUP BY i.season, i.input_category, i.input_type
     </select>
 
 </mapper>

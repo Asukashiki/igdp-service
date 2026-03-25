@@ -63,6 +63,9 @@ public class DemandInputSummaryItemDTO {
     /** 目标编码 */
     private String targetCode;
 
+    /** 季节 */
+    private String season;
+
     /** 状态: 0-待审核/1-成功/2-拒绝 */
     private String status;
 

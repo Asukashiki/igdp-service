@@ -15,6 +15,11 @@ import java.math.BigDecimal;
 public class InputAggregationSummaryVO {
 
     /**
+     * 季节
+     */
+    private String season;
+
+    /**
      * 农资分类
      */
     private String inputCategory;

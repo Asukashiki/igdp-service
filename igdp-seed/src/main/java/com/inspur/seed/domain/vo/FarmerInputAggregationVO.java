@@ -15,6 +15,11 @@ import java.math.BigDecimal;
 public class FarmerInputAggregationVO {
 
     /**
+     * Season
+     */
+    private String season;
+
+    /**
      * Input Category (seed/fertilizer/pesticide)
      */
     private String inputCategory;
