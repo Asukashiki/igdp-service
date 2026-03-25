@@ -20,16 +20,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="fromSeedLevel" column="from_seed_level"/>
         <result property="toSeedLevel" column="to_seed_level"/>
         <result property="operator" column="operator"/>
+        <result property="parentalSeedSource" column="parental_seed_source"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
     <sql id="selectResultVo">
-        select result_id, produce_batch_id, produce_batch_name, variety_name, variety_id, crop_type,
-               collection_date, output_quantity, remaining_quantity, breed_batch_name, breed_batch_id, trial_name,
-               from_seed_level, to_seed_level, operator,
-               create_time, update_time
-        from prebasic_seed_produce_result
+        select r.result_id, r.produce_batch_id, r.produce_batch_name, r.variety_name, r.variety_id, r.crop_type,
+               r.collection_date, r.output_quantity, r.remaining_quantity, r.breed_batch_name, r.breed_batch_id, r.trial_name,
+               r.from_seed_level, r.to_seed_level, r.operator,
+               r.create_time, r.update_time,
+               b.parental_seed_source
+        from prebasic_seed_produce_result r
+        left join breeding_batch b on r.breed_batch_id = b.batch_id
     </sql>
 
     <select id="selectResultList" parameterType="com.inspur.seed.dto.prebasic.PrebasicSeedProduceResultQueryDTO" 

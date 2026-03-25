@@ -90,5 +90,9 @@ public class BreedSeedProduceResultVO extends BreedSeedProduceResult {
      */
     private String toSeedLevel;
 
+    /**
+     * 亲本种子来源
+     */
+    private String parentalSeedSource;
 
 }

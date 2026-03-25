@@ -27,6 +27,7 @@ public class PrebasicSeedProduceResultVO {
     private String fromSeedLevel;
     private String toSeedLevel;
     private String cropType;
+    private String parentalSeedSource;
     private String operator;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

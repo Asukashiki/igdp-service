@@ -18,6 +18,8 @@ import com.inspur.seed.domain.prebasic.PrebasicSeedProduceResult;
 import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper;
 import com.inspur.seed.mapper.basic.BasicSeedProduceResultMapper;
 import com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceMapper;
+import com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceResultMapper;
+import com.inspur.seed.breeding.breederSeed.domain.vo.BreedSeedProduceResultVO;
 import com.inspur.seed.mapper.oauth.PubOrganMapper;
 import com.inspur.seed.Institution.ose.mapper.OseInfoMapper;
 import com.inspur.seed.multiplication.oseReceive.mapper.OseReceiveConfirmMapper;
@@ -65,6 +67,9 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
 
     @Autowired
     private PubOrganMapper pubOrganMapper;
+
+    @Autowired
+    private BreedSeedProduceResultMapper breedSeedProduceResultMapper;
 
     @Override
     public List<OseReceiveConfirmVO> getReceiveConfirmList(OseReceiveConfirmQueryDTO queryDTO) {
@@ -286,11 +291,18 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
                 if (produce != null) {
                     item.setSeedType(produce.getToSeedLevel());
                     item.setCropType(produce.getCropType());
-                }else{
+                } else {
                     BasicSeedProduceResult basicProduce = basicSeedProduceResultMapper.selectResultByProduceBatchId(produceBatchId);
                     if (basicProduce != null) {
                         item.setSeedType(basicProduce.getToSeedLevel());
                         item.setCropType(basicProduce.getCropType());
+                    } else {
+                        // Breeder级别：查询育种家种子生产结果
+                        BreedSeedProduceResultVO breedResult = breedSeedProduceResultMapper.getResultByProduceBatchId(produceBatchId);
+                        if (breedResult != null) {
+                            item.setSeedType(breedResult.getToSeedLevel());
+                            item.setCropType(breedResult.getCropType());
+                        }
                     }
                 }
             }

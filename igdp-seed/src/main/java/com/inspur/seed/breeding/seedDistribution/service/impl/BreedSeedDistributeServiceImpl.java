@@ -22,6 +22,9 @@ import com.inspur.seed.breeding.seedDistribution.domain.vo.BreedSeedDistributeVO
 import com.inspur.seed.breeding.breederSeed.domain.vo.BreedSeedProduceVO;
 import com.inspur.seed.Institution.ose.domain.vo.OseInfoVO;
 import com.inspur.seed.service.basic.IBasicSeedProduceResultService;
+import com.inspur.seed.breeding.breederSeed.domain.entity.BreedSeedProduceResult;
+import com.inspur.seed.breeding.breederSeed.domain.vo.BreedSeedProduceResultVO;
+import com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceResultMapper;
 import com.inspur.seed.service.prebasic.IPrebasicSeedProduceResultService;
 import com.inspur.seed.vo.prebasic.PrebasicSeedProduceResultVO;
 import com.inspur.seed.vo.basic.BasicSeedProduceResultVO;
@@ -71,6 +74,9 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
     @Autowired
     private IBasicSeedProduceResultService basicSeedProduceResultService;
 
+    @Autowired
+    private BreedSeedProduceResultMapper breedSeedProduceResultMapper;
+
     @Override
     public List<BreedSeedDistributeVO> getDistributeList(BreedSeedDistributeQueryDTO queryDTO) {
         return distributeMapper.selectDistributeList(queryDTO);
@@ -88,7 +94,29 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
         // 验证并扣减剩余量
         for (BreedSeedDistributeDetail item : dto.getDetailList()) {
             // 根据 fromSeedLevel 的值调用不同的服务类
-            if ("Pre-Basic".equals(dto.getFromSeedLevel())) {
+            if ("Breeder".equals(dto.getFromSeedLevel())) {
+                // 当 fromSeedLevel 为 Breeder 时，调用育种家种子生产结果
+                BreedSeedProduceResultVO produceResultVO = breedSeedProduceResultMapper.getResultByProduceBatchId(item.getProduceBatchId());
+
+                if (produceResultVO == null) {
+                    throw new ServiceException("Breeder Production result not found for batch: " + item.getProduceBatchId());
+                }
+
+                // 验证剩余量是否足够
+                BigDecimal remaining = produceResultVO.getRemainingQuantity();
+                if (remaining == null || remaining.compareTo(item.getDistributeQuantity()) < 0) {
+                    throw new ServiceException("Insufficient remaining quantity for Breeder. Available: " + remaining + " kg, Required: " + item.getDistributeQuantity() + " kg");
+                }
+
+                // 扣减剩余量
+                LambdaQueryWrapper<BreedSeedProduceResult> updateQuery = new LambdaQueryWrapper<>();
+                updateQuery.eq(BreedSeedProduceResult::getProduceBatchId, item.getProduceBatchId());
+                BreedSeedProduceResult updateResult = new BreedSeedProduceResult();
+                BigDecimal newRemaining = remaining.subtract(item.getDistributeQuantity());
+                updateResult.setRemainingQuantity(newRemaining);
+                updateResult.setUpdateTime(LocalDateTime.now());
+                breedSeedProduceResultMapper.update(updateResult, updateQuery);
+            } else if ("Pre-Basic".equals(dto.getFromSeedLevel())) {
                 // 当 fromSeedLevel 为 Pre-Basic 时，调用预原种生产结果服务
                 PrebasicSeedProduceResultVO produceResultVO = prebasicSeedProduceResultService.getResultByProduceBatchId(item.getProduceBatchId());
 
@@ -176,7 +204,16 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
 
             // 记录分发后的剩余量（用于显示）
             // 根据 fromSeedLevel 的值获取正确的剩余量
-            if ("Pre-Basic".equals(dto.getFromSeedLevel())) {
+            if ("Breeder".equals(dto.getFromSeedLevel())) {
+                // 对于育种家种子，获取育种家生产结果的剩余量
+                BreedSeedProduceResultVO breedResultVO = breedSeedProduceResultMapper.getResultByProduceBatchId(item.getProduceBatchId());
+                if (breedResultVO != null) {
+                    item.setProduceBatchRemaining(breedResultVO.getRemainingQuantity());
+                    item.setCropType(breedResultVO.getCropType());
+                } else {
+                    item.setProduceBatchRemaining(BigDecimal.ZERO);
+                }
+            } else if ("Pre-Basic".equals(dto.getFromSeedLevel())) {
                 // 对于预原种，获取预原种生产结果的剩余量
                 PrebasicSeedProduceResultVO prebasicResultVO = prebasicSeedProduceResultService.getResultByProduceBatchId(item.getProduceBatchId());
                 if (prebasicResultVO != null) {

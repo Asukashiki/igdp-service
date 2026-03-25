@@ -27,6 +27,7 @@ public class BasicSeedProduceResultVO {
     private String trialName;
     private String fromSeedLevel;
     private String toSeedLevel;
+    private String parentalSeedSource;
     private String operator;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
