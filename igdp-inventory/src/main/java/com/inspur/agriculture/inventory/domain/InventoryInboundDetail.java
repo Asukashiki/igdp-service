@@ -25,6 +25,7 @@ public class InventoryInboundDetail extends BaseEntity {
 
     private Long inboundId;
     private Long productId;
+    private String productName;
     private String mainCategory;
     private String subCategory;
     private String batchNo;
@@ -32,11 +33,11 @@ public class InventoryInboundDetail extends BaseEntity {
     private BigDecimal qty;
     private String unit;
     private Date expireDate;
-    
+
     /** 质量等级（非数据库字段，用于业务传递） */
     @TableField(exist = false)
     private String qualityGrade;
-    
+
     /** 库存状态（非数据库字段，用于业务传递） */
     @TableField(exist = false)
     private String stockStatus;

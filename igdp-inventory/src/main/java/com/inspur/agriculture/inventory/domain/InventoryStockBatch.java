@@ -24,6 +24,7 @@ public class InventoryStockBatch extends BaseEntity {
 
     private Long stockId;
     private Long productId;
+    private String productName;
     private Long warehouseId;
     private String batchNo;
     private String mainCategory;

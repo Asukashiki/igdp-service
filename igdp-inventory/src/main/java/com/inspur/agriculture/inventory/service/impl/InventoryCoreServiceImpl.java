@@ -38,13 +38,13 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void lockStock(Long productId, String warehouseCode, BigDecimal qty) {
+    public void lockStock(Long productId, String warehouseCode, BigDecimal qty, String mainCategory, String subCategory, String productName) {
         Long warehouseId = getWarehouseIdByCode(warehouseCode);
         if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException("Lock quantity must be greater than 0.");
         }
 
-        InventoryStock stock = getOrCreateStock(productId, warehouseId);
+        InventoryStock stock = getOrCreateStock(productId, warehouseId, mainCategory, subCategory, productName);
 
         if (stock.getAvailableQty().compareTo(qty) < 0) {
             throw new ServiceException("Insufficient available stock. Current available: " + stock.getAvailableQty());
@@ -60,13 +60,18 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void lockStock(Long productId, String warehouseCode, BigDecimal qty) {
+        lockStock(productId, warehouseCode, qty, null, null, null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public void releaseStock(Long productId, String warehouseCode, BigDecimal qty) {
         Long warehouseId = getWarehouseIdByCode(warehouseCode);
         if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException("Release quantity must be greater than 0.");
         }
 
-        InventoryStock stock = getOrCreateStock(productId, warehouseId);
+        InventoryStock stock = getOrCreateStock(productId, warehouseId, null, null, null);
 
         stock = stockMapper.selectById(stock.getId());
         if (stock.getLockedQty().compareTo(qty) < 0) {
@@ -97,7 +102,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
             throw new ServiceException("Reduce quantity must be greater than 0.");
         }
 
-        InventoryStock stock = getOrCreateStock(productId, warehouseId);
+        InventoryStock stock = getOrCreateStock(productId, warehouseId, null, null, null);
         if (stock.getLockedQty().compareTo(stockQtyKg) < 0) {
             throw new ServiceException("Reduce quantity is greater than locked quantity (please lock first).");
         }
@@ -124,6 +129,9 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         }
         if ((stock.getSubCategory() == null || stock.getSubCategory().isEmpty()) && batch != null) {
             stock.setSubCategory(batch.getSubCategory());
+        }
+        if ((stock.getProductName() == null || stock.getProductName().isEmpty()) && batch != null) {
+            stock.setProductName(batch.getProductName());
         }
         stock.setLockedQty(stock.getLockedQty().subtract(stockQtyKg));
         int rows = stockMapper.updateById(stock);
@@ -157,19 +165,24 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
     @Override
     public void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory) {
-        increaseStockWithBatch(productId, warehouseCode, batchNo, qty, qty, null, prodDate, expDate, qualityGrade, stockStatus, mainCategory, subCategory);
+        increaseStockWithBatch(productId, warehouseCode, batchNo, qty, qty, null, prodDate, expDate, qualityGrade, stockStatus, mainCategory, subCategory, null);
+    }
+
+    @Override
+    public void increaseStock(Long productId, String warehouseCode, String batchNo, BigDecimal qty, Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory, String productName) {
+        increaseStockWithBatch(productId, warehouseCode, batchNo, qty, qty, null, prodDate, expDate, qualityGrade, stockStatus, mainCategory, subCategory, productName);
     }
 
     @Override
     public void increaseStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty, String batchUnit,
-                                       Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory) {
+                                       Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory, String productName) {
         Long warehouseId = getWarehouseIdByCode(warehouseCode);
         if (stockQtyKg == null || stockQtyKg.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException("Increase quantity must be greater than 0.");
         }
         String normalizedStockStatus = (stockStatus != null && !stockStatus.isEmpty()) ? stockStatus : "AVAILABLE";
 
-        InventoryStock stock = getOrCreateStock(productId, warehouseId);
+        InventoryStock stock = getOrCreateStock(productId, warehouseId, mainCategory, subCategory, productName);
         BigDecimal before = stock.getAvailableQty();
         stock.setAvailableQty(stock.getAvailableQty().add(stockQtyKg));
         if (qualityGrade != null) stock.setQualityGrade(qualityGrade);
@@ -179,6 +192,9 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         }
         if (subCategory != null && !subCategory.isEmpty()) {
             stock.setSubCategory(subCategory);
+        }
+        if (productName != null && !productName.isEmpty()) {
+            stock.setProductName(productName);
         }
 
         stockMapper.updateById(stock);
@@ -196,6 +212,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
             applyEqOrIsNull(queryWrapper, InventoryStockBatch::getSubCategory, subCategory);
             applyEqOrIsNull(queryWrapper, InventoryStockBatch::getQualityGrade, qualityGrade);
             applyEqOrIsNull(queryWrapper, InventoryStockBatch::getStockStatus, normalizedStockStatus);
+            applyEqOrIsNull(queryWrapper, InventoryStockBatch::getProductName, productName);
             InventoryStockBatch batch = stockBatchMapper.selectOne(queryWrapper);
             if (batch == null) {
                 batch = new InventoryStockBatch();
@@ -211,6 +228,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
                 batch.setStockStatus(normalizedStockStatus);
                 batch.setMainCategory(mainCategory);
                 batch.setSubCategory(subCategory);
+                batch.setProductName(productName);
                 stockBatchMapper.insert(batch);
             } else {
                 BigDecimal addQty = batchQty != null ? batchQty : BigDecimal.ZERO;
@@ -218,6 +236,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
                 if (batchUnit != null && !batchUnit.isEmpty()) batch.setUnit(batchUnit);
                 if (mainCategory != null) batch.setMainCategory(mainCategory);
                 if (subCategory != null) batch.setSubCategory(subCategory);
+                if (productName != null) batch.setProductName(productName);
                 stockBatchMapper.updateById(batch);
             }
         }
@@ -251,7 +270,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         return warehouse.getId();
     }
 
-    private InventoryStock getOrCreateStock(Long productId, Long warehouseId) {
+    private InventoryStock getOrCreateStock(Long productId, Long warehouseId, String mainCategory, String subCategory, String productName) {
         if (productId == null) {
             throw new ServiceException("Product ID cannot be empty.");
         }
@@ -266,6 +285,15 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
             stock.setAvailableQty(BigDecimal.ZERO);
             stock.setLockedQty(BigDecimal.ZERO);
             stock.setVersion(0L);
+            if (mainCategory != null && !mainCategory.isEmpty()) {
+                stock.setMainCategory(mainCategory);
+            }
+            if (subCategory != null && !subCategory.isEmpty()) {
+                stock.setSubCategory(subCategory);
+            }
+            if (productName != null && !productName.isEmpty()) {
+                stock.setProductName(productName);
+            }
             stockMapper.insert(stock);
         }
         return stock;

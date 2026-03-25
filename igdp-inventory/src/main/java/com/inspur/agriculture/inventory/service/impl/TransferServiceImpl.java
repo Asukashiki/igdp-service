@@ -274,6 +274,7 @@ public class TransferServiceImpl implements ITransferService {
         return details.stream().map(detail -> {
             InventoryOutboundDetail outboundDetail = new InventoryOutboundDetail();
             outboundDetail.setProductId(detail.getProductId());
+            outboundDetail.setProductName(detail.getProductName());
             outboundDetail.setMainCategory(detail.getMainCategory());
             outboundDetail.setSubCategory(detail.getSubCategory());
             outboundDetail.setBatchNo(detail.getBatchNo());
@@ -303,6 +304,7 @@ public class TransferServiceImpl implements ITransferService {
         return details.stream().map(detail -> {
             InventoryInboundDetail inboundDetail = new InventoryInboundDetail();
             inboundDetail.setProductId(detail.getProductId());
+            inboundDetail.setProductName(detail.getProductName());
             inboundDetail.setMainCategory(detail.getMainCategory());
             inboundDetail.setSubCategory(detail.getSubCategory());
             inboundDetail.setBatchNo(detail.getBatchNo());
