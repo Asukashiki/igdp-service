@@ -1,14 +1,11 @@
 package com.inspur.agriculture.inventory.controller;
 
 import com.inspur.agriculture.inventory.domain.InventoryWarehouse;
-import com.inspur.agriculture.inventory.domain.InventoryWarehouseOwner;
 import com.inspur.agriculture.inventory.service.IInventoryWarehouseService;
-import com.inspur.agriculture.inventory.service.IInventoryWarehouseOwnerService;
 import com.inspur.common.core.controller.BaseController;
 import com.inspur.common.core.domain.AjaxResult;
 import com.inspur.common.core.page.TableDataInfo;
 import com.inspur.common.utils.SecurityUtils;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,37 +25,16 @@ public class WarehouseController extends BaseController {
     @Autowired
     private IInventoryWarehouseService warehouseService;
 
-    /**
-     * 查询仓库列表（需要权限）
-     */
-    @Autowired
-    private IInventoryWarehouseOwnerService ownerService;
-
     @PreAuthorize("@ss.hasPermi('inventory:warehouse:list')")
     @GetMapping("/list")
     public TableDataInfo list(InventoryWarehouse warehouse) {
         startPage();
         if (!SecurityUtils.isSuperAdmin()) {
-            String userId = SecurityUtils.getUserId();
-            if (userId == null || userId.trim().isEmpty()) {
+            String username = SecurityUtils.getUsername();
+            if (username == null || username.trim().isEmpty()) {
                 return getDataTable(java.util.Collections.emptyList());
             }
-            LambdaQueryWrapper<InventoryWarehouseOwner> ownerWrapper = new LambdaQueryWrapper<>();
-            ownerWrapper.eq(InventoryWarehouseOwner::getOwnerUserId, userId);
-            List<InventoryWarehouseOwner> owners = ownerService.list(ownerWrapper);
-            if (owners == null || owners.isEmpty()) {
-                return getDataTable(java.util.Collections.emptyList());
-            }
-            java.util.List<Long> warehouseIds = new java.util.ArrayList<>();
-            for (InventoryWarehouseOwner owner : owners) {
-                if (owner.getWarehouseId() != null) {
-                    warehouseIds.add(owner.getWarehouseId());
-                }
-            }
-            if (warehouseIds.isEmpty()) {
-                return getDataTable(java.util.Collections.emptyList());
-            }
-            warehouse.setIds(warehouseIds);
+            warehouse.setCreateBy(username);
         }
         List<InventoryWarehouse> list = warehouseService.selectWarehouseList(warehouse);
         return getDataTable(list);
@@ -86,15 +62,15 @@ public class WarehouseController extends BaseController {
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable Long id) {
         if (!SecurityUtils.isSuperAdmin()) {
-            String userId = SecurityUtils.getUserId();
-            if (userId == null || userId.trim().isEmpty()) {
+            String username = SecurityUtils.getUsername();
+            if (username == null || username.trim().isEmpty()) {
                 return AjaxResult.error("No permission to view this warehouse.");
             }
-            LambdaQueryWrapper<InventoryWarehouseOwner> ownerWrapper = new LambdaQueryWrapper<>();
-            ownerWrapper.eq(InventoryWarehouseOwner::getWarehouseId, id);
-            ownerWrapper.eq(InventoryWarehouseOwner::getOwnerUserId, userId);
-            boolean hasOwner = ownerService.count(ownerWrapper) > 0;
-            if (!hasOwner) {
+            InventoryWarehouse warehouse = warehouseService.selectWarehouseById(id);
+            if (warehouse == null) {
+                return AjaxResult.error("Warehouse not found.");
+            }
+            if (!username.equals(warehouse.getCreateBy())) {
                 return AjaxResult.error("No permission to view this warehouse.");
             }
         }

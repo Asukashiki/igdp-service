@@ -73,6 +73,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="orgId != null and orgId != ''">
                 AND w.org_id = #{orgId}
             </if>
+            <if test="createBy != null and createBy != ''">
+                AND w.create_by = #{createBy}
+            </if>
             <if test="adminLevel != null and adminLevel != ''">
                 AND w.admin_level = #{adminLevel}
             </if>
@@ -110,11 +113,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectWarehouseListByDeptId" parameterType="java.lang.String" resultMap="InventoryWarehouseResult">
         <include refid="selectInventoryWarehouseVo"/>
-        WHERE w.id IN (
-            SELECT p.warehouse_id
-            FROM inventory_warehouse_permission p
-            WHERE p.dept_id = #{deptId}
-        )
+        WHERE w.org_id = #{deptId}
         ORDER BY w.create_time DESC, w.id DESC
     </select>
 
@@ -124,9 +123,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                COALESCE(SUM(s.available_qty), 0) AS availableQty
         FROM inventory_stock s
         WHERE s.warehouse_id IN (
-            SELECT p.warehouse_id
-            FROM inventory_warehouse_permission p
-            WHERE p.dept_id = #{deptId}
+            SELECT w.id
+            FROM inventory_warehouse w
+            WHERE w.org_id = #{deptId}
         )
         <if test="mainCategory != null and mainCategory != ''">
             AND s.main_category = #{mainCategory}

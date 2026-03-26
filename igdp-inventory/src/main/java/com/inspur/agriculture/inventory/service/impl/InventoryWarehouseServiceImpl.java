@@ -3,18 +3,12 @@ package com.inspur.agriculture.inventory.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.agriculture.inventory.domain.InventoryWarehouse;
-import com.inspur.agriculture.inventory.domain.InventoryWarehouseOwner;
-import com.inspur.agriculture.inventory.domain.InventoryWarehousePermission;
-import com.inspur.agriculture.inventory.service.IInventoryWarehouseOwnerService;
-import com.inspur.agriculture.inventory.service.IInventoryWarehousePermissionService;
-import com.inspur.common.utils.LoginHelper;
 import com.inspur.agriculture.inventory.mapper.InventoryWarehouseMapper;
 import com.inspur.agriculture.inventory.service.IInventoryWarehouseService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,12 +19,6 @@ import java.util.List;
  */
 @Service
 public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehouseMapper, InventoryWarehouse> implements IInventoryWarehouseService {
-
-    @Autowired
-    private IInventoryWarehouseOwnerService ownerService;
-
-    @Autowired
-    private IInventoryWarehousePermissionService permissionService;
 
     @Override
     public List<InventoryWarehouse> selectWarehouseList(InventoryWarehouse warehouse) {
@@ -66,46 +54,7 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
         warehouse.setUpdateTime(LocalDateTime.now());
         warehouse.setCreateBy(getCurrentUsername());
         warehouse.setUpdateBy(getCurrentUsername());
-        boolean saved = this.save(warehouse);
-        if (saved) {
-            createDefaultPermissions(warehouse);
-        }
-        return saved;
-    }
-
-    private void createDefaultPermissions(InventoryWarehouse warehouse) {
-        if (warehouse == null || warehouse.getId() == null) {
-            return;
-        }
-        String userId = SecurityUtils.getUserId();
-        String deptId = SecurityUtils.getDeptId();
-        String deptName = SecurityUtils.getDeptName();
-        String ownerName = LoginHelper.getNickname();
-        if (ownerName == null || ownerName.trim().isEmpty()) {
-            ownerName = SecurityUtils.getUsername();
-        }
-
-        if (userId != null && !userId.trim().isEmpty()) {
-            InventoryWarehouseOwner owner = new InventoryWarehouseOwner();
-            owner.setWarehouseId(warehouse.getId());
-            owner.setOwnerUserId(userId);
-            owner.setOwnerUserName(ownerName);
-            if (deptId != null && !deptId.trim().isEmpty()) {
-                owner.setOwnerOrgId(deptId);
-                owner.setOwnerOrgName(deptName);
-            }
-            owner.setOwnerRole("PRIMARY");
-            owner.setIsPrimary("1");
-            ownerService.save(owner);
-        }
-
-        if (deptId != null && !deptId.trim().isEmpty()) {
-            InventoryWarehousePermission permission = new InventoryWarehousePermission();
-            permission.setWarehouseId(warehouse.getId());
-            permission.setDeptId(deptId);
-            permission.setDeptName(deptName);
-            permissionService.save(permission);
-        }
+        return this.save(warehouse);
     }
 
     @Override
