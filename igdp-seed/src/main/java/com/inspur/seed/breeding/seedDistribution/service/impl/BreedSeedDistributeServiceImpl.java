@@ -15,6 +15,8 @@ import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper;
 import com.inspur.seed.multiplication.oseReceive.domain.entity.OseBreedSeedReceiveConfirm;
 import com.inspur.seed.breeding.seedDistribution.mapper.BreedSeedDistributeDetailMapper;
 import com.inspur.seed.breeding.seedDistribution.mapper.BreedSeedDistributeMapper;
+import com.inspur.seed.domain.Organization;
+import com.inspur.seed.mapper.OrganizationMapper;
 import com.inspur.seed.Institution.ose.mapper.OseInfoMapper;
 import com.inspur.seed.multiplication.oseReceive.mapper.OseReceiveConfirmMapper;
 import com.inspur.seed.breeding.breederSeed.service.IBreedSeedProduceService;
@@ -58,6 +60,9 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
 
     @Autowired
     private OseInfoMapper oseInfoMapper;
+
+    @Autowired
+    private OrganizationMapper organizationMapper;
 
     @Autowired
     private IBreedSeedProduceService produceService;
@@ -180,10 +185,12 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
         main.setCreateTime(now);
         main.setUpdateTime(now);
 
-        // 从ose_info表自动带出OSE名称
-        OseInfoVO oseInfoVO = oseInfoMapper.selectOseById(dto.getOseId());
-        if (oseInfoVO != null) {
-            main.setOseName(oseInfoVO.getOseName());
+        // 从organization表自动带出组织名称
+        if (dto.getOseId() != null && !dto.getOseId().isEmpty()) {
+            Organization org = organizationMapper.selectById(dto.getOseId());
+            if (org != null) {
+                main.setOseName(org.getOrgName());
+            }
         }
 
         distributeMapper.insert(main);

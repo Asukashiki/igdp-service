@@ -101,6 +101,31 @@ public class RulesInfoController extends BaseController {
     }
 
     /**
+     * 获取所有检测类型（去重）
+     */
+    @GetMapping("/inspectionTypes")
+    public AjaxResult getInspectionTypes() {
+        QueryWrapper<RulesInfo> wrapper = new QueryWrapper<>();
+        wrapper.select("DISTINCT inspection_type");
+        wrapper.orderByAsc("MIN(id)");
+        wrapper.groupBy("inspection_type");
+        List<RulesInfo> list = rulesInfoService.list(wrapper);
+        List<String> types = list.stream().map(RulesInfo::getInspectionType).collect(java.util.stream.Collectors.toList());
+        return AjaxResult.success(types);
+    }
+
+    /**
+     * 根据检测类型获取规则列表
+     */
+    @GetMapping("/listByType")
+    public AjaxResult listByInspectionType(@RequestParam String inspectionType) {
+        QueryWrapper<RulesInfo> wrapper = new QueryWrapper<>();
+        wrapper.eq("inspection_type", inspectionType);
+        wrapper.orderByAsc("id");
+        return AjaxResult.success(rulesInfoService.list(wrapper));
+    }
+
+    /**
      * 根据字典编码和值判断是否满足条件
      *
      * @param dictCode 字典编码

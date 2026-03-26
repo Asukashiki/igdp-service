@@ -27,12 +27,17 @@ public class BreedSeedDistributeMain implements Serializable {
     private String distributeId;
 
     /**
-     * OSE ID
+     * 组织类型
+     */
+    private String orgCategory;
+
+    /**
+     * 组织ID
      */
     private String oseId;
 
     /**
-     * OSE名称(自动带出)
+     * 组织名称(自动带出)
      */
     private String oseName;
 
