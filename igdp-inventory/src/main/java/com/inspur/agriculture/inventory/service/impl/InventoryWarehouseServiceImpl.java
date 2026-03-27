@@ -126,14 +126,14 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
 
     private String getWarehouseTypePrefix(String warehouseType) {
         switch (warehouseType) {
-            case "ZY":
-                return "ZY";  // 中央仓库
-            case "LM":
-                return "LM";  // 联盟仓库
-            case "HZS":
-                return "HZS"; // 合作社仓库
-            case "QY":
-                return "QY";  // 企业仓库
+            case "CENTRAL":
+                return "CW";   // 中央仓库 Central Warehouse
+            case "ALLIANCE":
+                return "AW";   // 联盟仓库 Alliance Warehouse
+            case "COOP":
+                return "CO";   // 合作社仓库 Cooperative Warehouse
+            case "ENTERPRISE":
+                return "EW";   // 企业仓库 Enterprise Warehouse
             default:
                 throw new ServiceException("Unknown warehouse type: " + warehouseType);
         }
@@ -169,7 +169,7 @@ public class InventoryWarehouseServiceImpl extends ServiceImpl<InventoryWarehous
         }
 
         // 如果是联盟或合作社仓库，上级仓库必选
-        if (("LM".equals(warehouse.getType()) || "HZS".equals(warehouse.getType()))
+        if (("ALLIANCE".equals(warehouse.getType()) || "COOP".equals(warehouse.getType()))
                 && (warehouse.getParentId() == null || warehouse.getParentId() <= 0)) {
             throw new ServiceException("Union/Cooperative warehouses must select a parent warehouse.");
         }
