@@ -17,6 +17,8 @@ import com.inspur.seed.domain.basic.BasicSeedProduceResult;
 import com.inspur.seed.domain.prebasic.PrebasicSeedProduceResult;
 import com.inspur.seed.mapper.prebasic.PrebasicSeedProduceResultMapper;
 import com.inspur.seed.mapper.basic.BasicSeedProduceResultMapper;
+import com.inspur.seed.domain.Organization;
+import com.inspur.seed.mapper.OrganizationMapper;
 import com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceMapper;
 import com.inspur.seed.breeding.breederSeed.mapper.BreedSeedProduceResultMapper;
 import com.inspur.seed.breeding.breederSeed.domain.vo.BreedSeedProduceResultVO;
@@ -70,6 +72,9 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
 
     @Autowired
     private BreedSeedProduceResultMapper breedSeedProduceResultMapper;
+
+    @Autowired
+    private OrganizationMapper organizationMapper;
 
     @Override
     public List<OseReceiveConfirmVO> getReceiveConfirmList(OseReceiveConfirmQueryDTO queryDTO) {
@@ -254,10 +259,17 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
 
-        // 设置OSE名称
-        OseInfo oseInfo = oseInfoMapper.selectById(entity.getOseId());
-        if (oseInfo != null) {
-            vo.setOseName(oseInfo.getOseName());
+        // 设置组织名称（优先从organization表查，兼容旧数据从ose_info查）
+        if (entity.getOseId() != null && !entity.getOseId().isEmpty()) {
+            Organization org = organizationMapper.selectById(entity.getOseId());
+            if (org != null) {
+                vo.setOseName(org.getOrgName());
+            } else {
+                OseInfo oseInfo = oseInfoMapper.selectById(entity.getOseId());
+                if (oseInfo != null) {
+                    vo.setOseName(oseInfo.getOseName());
+                }
+            }
         }
 
         // 设置分发明细

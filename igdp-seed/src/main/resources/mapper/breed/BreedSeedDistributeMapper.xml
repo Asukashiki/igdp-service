@@ -28,7 +28,7 @@
             m.from_seed_level,
             m.to_seed_level,
             m.ose_id,
-            m.ose_name,
+            COALESCE(o.org_name, m.ose_name) AS ose_name,
             m.time,
             m.people,
             m.organ,
@@ -38,6 +38,7 @@
             m.create_time,
             m.update_time
         FROM breed_seed_distribute_main m
+        LEFT JOIN organization o ON m.ose_id = o.id
     </sql>
 
     <select id="selectDistributeList" resultMap="BreedSeedDistributeVOResult">

@@ -7,10 +7,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
+import com.inspur.seed.domain.MultiplierReport;
 import com.inspur.seed.domain.dto.BreedingSeedCertificationDTO;
 import com.inspur.seed.domain.entity.*;
 import com.inspur.seed.domain.vo.*;
 import com.inspur.seed.mapper.*;
+import com.inspur.seed.multiplication.c1Seed.domain.entity.C1BreedingBatch;
+import com.inspur.seed.multiplication.c1Seed.mapper.C1BreedingBatchMapper;
 import com.inspur.seed.service.IBreedingSeedCertificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,12 @@ public class BreedingSeedCertificationServiceImpl extends ServiceImpl<BreedingSe
 
     @Autowired
     private BreedingSeedSupervisionMapper supervisionMapper;
+
+    @Autowired
+    private MultiplierReportMapper multiplierReportMapper;
+
+    @Autowired
+    private C1BreedingBatchMapper c1BreedingBatchMapper;
 
     @Override
     public IPage<BreedingSeedCertificationVO> selectBreedingSeedCertificationPage(IPage<BreedingSeedCertification> page, BreedingSeedCertificationDTO dto) {
@@ -376,7 +385,47 @@ public class BreedingSeedCertificationServiceImpl extends ServiceImpl<BreedingSe
             entity.setAuditor("系统");
         }
 
-        return this.updateById(entity) ? 1 : 0;
+        int result = this.updateById(entity) ? 1 : 0;
+
+        // 审批通过后自动推送数据到 Multiplier Report
+        if (result > 0) {
+            createMultiplierReport(entity);
+        }
+
+        return result;
+    }
+
+    /**
+     * 审批通过后自动创建 Multiplier Report
+     */
+    private void createMultiplierReport(BreedingSeedCertification cert) {
+        MultiplierReport report = new MultiplierReport();
+        report.setReportDate(cert.getAuditTime());
+        report.setCropType(cert.getCropType());
+        report.setVarietyName(cert.getVarietyName());
+        report.setMultiplierId(cert.getApplyOrgId());
+        report.setStatus("0");
+        report.setCreateBy(cert.getAuditor());
+        report.setCreateTime(java.time.LocalDateTime.now());
+        report.setUpdateTime(java.time.LocalDateTime.now());
+
+        // 从关联的C1育种批次获取更多信息
+        if (cert.getBreedingBatchId() != null) {
+            C1BreedingBatch batch = c1BreedingBatchMapper.selectById(cert.getBreedingBatchId());
+            if (batch != null) {
+                report.setCertificateId(batch.getBatchId());
+                report.setAreaPlantedHa(batch.getPlantingArea());
+                report.setPlantingDate(batch.getStartDate() != null ?
+                    java.sql.Date.valueOf(batch.getStartDate()) : null);
+                report.setHarvestDate(batch.getEndDate() != null ?
+                    java.sql.Date.valueOf(batch.getEndDate()) : null);
+                report.setProducedSeedQuantity(batch.getExpectedYield());
+                report.setSeedClassReceived("C1");
+                report.setFarmId(batch.getOrgId());
+            }
+        }
+
+        multiplierReportMapper.insert(report);
     }
 
     @Override

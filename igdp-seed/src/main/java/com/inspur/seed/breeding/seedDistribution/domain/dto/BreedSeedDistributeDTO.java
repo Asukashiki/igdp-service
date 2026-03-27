@@ -22,9 +22,14 @@ public class BreedSeedDistributeDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * OSE ID
+     * 组织类型
      */
-    @NotBlank(message = "OSE ID不能为空")
+    private String orgCategory;
+
+    /**
+     * 组织ID
+     */
+    @NotBlank(message = "Organization cannot be empty")
     private String oseId;
 
     /**
