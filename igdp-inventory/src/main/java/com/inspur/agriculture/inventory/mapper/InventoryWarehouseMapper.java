@@ -33,6 +33,7 @@ public interface InventoryWarehouseMapper extends BaseMapper<InventoryWarehouse>
     List<InventoryWarehouse> selectWarehouseListByDeptId(@Param("deptId") String deptId);
 
     List<com.inspur.agriculture.inventory.domain.vo.DeptCategoryStockVO> selectDeptCategoryStock(@Param("deptId") String deptId,
-                                                                                                 @Param("mainCategory") String mainCategory,
-                                                                                                 @Param("subCategory") String subCategory);
+                                                                                                  @Param("mainCategory") String mainCategory,
+                                                                                                  @Param("subCategory") String subCategory,
+                                                                                                  @Param("productName") String productName);
 }

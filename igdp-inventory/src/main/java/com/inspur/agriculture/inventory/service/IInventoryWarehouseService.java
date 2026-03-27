@@ -68,5 +68,5 @@ public interface IInventoryWarehouseService extends IService<InventoryWarehouse>
 
     List<InventoryWarehouse> selectWarehouseListByDeptId(String deptId);
 
-    List<com.inspur.agriculture.inventory.domain.vo.DeptCategoryStockVO> selectDeptCategoryStock(String deptId, String mainCategory, String subCategory);
+    List<com.inspur.agriculture.inventory.domain.vo.DeptCategoryStockVO> selectDeptCategoryStock(String deptId, String mainCategory, String subCategory, String productName);
 }

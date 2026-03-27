@@ -133,6 +133,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="subCategory != null and subCategory != ''">
             AND s.sub_category = #{subCategory}
         </if>
+        <if test="productName != null and productName != ''">
+            AND s.product_name LIKE concat('%', #{productName}, '%')
+        </if>
         GROUP BY s.main_category, s.sub_category
         ORDER BY s.main_category ASC, s.sub_category ASC
     </select>

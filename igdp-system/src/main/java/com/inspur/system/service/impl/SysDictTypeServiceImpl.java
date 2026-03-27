@@ -77,11 +77,11 @@ public class SysDictTypeServiceImpl extends MPJBaseServiceImpl<SysDictTypeMapper
      */
     @Override
     public List<SysDictData> selectDictDataByType(String dictType) {
-        List<SysDictData> dictDatas = DictUtils.getDictCache(dictType);
-        if (StringUtils.isNotEmpty(dictDatas)) {
-            return dictDatas;
-        }
-        dictDatas = dictDataMapper.selectDictDataByType(dictType);
+//        List<SysDictData> dictDatas = DictUtils.getDictCache(dictType);
+//        if (StringUtils.isNotEmpty(dictDatas)) {
+//            return dictDatas;
+//        }
+        List<SysDictData> dictDatas  = dictDataMapper.selectDictDataByType(dictType);
         if (StringUtils.isNotEmpty(dictDatas)) {
             DictUtils.setDictCache(dictType, dictDatas);
             return dictDatas;

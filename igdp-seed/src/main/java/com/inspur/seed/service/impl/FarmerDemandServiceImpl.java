@@ -721,13 +721,14 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         itemWrapper.eq(DemandFarmerInputItem::getIsDeleted, 0);
         List<DemandFarmerInputItem> inputItems = inputItemMapper.selectList(itemWrapper);
 
-        // 4. 按 inputType 和 inputCategory 汇总
         return inputItems.stream()
             .collect(Collectors.groupingBy(
-                item -> item.getInputType() + "|" + item.getInputCategory(),
+                item -> StrUtil.blankToDefault(item.getInputType(), "") + "|"
+                    + StrUtil.blankToDefault(item.getInputCategory(), "") + "|"
+                    + StrUtil.blankToDefault(item.getVariety(), ""),
                 Collectors.reducing(
                     BigDecimal.ZERO,
-                    DemandFarmerInputItem::getQuantity,
+                    item -> Optional.ofNullable(item.getQuantity()).orElse(BigDecimal.ZERO),
                     BigDecimal::add
                 )
             ))
@@ -737,6 +738,7 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
                 FarmerInputAggregationVO vo = new FarmerInputAggregationVO();
                 vo.setInputType(keys[0]);
                 vo.setInputCategory(keys.length > 1 ? keys[1] : "");
+                vo.setVariety(keys.length > 2 ? keys[2] : "");
                 vo.setTotalQuantity(entry.getValue());
                 vo.setTotalCount(1); // 简化处理
                 return vo;

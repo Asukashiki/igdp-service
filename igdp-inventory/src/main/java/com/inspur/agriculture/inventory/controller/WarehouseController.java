@@ -52,8 +52,27 @@ public class WarehouseController extends BaseController {
     @GetMapping("/list-by-dept")
     public AjaxResult listByDept(@RequestParam("dept_id") String deptId,
                                  @RequestParam(value = "main_category", required = false) String mainCategory,
-                                 @RequestParam(value = "sub_category", required = false) String subCategory) {
-        return AjaxResult.success(warehouseService.selectDeptCategoryStock(deptId, mainCategory, subCategory));
+                                 @RequestParam(value = "sub_category", required = false) String subCategory,
+                                 @RequestParam(value = "product", required = false) String product,
+                                 @RequestParam(value = "productName", required = false) String productNameCamel,
+                                 @RequestParam(value = "ProductName", required = false) String productName) {
+        String queryProductName = firstNonBlank(productName, productNameCamel, product);
+        return AjaxResult.success(warehouseService.selectDeptCategoryStock(deptId, mainCategory, subCategory, queryProductName));
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null) {
+                String trimmedValue = value.trim();
+                if (!trimmedValue.isEmpty()) {
+                    return trimmedValue;
+                }
+            }
+        }
+        return null;
     }
 
 
