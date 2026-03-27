@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -219,14 +218,14 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
 
             for (InventoryInboundDetail detail : details) {
                 validateInboundDetailExpiry(detail);
-                BigDecimal qtyKg = convertToKg(detail.getQty(), detail.getUnit(), "Inbound detail quantity");
+                BigDecimal qty = validateQuantity(detail.getQty(), "Inbound detail quantity");
                 Date prodDate = null;
                 Date expDate = detail.getExpireDate() != null ? detail.getExpireDate() : new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000);
                 coreService.increaseStockWithBatch(
                     detail.getProductId(),
                     existInbound.getWarehouseCode(),
                     detail.getBatchNo(),
-                    qtyKg,
+                    qty,
                     detail.getQty(),
                     detail.getUnit(),
                     prodDate,
@@ -298,21 +297,21 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
         }
 
 
-        BigDecimal incomingTotalKg = BigDecimal.ZERO;
+        BigDecimal incomingTotalQty = BigDecimal.ZERO;
         for (InventoryInboundDetail detail : details) {
             validateInboundDetailExpiry(detail);
-            incomingTotalKg = incomingTotalKg.add(convertToKg(detail.getQty(), detail.getUnit(), "Inbound detail quantity"));
+            incomingTotalQty = incomingTotalQty.add(validateQuantity(detail.getQty(), "Inbound detail quantity"));
         }
 
 
-        BigDecimal currentTotalKg = getCurrentWarehouseTotalKg(warehouse.getId());
-        if (currentTotalKg.add(incomingTotalKg).compareTo(capacity) > 0) {
-            throw new ServiceException("Inbound quantity exceeds warehouse capacity. Capacity: " + capacity + " KG, Current: " + currentTotalKg + " KG, Incoming: " + incomingTotalKg + " KG.");
+        BigDecimal currentTotalQty = getCurrentWarehouseTotalQty(warehouse.getId());
+        if (currentTotalQty.add(incomingTotalQty).compareTo(capacity) > 0) {
+            throw new ServiceException("Inbound quantity exceeds warehouse capacity. Capacity: " + capacity + ", Current: " + currentTotalQty + ", Incoming: " + incomingTotalQty + ".");
         }
     }
 
 
-    private BigDecimal getCurrentWarehouseTotalKg(Long warehouseId) {
+    private BigDecimal getCurrentWarehouseTotalQty(Long warehouseId) {
         LambdaQueryWrapper<InventoryStock> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(InventoryStock::getWarehouseId, warehouseId);
         List<InventoryStock> stocks = stockMapper.selectList(wrapper);
@@ -341,25 +340,14 @@ public class InventoryInboundServiceImpl extends ServiceImpl<InventoryInboundMap
     }
 
 
-    private BigDecimal convertToKg(BigDecimal qty, String unit, String fieldName) {
+    private BigDecimal validateQuantity(BigDecimal qty, String fieldName) {
         if (qty == null) {
             throw new ServiceException(fieldName + " cannot be null.");
         }
         if (qty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException(fieldName + " must be greater than 0.");
         }
-
-        String normalizedUnit = unit == null ? "" : unit.trim().toUpperCase(Locale.ROOT);
-        if ("KG".equals(normalizedUnit)) {
-            return qty;
-        }
-        if ("G".equals(normalizedUnit)) {
-            return qty.divide(new BigDecimal("1000"), 6, RoundingMode.HALF_UP);
-        }
-        if ("ML".equals(normalizedUnit)) {
-            return qty.divide(new BigDecimal("1000"), 6, RoundingMode.HALF_UP);
-        }
-        throw new ServiceException("Unsupported unit: " + unit + ". Only KG, g, and ML are supported.");
+        return qty;
     }
 
 
