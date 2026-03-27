@@ -179,8 +179,8 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
             // validateOutboundAvailability(warehouse, details);
 
             for (InventoryOutboundDetail detail : details) {
-                BigDecimal qtyKg = convertToKg(detail.getQty(), detail.getUnit(), "Outbound detail quantity");
-                coreService.lockStock(detail.getProductId(), existOutbound.getWarehouseCode(), qtyKg, detail.getMainCategory(), detail.getSubCategory(), detail.getProductName());
+                BigDecimal qty = validateQuantity(detail.getQty(), "Outbound detail quantity");
+                coreService.lockStock(detail.getProductId(), existOutbound.getWarehouseCode(), qty, detail.getMainCategory(), detail.getSubCategory(), detail.getProductName());
                 if (detail.getBatchNo() != null && !detail.getBatchNo().isEmpty()) {
                     InventoryStock stock = getStockByProductAndWarehouse(detail.getProductId(), warehouse.getId());
                     if (stock == null) {
@@ -190,10 +190,10 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
                     if (batch == null) {
                         throw new ServiceException("Batch not found: " + detail.getBatchNo());
                     }
-                    BigDecimal batchQty = convertToUnit(detail.getQty(), detail.getUnit(), batch.getUnit(), "Outbound detail quantity");
-                    coreService.reduceStockWithBatch(detail.getProductId(), existOutbound.getWarehouseCode(), detail.getBatchNo(), qtyKg, batchQty);
+                    BigDecimal batchQty = validateQuantity(detail.getQty(), "Outbound detail quantity");
+                    coreService.reduceStockWithBatch(detail.getProductId(), existOutbound.getWarehouseCode(), detail.getBatchNo(), qty, batchQty);
                 } else {
-                    coreService.reduceStock(detail.getProductId(), existOutbound.getWarehouseCode(), null, qtyKg);
+                    coreService.reduceStock(detail.getProductId(), existOutbound.getWarehouseCode(), null, qty);
                 }
             }
         } else if ("REJECTED".equals(outbound.getStatus())) {
@@ -239,9 +239,9 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
 
         BigDecimal capacity = warehouse.getCapacity();
         if (capacity != null && capacity.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal currentTotal = getCurrentWarehouseTotalKg(warehouse.getId());
+            BigDecimal currentTotal = getCurrentWarehouseTotalQty(warehouse.getId());
             if (currentTotal.compareTo(capacity) > 0) {
-                throw new ServiceException("Current warehouse stock exceeds capacity. Capacity: " + capacity + " KG, Current: " + currentTotal + " KG.");
+                throw new ServiceException("Current warehouse stock exceeds capacity. Capacity: " + capacity + ", Current: " + currentTotal + ".");
             }
         }
 
@@ -256,14 +256,14 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
                 throw new ServiceException("Outbound item has expired. Batch: " + safeString(detail.getBatchNo()));
             }
 
-            BigDecimal qtyKg = convertToKg(detail.getQty(), detail.getUnit(), "Outbound detail quantity");
+            BigDecimal qty = validateQuantity(detail.getQty(), "Outbound detail quantity");
             InventoryStock stock = getStockByProductAndWarehouse(detail.getProductId(), warehouse.getId());
             if (stock == null) {
                 throw new ServiceException("No stock available for this product in the selected warehouse.");
             }
             BigDecimal available = stock.getAvailableQty() != null ? stock.getAvailableQty() : BigDecimal.ZERO;
-            if (available.compareTo(qtyKg) < 0) {
-                throw new ServiceException("Insufficient available stock for this product. Available: " + available + " KG.");
+            if (available.compareTo(qty) < 0) {
+                throw new ServiceException("Insufficient available stock for this product. Available: " + available + ".");
             }
 
             if (detail.getBatchNo() != null && !detail.getBatchNo().isEmpty()) {
@@ -275,7 +275,7 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
                     throw new ServiceException("Batch has expired: " + detail.getBatchNo());
                 }
                 BigDecimal batchQty = batch.getQty() != null ? batch.getQty() : BigDecimal.ZERO;
-                BigDecimal requiredBatchQty = convertToUnit(detail.getQty(), detail.getUnit(), batch.getUnit(), "Outbound detail quantity");
+                BigDecimal requiredBatchQty = validateQuantity(detail.getQty(), "Outbound detail quantity");
                 if (batchQty.compareTo(requiredBatchQty) < 0) {
                     throw new ServiceException("Insufficient batch stock for batch: " + detail.getBatchNo() + ". Available: " + batchQty + " " + safeString(batch.getUnit()) + ".");
                 }
@@ -293,7 +293,7 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
         return stockMapper.selectOne(wrapper);
     }
 
-    private BigDecimal getCurrentWarehouseTotalKg(Long warehouseId) {
+    private BigDecimal getCurrentWarehouseTotalQty(Long warehouseId) {
         LambdaQueryWrapper<InventoryStock> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(InventoryStock::getWarehouseId, warehouseId);
         List<InventoryStock> stocks = stockMapper.selectList(wrapper);
@@ -315,47 +315,14 @@ public class InventoryOutboundServiceImpl extends ServiceImpl<InventoryOutboundM
     return stockBatchMapper.selectOne(wrapper);
 }
 
-    private BigDecimal convertToKg(BigDecimal qty, String unit, String fieldName) {
+    private BigDecimal validateQuantity(BigDecimal qty, String fieldName) {
         if (qty == null) {
             throw new ServiceException(fieldName + " cannot be null.");
         }
         if (qty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException(fieldName + " must be greater than 0.");
         }
-
-        String normalizedUnit = unit == null ? "" : unit.trim().toUpperCase(Locale.ROOT);
-        if ("KG".equals(normalizedUnit)) {
-            return qty;
-        }
-        if ("G".equals(normalizedUnit)) {
-            return qty.divide(new BigDecimal("1000"), 6, RoundingMode.HALF_UP);
-        }
-        if ("ML".equals(normalizedUnit)) {
-            return qty.divide(new BigDecimal("1000"), 6, RoundingMode.HALF_UP);
-        }
-        throw new ServiceException("Unsupported unit: " + unit + ". Only KG, g, and ML are supported.");
-    }
-
-    private BigDecimal convertToUnit(BigDecimal qty, String fromUnit, String toUnit, String fieldName) {
-        if (qty == null) {
-            throw new ServiceException(fieldName + " cannot be null.");
-        }
-        String target = toUnit == null ? "" : toUnit.trim().toUpperCase(Locale.ROOT);
-        if (target.isEmpty()) {
-            return convertToKg(qty, fromUnit, fieldName);
-        }
-        String source = fromUnit == null ? "" : fromUnit.trim().toUpperCase(Locale.ROOT);
-        if (source.equals(target)) {
-            return qty;
-        }
-        BigDecimal qtyKg = convertToKg(qty, fromUnit, fieldName);
-        if ("KG".equals(target)) {
-            return qtyKg;
-        }
-        if ("G".equals(target) || "ML".equals(target)) {
-            return qtyKg.multiply(new BigDecimal("1000"));
-        }
-        throw new ServiceException("Unsupported unit: " + toUnit + ". Only KG, g, and ML are supported.");
+        return qty;
     }
 
     private String safeString(String value) {

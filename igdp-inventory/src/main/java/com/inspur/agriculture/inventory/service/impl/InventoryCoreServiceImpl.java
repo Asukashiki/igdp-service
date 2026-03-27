@@ -96,14 +96,14 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void reduceStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty) {
+    public void reduceStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQty, BigDecimal batchQty) {
         Long warehouseId = getWarehouseIdByCode(warehouseCode);
-        if (stockQtyKg == null || stockQtyKg.compareTo(BigDecimal.ZERO) <= 0) {
+        if (stockQty == null || stockQty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException("Reduce quantity must be greater than 0.");
         }
 
         InventoryStock stock = getOrCreateStock(productId, warehouseId, null, null, null);
-        if (stock.getLockedQty().compareTo(stockQtyKg) < 0) {
+        if (stock.getLockedQty().compareTo(stockQty) < 0) {
             throw new ServiceException("Reduce quantity is greater than locked quantity (please lock first).");
         }
 
@@ -133,7 +133,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
         if ((stock.getProductName() == null || stock.getProductName().isEmpty()) && batch != null) {
             stock.setProductName(batch.getProductName());
         }
-        stock.setLockedQty(stock.getLockedQty().subtract(stockQtyKg));
+        stock.setLockedQty(stock.getLockedQty().subtract(stockQty));
         int rows = stockMapper.updateById(stock);
         if (rows == 0) {
             throw new ServiceException("Stock update failed, please retry.");
@@ -149,7 +149,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
             }
         }
 
-        recordLog(productId, warehouseId, batchNo, "OUTBOUND", stockQtyKg, stock.getAvailableQty(), stock.getAvailableQty(), "REDUCE_STOCK", null, null);
+        recordLog(productId, warehouseId, batchNo, "OUTBOUND", stockQty, stock.getAvailableQty(), stock.getAvailableQty(), "REDUCE_STOCK", null, null);
     }
 
     @Override
@@ -174,17 +174,17 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
     }
 
     @Override
-    public void increaseStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQtyKg, BigDecimal batchQty, String batchUnit,
+    public void increaseStockWithBatch(Long productId, String warehouseCode, String batchNo, BigDecimal stockQty, BigDecimal batchQty, String batchUnit,
                                        Date prodDate, Date expDate, String qualityGrade, String stockStatus, String mainCategory, String subCategory, String productName) {
         Long warehouseId = getWarehouseIdByCode(warehouseCode);
-        if (stockQtyKg == null || stockQtyKg.compareTo(BigDecimal.ZERO) <= 0) {
+        if (stockQty == null || stockQty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ServiceException("Increase quantity must be greater than 0.");
         }
         String normalizedStockStatus = (stockStatus != null && !stockStatus.isEmpty()) ? stockStatus : "AVAILABLE";
 
         InventoryStock stock = getOrCreateStock(productId, warehouseId, mainCategory, subCategory, productName);
         BigDecimal before = stock.getAvailableQty();
-        stock.setAvailableQty(stock.getAvailableQty().add(stockQtyKg));
+        stock.setAvailableQty(stock.getAvailableQty().add(stockQty));
         if (qualityGrade != null) stock.setQualityGrade(qualityGrade);
         stock.setStockStatus(normalizedStockStatus);
         if (mainCategory != null && !mainCategory.isEmpty()) {
@@ -241,7 +241,7 @@ public class InventoryCoreServiceImpl implements IInventoryCoreService {
             }
         }
 
-        recordLog(productId, warehouseId, batchNo, "INBOUND", stockQtyKg, before, stock.getAvailableQty(), "INCREASE_STOCK", null, null);
+        recordLog(productId, warehouseId, batchNo, "INBOUND", stockQty, before, stock.getAvailableQty(), "INCREASE_STOCK", null, null);
     }
 
     private <T> void applyEqOrIsNull(LambdaQueryWrapper<InventoryStockBatch> wrapper,
