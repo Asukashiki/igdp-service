@@ -7,8 +7,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1BreedingBatchDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1BreedingBatchQueryDTO;
-import com.inspur.seed.domain.MultiplierReport;
-import com.inspur.seed.mapper.MultiplierReportMapper;
 import com.inspur.seed.multiplication.oseReceive.domain.entity.OseBreedSeedReceiveConfirm;
 import com.inspur.seed.multiplication.oseReceive.mapper.OseReceiveConfirmMapper;
 import com.inspur.seed.multiplication.c1Seed.domain.entity.C1BreedingBatch;
@@ -37,9 +35,6 @@ public class C1BreedingBatchServiceImpl extends ServiceImpl<C1BreedingBatchMappe
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    @Autowired
-    private MultiplierReportMapper multiplierReportMapper;
 
     @Autowired
     private OseReceiveConfirmMapper oseReceiveConfirmMapper;
@@ -234,50 +229,7 @@ public class C1BreedingBatchServiceImpl extends ServiceImpl<C1BreedingBatchMappe
         entity.setUpdatedTime(LocalDateTime.now());
         boolean result = this.updateById(entity);
 
-        // 审批通过后自动推送到 Multiplier Report
-        if (result) {
-            createMultiplierReport(entity);
-        }
-
         return result;
-    }
-
-    /**
-     * 审批通过后自动创建 Multiplier Report
-     */
-    private void createMultiplierReport(C1BreedingBatch batch) {
-        MultiplierReport report = new MultiplierReport();
-        report.setReportDate(java.sql.Date.valueOf(LocalDate.now()));
-        report.setCertificateId(batch.getBatchId());
-        report.setMultiplierId(batch.getOrgId());
-        report.setCropType(batch.getCropType());
-        report.setVarietyName(batch.getVarietyName());
-        report.setSeedClassReceived("C1");
-        report.setFarmId(batch.getOrgId());
-        report.setAreaPlantedHa(batch.getPlantingArea());
-        report.setPlantingDate(batch.getStartDate() != null ?
-            java.sql.Date.valueOf(batch.getStartDate()) : null);
-        report.setHarvestDate(batch.getEndDate() != null ?
-            java.sql.Date.valueOf(batch.getEndDate()) : null);
-        report.setProducedSeedQuantity(batch.getExpectedYield());
-        report.setStatus("0");
-        report.setCreateBy(batch.getAuditor());
-        report.setCreateTime(LocalDateTime.now());
-        report.setUpdateTime(LocalDateTime.now());
-
-        // 查找关联的 Distribution ID（通过 oseId/orgId 查最近的接收确认记录）
-        if (batch.getOrgId() != null) {
-            LambdaQueryWrapper<OseBreedSeedReceiveConfirm> confirmWrapper = new LambdaQueryWrapper<>();
-            confirmWrapper.eq(OseBreedSeedReceiveConfirm::getOseId, batch.getOrgId())
-                    .orderByDesc(OseBreedSeedReceiveConfirm::getCreateTime)
-                    .last("LIMIT 1");
-            OseBreedSeedReceiveConfirm confirm = oseReceiveConfirmMapper.selectOne(confirmWrapper);
-            if (confirm != null) {
-                report.setDistributionId(confirm.getDistributeId());
-            }
-        }
-
-        multiplierReportMapper.insert(report);
     }
 
     @Override
