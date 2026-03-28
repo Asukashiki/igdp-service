@@ -723,7 +723,8 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
         return inputItems.stream()
             .collect(Collectors.groupingBy(
-                item -> StrUtil.blankToDefault(item.getInputType(), "") + "|"
+                item -> StrUtil.blankToDefault(item.getSeason(), "") + "|"
+                    + StrUtil.blankToDefault(item.getInputType(), "") + "|"
                     + StrUtil.blankToDefault(item.getInputCategory(), "") + "|"
                     + StrUtil.blankToDefault(item.getVariety(), ""),
                 Collectors.reducing(
@@ -736,9 +737,10 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
             .map(entry -> {
                 String[] keys = entry.getKey().split("\\|");
                 FarmerInputAggregationVO vo = new FarmerInputAggregationVO();
-                vo.setInputType(keys[0]);
-                vo.setInputCategory(keys.length > 1 ? keys[1] : "");
-                vo.setVariety(keys.length > 2 ? keys[2] : "");
+                vo.setSeason(keys[0]);
+                vo.setInputType(keys.length > 1 ? keys[1] : "");
+                vo.setInputCategory(keys.length > 2 ? keys[2] : "");
+                vo.setVariety(keys.length > 3 ? keys[3] : "");
                 vo.setTotalQuantity(entry.getValue());
                 vo.setTotalCount(1); // 简化处理
                 return vo;
