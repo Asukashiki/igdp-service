@@ -114,4 +114,6 @@ public class InputReleaseDetail extends BaseEntity {
      */
     @TableLogic
     private Integer isDeleted;
+
+//    private String season;
 }

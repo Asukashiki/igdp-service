@@ -123,4 +123,6 @@ public class InputReleaseFarmerDetail extends BaseEntity {
      */
     @TableLogic
     private Integer isDeleted;
+
+    private String season;
 }
