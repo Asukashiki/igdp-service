@@ -49,6 +49,30 @@ public class WarehouseController extends BaseController {
         return AjaxResult.success(list);
     }
 
+    /**
+     * 查询仓库选项（强制按当前登录用户组织ID过滤）
+     */
+    @GetMapping("/options-by-org")
+    public AjaxResult getOptionsByOrg(@RequestParam(value = "status", required = false) String status,
+                                      @RequestParam(value = "orgId", required = false) String orgId,
+                                      @RequestParam(value = "org_id", required = false) String orgIdSnakeCase) {
+        String currentOrgId = SecurityUtils.getDeptId();
+        if (isBlank(currentOrgId)) {
+            return AjaxResult.error("Current user organization ID is missing.");
+        }
+
+        String requestOrgId = firstNonBlank(orgId, orgIdSnakeCase);
+        if (!isBlank(requestOrgId) && !currentOrgId.equals(requestOrgId)) {
+            return AjaxResult.error("Requested organization does not match current user organization.");
+        }
+
+        InventoryWarehouse query = new InventoryWarehouse();
+        query.setStatus(status);
+        query.setOrgId(currentOrgId);
+        List<InventoryWarehouse> list = warehouseService.selectWarehouseList(query);
+        return AjaxResult.success(list);
+    }
+
     @GetMapping("/list-by-dept")
     public AjaxResult listByDept(@RequestParam("dept_id") String deptId,
                                  @RequestParam(value = "main_category", required = false) String mainCategory,
@@ -73,6 +97,10 @@ public class WarehouseController extends BaseController {
             }
         }
         return null;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
 
