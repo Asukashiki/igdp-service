@@ -347,8 +347,8 @@ public class OrgRegistrationServiceImpl implements IOrgRegistrationService {
             requestBody.put("regionCode", registration.getRegionCode());
             requestBody.put("regionName", registration.getRegionName() != null ? registration.getRegionName() : "");
             // 添加 orgCode 和 orgName，值与 regionCode 和 regionName 相同
-            requestBody.put("orgCode", registration.getRegionCode());
-            requestBody.put("orgName", registration.getRegionName() != null ? registration.getRegionName() : "");
+            requestBody.put("orgCode", registration.getUnifiedCode());
+            requestBody.put("orgName", registration.getOrgName() != null ? registration.getRegionName() : "");
 
             // 设置请求头
             HttpHeaders headers = new HttpHeaders();
