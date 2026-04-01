@@ -101,11 +101,29 @@ public class FarmerDemandController {
 
     /**
      * Get aggregated statistics of farmer input items
-     * Returns aggregated data grouped by input category and type
+     * Returns aggregated data with mapped season names
      */
     @PostMapping("/input/getAggregation")
     public AjaxResult getInputAggregation(@RequestBody DemandOrganDTO demanOrganDTO) {
-        return AjaxResult.success(farmerDemandService.getInputAggregation(demanOrganDTO));
+        List<FarmerInputAggregationVO> aggregationList = farmerDemandService.getInputAggregation(demanOrganDTO);
+        aggregationList.forEach(item -> item.setSeason(mapSeasonName(item.getSeason())));
+        return AjaxResult.success(aggregationList);
+    }
+
+    private String mapSeasonName(String season) {
+        if (season == null) {
+            return "";
+        }
+        switch (season) {
+            case "1":
+                return "Summer";
+            case "2":
+                return "Spring";
+            case "3":
+                return "Irrigation";
+            default:
+                return season;
+        }
     }
 
 
