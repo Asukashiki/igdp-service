@@ -90,6 +90,11 @@ public class FarmerDemandUpdateDTO {
     private BigDecimal landArea;
 
     /**
+     * Demand Entry Type (WHOLE_DEMAND/BY_FARMERS)
+     */
+    private String demandEntryType;
+
+    /**
      * Remark
      */
     private String remark;

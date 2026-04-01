@@ -92,6 +92,11 @@ public class FarmerDemandDetailVO {
     private BigDecimal landArea;
 
     /**
+     * Demand Entry Type (WHOLE_DEMAND/BY_FARMERS)
+     */
+    private String demandEntryType;
+
+    /**
      * Max Seed Quantity (kg)
      */
     private BigDecimal maxSeedQuantity;

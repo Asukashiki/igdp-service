@@ -76,6 +76,11 @@ public class FarmerDemandPageVO {
     private BigDecimal landArea;
 
     /**
+     * Demand Entry Type (WHOLE_DEMAND/BY_FARMERS)
+     */
+    private String demandEntryType;
+
+    /**
      * Status
      */
     private String status;

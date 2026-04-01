@@ -85,25 +85,48 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
     private static final String STATUS_DRAFT = "0";
     private static final String STATUS_REJECTED = "3";
+    private static final String DEMAND_ENTRY_TYPE_WHOLE = "WHOLE_DEMAND";
+    private static final String DEMAND_ENTRY_TYPE_BY_FARMERS = "BY_FARMERS";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String addFarmerDemand(FarmerDemandAddDTO dto) {
+        String demandEntryType = normalizeDemandEntryType(dto.getDemandEntryType());
+        dto.setDemandEntryType(demandEntryType);
 
         // 判断该农民当年需求是否已经存在
-        QueryWrapper<DemandFarmerDetail> query = new QueryWrapper<>();
-        query.eq("year",dto.getYear());
-        query.eq("farmer_id",dto.getFarmerId());
-        List<DemandFarmerDetail> currentDetail = super.baseMapper.selectList(query);
-        if(currentDetail.size()>0){
-            return "1";
+        if (!isByFarmersEntry(demandEntryType)) {
+            if (StrUtil.isBlank(dto.getFarmerId())) {
+                throw new ServiceException("Farmer ID cannot be empty");
+            }
+            if (StrUtil.isBlank(dto.getFarmerName())) {
+                throw new ServiceException("Farmer name cannot be empty");
+            }
+            if (StrUtil.isBlank(dto.getFarmerIdNumber())) {
+                throw new ServiceException("Farmer ID number cannot be empty");
+            }
+            if (StrUtil.isBlank(dto.getWoreda())) {
+                throw new ServiceException("Woreda cannot be empty");
+            }
+            if (StrUtil.isBlank(dto.getKebele())) {
+                throw new ServiceException("Kebele cannot be empty");
+            }
+
+            QueryWrapper<DemandFarmerDetail> query = new QueryWrapper<>();
+            query.eq("year", dto.getYear());
+            query.eq("farmer_id", dto.getFarmerId());
+            List<DemandFarmerDetail> currentDetail = super.baseMapper.selectList(query);
+            if (currentDetail.size() > 0) {
+                return "1";
+            }
         }
 
 
         // 根据当前年份自动获取或创建批次
         int currentYear = java.time.Year.now().getValue();
-        String batchNo = "BATCH-" + currentYear +"-"+ dto.getKebele() +"-" + randomString(6).toUpperCase();
-        DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(batchNo,currentYear);
+        String kebeleCode = StrUtil.blankToDefault(dto.getKebele(), "UNKNOWN");
+        String batchNo = "BATCH-" + currentYear + "-" + kebeleCode + "-" + randomString(6).toUpperCase();
+        DemandCollectionBatch batch = batchService.getOrCreateBatchByYear(batchNo, currentYear);
 
         // 设置批次ID
         dto.setBatchId(batch.getId());
@@ -214,6 +237,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         DemandFarmerDetail updatedDetail = BeanUtil.copyProperties(dto, DemandFarmerDetail.class);
         updatedDetail.setUpdatedTime(new Date());
         updatedDetail.setUpdatedBy(currentUserId);
+        updatedDetail.setDemandEntryType(
+                normalizeDemandEntryType(StrUtil.blankToDefault(dto.getDemandEntryType(), demand.getDemandEntryType()))
+        );
         // 直接赋值状态字符串（替代原DemandStatusEnum.DRAFT.getCode()）
 //        if(dto.getStatus()!=null){
 //            updatedDetail.setStatus(dto.getStatus());
@@ -494,6 +520,11 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         // Filter by current audit level
         if (StrUtil.isNotBlank(dto.getCurrentAuditLevel())) {
             wrapper.eq(DemandFarmerDetail::getCurrentAuditLevel, dto.getCurrentAuditLevel());
+        }
+
+        // Filter by demand entry type
+        if (StrUtil.isNotBlank(dto.getDemandEntryType())) {
+            wrapper.eq(DemandFarmerDetail::getDemandEntryType, dto.getDemandEntryType());
         }
 
         // Filter by created time range
@@ -802,5 +833,19 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         Double maxAmount = calculateMaxFertilizerAmount(fertilizerType, cropProducts);
         fertilizerProduct.setFertilizerAmount(maxAmount);
         return fertilizerProduct;
+    }
+
+    private String normalizeDemandEntryType(String demandEntryType) {
+        if (StrUtil.isBlank(demandEntryType)) {
+            return DEMAND_ENTRY_TYPE_WHOLE;
+        }
+        if (DEMAND_ENTRY_TYPE_BY_FARMERS.equalsIgnoreCase(demandEntryType)) {
+            return DEMAND_ENTRY_TYPE_BY_FARMERS;
+        }
+        return DEMAND_ENTRY_TYPE_WHOLE;
+    }
+
+    private boolean isByFarmersEntry(String demandEntryType) {
+        return DEMAND_ENTRY_TYPE_BY_FARMERS.equalsIgnoreCase(demandEntryType);
     }
 }

@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.seed.mapper.invested.BoaZoneReleaseMainMapper">
+    <select id="getRequiredFromNotDeliveryInputRelease" resultType="java.math.BigDecimal">
+        SELECT
+        COALESCE(SUM(d.required), 0)
+        FROM
+        t_boa_zone_release_main m
+        INNER JOIN t_boa_zone_release_detail d
+            ON m.release_id = d.release_id
+        WHERE
+        m.status = 'notDelivery'
+        <if test="inputId != null and inputId != ''">
+          AND d.input_id = #{inputId}
+        </if>
+        <if test="releaseType != null and releaseType != ''">
+          AND m.release_type = #{releaseType}
+        </if>
+        AND d.is_deleted = '0'
+    </select>
+
+</mapper>
+

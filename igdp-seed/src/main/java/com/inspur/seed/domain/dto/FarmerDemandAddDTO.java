@@ -25,19 +25,16 @@ public class FarmerDemandAddDTO {
     /**
      * Farmer ID
      */
-    @NotBlank(message = "Farmer ID cannot be empty")
     private String farmerId;
 
     /**
      * Farmer Name
      */
-    @NotBlank(message = "Farmer name cannot be empty")
     private String farmerName;
 
     /**
      * Farmer ID Number
      */
-    @NotBlank(message = "Farmer ID number cannot be empty")
     private String farmerIdNumber;
 
     /**
@@ -53,13 +50,11 @@ public class FarmerDemandAddDTO {
     /**
      * Woreda
      */
-    @NotBlank(message = "Woreda cannot be empty")
     private String woreda;
 
     /**
      * Kebele
      */
-    @NotBlank(message = "Kebele cannot be empty")
     private String kebele;
 
     /**
@@ -86,6 +81,11 @@ public class FarmerDemandAddDTO {
      * Land Area (hectare)
      */
     private BigDecimal landArea;
+
+    /**
+     * Demand Entry Type (WHOLE_DEMAND/BY_FARMERS)
+     */
+    private String demandEntryType;
 
     /**
      * Year of demand collection

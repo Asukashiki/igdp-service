@@ -72,6 +72,11 @@ public class FarmerDemandPageDTO {
     private String inputCategory;
 
     /**
+     * Demand Entry Type (WHOLE_DEMAND/BY_FARMERS)
+     */
+    private String demandEntryType;
+
+    /**
      * Created Time Start
      */
     private String createdTimeStart;
