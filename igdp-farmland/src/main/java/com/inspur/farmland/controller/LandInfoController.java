@@ -8,7 +8,6 @@ import com.inspur.farmland.service.ILandInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,14 +52,8 @@ public class LandInfoController extends BaseController {
      */
     @PostMapping
     public AjaxResult add(@RequestBody LandInfo landInfo) {
-        AjaxResult validateResult = validateLandInfo(landInfo);
-        if (validateResult != null) {
-            return validateResult;
-        }
-
         String landId = landInfoService.insertLandInfo(landInfo);
         Map<String, Object> result = new HashMap<>();
-        result.put("id", landId);
         result.put("landId", landId);
         return AjaxResult.success("新增成功", result);
     }
@@ -72,11 +65,6 @@ public class LandInfoController extends BaseController {
     public AjaxResult edit(
             @PathVariable String landId,
             @RequestBody LandInfo landInfo) {
-        AjaxResult validateResult = validateLandInfo(landInfo);
-        if (validateResult != null) {
-            return validateResult;
-        }
-
         landInfo.setLandId(landId);
 
         // 校验土地是否存在
@@ -159,30 +147,5 @@ public class LandInfoController extends BaseController {
             @RequestParam(required = false) String zoneCode) {
         Map<String, Object> statistics = landInfoService.getLandStatistics(kebeleCode, woredaCode, zoneCode);
         return AjaxResult.success(statistics);
-    }
-
-    private AjaxResult validateLandInfo(LandInfo landInfo) {
-        if (landInfo == null) {
-            return AjaxResult.error("请求体不能为空");
-        }
-        if (isBlank(landInfo.getFarmerId())) {
-            return AjaxResult.error("farmerId不能为空");
-        }
-        if (isBlank(landInfo.getKebeleId()) && isBlank(landInfo.getKebeleCode())) {
-            return AjaxResult.error("kebeleId不能为空");
-        }
-
-        BigDecimal area = landInfo.getAreaTa() != null ? landInfo.getAreaTa() : landInfo.getAreaSize();
-        if (area == null) {
-            return AjaxResult.error("areaTa不能为空");
-        }
-        if (area.compareTo(BigDecimal.ZERO) <= 0) {
-            return AjaxResult.error("areaTa必须大于0");
-        }
-        return null;
-    }
-
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
     }
 }

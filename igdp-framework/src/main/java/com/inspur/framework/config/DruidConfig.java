@@ -27,7 +27,7 @@ import com.inspur.common.utils.spring.SpringUtils;
 
 /**
  * druid 配置多数据源
- * 
+ *
  * @author liyunlong
  */
 @Configuration
@@ -51,13 +51,11 @@ public class DruidConfig
     }
 
     @Bean
+    @ConfigurationProperties("spring.datasource.druid.web")
+    @ConditionalOnProperty(prefix = "spring.datasource.druid.web", name = "enabled", havingValue = "true")
     public DataSource istWebDataSource(DruidProperties druidProperties)
     {
         DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
-        dataSource.setUrl("jdbc:mysql://196.189.236.220:31115/ry-vue?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false");
-        dataSource.setUsername("root");
-        dataSource.setPassword("Lcvk,j1oQhuq");
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         return druidProperties.dataSource(dataSource);
     }
 
@@ -81,10 +79,10 @@ public class DruidConfig
         setDataSource(targetDataSources, DataSourceType.IST_WORKFLOW.name(), "istWorkflowDataSource");
         return new DynamicDataSource(masterDataSource, targetDataSources);
     }
-    
+
     /**
      * 设置数据源
-     * 
+     *
      * @param targetDataSources 备选数据源集合
      * @param sourceName 数据源名称
      * @param beanName bean名称

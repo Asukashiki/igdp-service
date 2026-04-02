@@ -1,218 +1,219 @@
 package com.inspur.farmland.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.inspur.common.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
- * 农田信息实体类
+ * 土地信息实体类
+ *
+ * @author inspur
  */
-@TableName("t_farmland")
+@TableName("t_land_info")
 @Setter
 @Getter
 public class LandInfo extends BaseEntity {
 
+    /**
+     * 主键ID
+     */
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    /** 状态(0草稿 1已批准 2已拒绝) */
-    private String status;
+    /**
+     * 土地编码（业务主键）
+     */
+    private String landId;
 
-    /** 农户ID */
-    private String farmerId;
-
-    /** 所属村ID */
-    @TableField("kebele_id")
-    private String kebeleId;
-
-    /** 纬度 */
-    @TableField("gps_lat")
-    private BigDecimal gpsLat;
-
-    /** 经度 */
-    @TableField("gps_long")
-    private BigDecimal gpsLong;
-
-    /** GPS多边形坐标(JSON格式) */
-    private String gpsPolygon;
-
-    /** 面积(公顷) */
-    @TableField("area_ta")
-    private BigDecimal areaTa;
-
-    /** 土壤类型代码 */
-    private String soilCode;
-
-    /** 灌溉类型代码 */
-    private String irrigationCode;
-
-    /** 坡度等级 */
-    private String slopeClass;
-
-    /** 土地用途 */
-    private String landUseType;
-
-    /** 批准人 */
-    private Long approvedBy;
-
-    /** 批准时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime approvedTime;
-
-    /** 拒绝原因 */
-    private String rejectionReason;
-
-    /** 备注 */
-    private String remark;
-
-    /** 创建部门 */
-    private Long createDept;
-
-    /** 逻辑删除标记 */
-    private Integer delFlag;
-
-    /** 租户ID */
-    private String tenantId;
-
-    /** 审批意见 */
-    private String approvedComment;
-
-    @TableField(exist = false)
-    private String kebeleCode;
-
-    @TableField(exist = false)
-    private String kebeleName;
-
-    @TableField(exist = false)
-    private String woredaCode;
-
-    @TableField(exist = false)
-    private String zoneCode;
-
-    @TableField(exist = false)
-    private String farmerName;
-
-    @TableField(exist = false)
+    /**
+     * 地块名称
+     */
     private String landName;
 
-    @TableField(exist = false)
+    /**
+     * 地块编号
+     */
     private String landNo;
 
-    @TableField(exist = false)
+    /**
+     * 土地权属类型：COLLECTIVE-集体所有 CONTRACT-承包经营权 PRIVATE-私有
+     */
     private String ownerType;
 
-    @TableField(exist = false)
+    /**
+     * 权属人/单位名称
+     */
     private String ownerName;
 
-    @TableField(exist = false)
+    /**
+     * 权属人身份证号
+     */
     private String ownerIdCard;
 
-    @TableField(exist = false)
+    /**
+     * 地块类型：PADDY-水田 DRY-旱地 GARDEN-园地 FOREST-林地 OTHER-其他
+     */
     private String landType;
 
-    @TableField(exist = false)
+    /**
+     * 地形：FLAT-平坦 GENTLE_SLOPE-缓坡 STEEP_SLOPE-陡坡
+     */
     private String landGraphic;
 
-    @TableField(exist = false)
+    /**
+     * 地块面积（公顷）
+     */
+    private BigDecimal areaSize;
+
+    /**
+     * 面积单位：HECTARE-公顷 MU-亩 SQM-平方米
+     */
     private String areaUnit;
 
-    @TableField(exist = false)
+    /**
+     * 纬度
+     */
+    private BigDecimal latitude;
+
+    /**
+     * 经度
+     */
+    private BigDecimal longitude;
+
+    /**
+     * 地块边界坐标（GeoJSON格式）
+     */
+    private String plotBoundary;
+
+    /**
+     * 州代码
+     */
     private String regionCode;
 
-    @TableField(exist = false)
+    /**
+     * 州名称
+     */
     private String regionName;
 
-    @TableField(exist = false)
+    /**
+     * 区代码
+     */
+    private String zoneCode;
+
+    /**
+     * 区名称
+     */
     private String zoneName;
 
-    @TableField(exist = false)
+    /**
+     * 镇代码
+     */
+    private String woredaCode;
+
+    /**
+     * 镇名称
+     */
     private String woredaName;
 
-    @TableField(exist = false)
+    /**
+     * 村代码
+     */
+    private String kebeleCode;
+
+    /**
+     * 村名称
+     */
+    private String kebeleName;
+
+    /**
+     * 详细地址
+     */
     private String address;
 
-    @TableField(exist = false)
+    /**
+     * 关联农民ID
+     */
+    private String farmerId;
+
+    /**
+     * 关联农民姓名
+     */
+    private String farmerName;
+
+    /**
+     * 关联农民身份证号
+     */
     private String farmerIdCard;
 
-    @TableField(exist = false)
+    /**
+     * 关联农民电话
+     */
     private String farmerPhone;
 
-    @TableField(exist = false)
+    /**
+     * 当前状态：CULTIVATING-耕种中 IDLE-闲置 FALLOW-休耕
+     */
     private String currentStatus;
 
-    @TableField(exist = false)
+    /**
+     * 估算最大种子量（kg）
+     */
     private BigDecimal maxSeedAmount;
 
-    @TableField(exist = false)
+    /**
+     * 估算最大肥料量（kg）
+     */
     private BigDecimal maxFertilizerAmount;
 
-    @TableField(exist = false)
+    /**
+     * 负责DA编码
+     */
     private String daId;
 
-    @TableField(exist = false)
+    /**
+     * 负责DA姓名
+     */
     private String daName;
 
-    @TableField(exist = false)
+    /**
+     * 数据状态：1-正常 0-删除
+     */
+    private String status;
+
+    /**
+     * 创建人
+     */
+    private String createBy;
+
+    /**
+     * 创建人姓名
+     */
     private String createByName;
 
-    @TableField(exist = false)
+    /**
+     * 创建机构代码
+     */
     private String createOrg;
 
-    @TableField(exist = false)
+    /**
+     * 创建机构名称
+     */
     private String createOrgName;
 
-    @TableField(exist = false)
+    /**
+     * 更新人
+     */
+    private String updateBy;
+
+    /**
+     * 更新人姓名
+     */
     private String updateByName;
 
-    public String getLandId() {
-        return id == null ? null : String.valueOf(id);
-    }
-
-    public void setLandId(String landId) {
-        if (landId == null || landId.trim().isEmpty()) {
-            this.id = null;
-            return;
-        }
-        this.id = Long.valueOf(landId);
-    }
-
-    public BigDecimal getLatitude() {
-        return gpsLat;
-    }
-
-    public void setLatitude(BigDecimal latitude) {
-        this.gpsLat = latitude;
-    }
-
-    public BigDecimal getLongitude() {
-        return gpsLong;
-    }
-
-    public void setLongitude(BigDecimal longitude) {
-        this.gpsLong = longitude;
-    }
-
-    public String getPlotBoundary() {
-        return gpsPolygon;
-    }
-
-    public void setPlotBoundary(String plotBoundary) {
-        this.gpsPolygon = plotBoundary;
-    }
-
-    public BigDecimal getAreaSize() {
-        return areaTa;
-    }
-
-    public void setAreaSize(BigDecimal areaSize) {
-        this.areaTa = areaSize;
-    }
+    private String remark;
 }
