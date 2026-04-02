@@ -51,11 +51,13 @@ public class DruidConfig
     }
 
     @Bean
-    @ConfigurationProperties("spring.datasource.druid.web")
-    @ConditionalOnProperty(prefix = "spring.datasource.druid.web", name = "enabled", havingValue = "true")
     public DataSource istWebDataSource(DruidProperties druidProperties)
     {
         DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
+        dataSource.setUrl("jdbc:mysql://196.189.236.220:31115/ry-vue?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false");
+        dataSource.setUsername("root");
+        dataSource.setPassword("Lcvk,j1oQhuq");
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         return druidProperties.dataSource(dataSource);
     }
 
