@@ -88,6 +88,11 @@ public class BreedSeedDistributeServiceImpl implements IBreedSeedDistributeServi
     }
 
     @Override
+    public BreedSeedDistributeVO getDistributeById(String distributeId) {
+        return distributeMapper.selectDistributeById(distributeId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public BreedSeedDistributeVO addDistribute(BreedSeedDistributeDTO dto) {
         // 生成分发主表 D_当前时间戳_序列号【6位】

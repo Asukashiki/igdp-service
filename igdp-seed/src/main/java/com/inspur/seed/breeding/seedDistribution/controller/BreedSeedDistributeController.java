@@ -36,6 +36,15 @@ public class BreedSeedDistributeController extends BaseController {
     }
 
     /**
+     * 根据分发ID查询分发详情
+     */
+    @GetMapping("/detail/{distributeId}")
+    public AjaxResult getDetail(@PathVariable("distributeId") String distributeId) {
+        BreedSeedDistributeVO result = breedSeedDistributeService.getDistributeById(distributeId);
+        return success(result);
+    }
+
+    /**
      * 新增分发数据
      */
     @PostMapping("/add")
