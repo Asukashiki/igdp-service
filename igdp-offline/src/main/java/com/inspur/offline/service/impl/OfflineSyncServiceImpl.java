@@ -345,6 +345,11 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
     private LandInfo convertToLandInfo(Map<String, Object> formData) {
         LandInfo landInfo = new LandInfo();
 
+        Object farmlandId = formData.get("id");
+        if (farmlandId != null && StrUtil.isNotBlank(farmlandId.toString())) {
+            landInfo.setLandId(farmlandId.toString());
+        }
+
         // 基本信息
         landInfo.setLandName(getString(formData, "landName"));
         landInfo.setLandNo(getString(formData, "landNo"));
@@ -356,6 +361,9 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
 
         // 面积处理
         Object areaSizeObj = formData.get("areaSize");
+        if (areaSizeObj == null) {
+            areaSizeObj = formData.get("areaTa");
+        }
         if (areaSizeObj != null) {
             try {
                 if (areaSizeObj instanceof Number) {
@@ -375,6 +383,9 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
 
         // 地理信息
         Object latitudeObj = formData.get("latitude");
+        if (latitudeObj == null) {
+            latitudeObj = formData.get("gpsLat");
+        }
         if (latitudeObj != null) {
             try {
                 landInfo.setLatitude(new BigDecimal(latitudeObj.toString()));
@@ -384,6 +395,9 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         }
 
         Object longitudeObj = formData.get("longitude");
+        if (longitudeObj == null) {
+            longitudeObj = formData.get("gpsLong");
+        }
         if (longitudeObj != null) {
             try {
                 landInfo.setLongitude(new BigDecimal(longitudeObj.toString()));
@@ -393,6 +407,9 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         }
 
         landInfo.setPlotBoundary(getString(formData, "plotBoundary"));
+        if (StrUtil.isBlank(landInfo.getPlotBoundary())) {
+            landInfo.setPlotBoundary(getString(formData, "gpsPolygon"));
+        }
 
         // 行政区划
         landInfo.setRegionCode(getString(formData, "regionCode"));
@@ -403,12 +420,25 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
         landInfo.setWoredaName(getString(formData, "woredaName"));
         landInfo.setKebeleCode(getString(formData, "kebeleCode"));
         landInfo.setKebeleName(getString(formData, "kebeleName"));
+        if (StrUtil.isBlank(landInfo.getKebeleId())) {
+            landInfo.setKebeleId(getString(formData, "kebeleId"));
+        }
+        if (StrUtil.isBlank(landInfo.getKebeleId())) {
+            landInfo.setKebeleId(landInfo.getKebeleCode());
+        }
 
         // 其他信息
         landInfo.setAddress(getString(formData, "address"));
         landInfo.setFarmerId(getString(formData, "farmerId"));
         landInfo.setCurrentStatus(getString(formData, "currentStatus"));
         landInfo.setDaId(getString(formData, "daId"));
+        landInfo.setStatus(getString(formData, "status"));
+        landInfo.setSoilCode(getString(formData, "soilCode"));
+        landInfo.setIrrigationCode(getString(formData, "irrigationCode"));
+        landInfo.setSlopeClass(getString(formData, "slopeClass"));
+        landInfo.setLandUseType(getString(formData, "landUseType"));
+        landInfo.setRejectionReason(getString(formData, "rejectionReason"));
+        landInfo.setApprovedComment(getString(formData, "approvedComment"));
         landInfo.setRemark(getString(formData, "remark"));
 
         return landInfo;
@@ -455,18 +485,6 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
      */
     private String validateLand(LandInfo landInfo) {
         // 必填字段校验
-        if (StrUtil.isBlank(landInfo.getLandName())) {
-            return "The name of the plot cannot be left blank.";
-        }
-
-        if (StrUtil.isBlank(landInfo.getOwnerType())) {
-            return "The land ownership cannot be left blank.";
-        }
-
-        if (StrUtil.isBlank(landInfo.getLandType())) {
-            return "The type of the plot cannot be left blank.";
-        }
-
         if (landInfo.getAreaSize() == null) {
             return "The area size of the plot cannot be left blank.";
         }
@@ -475,19 +493,12 @@ public class OfflineSyncServiceImpl implements IOfflineSyncService {
             return "The area size of the plot must be greater than 0.";
         }
 
-        // 地块名称长度校验（最多100个字符）
-        if (landInfo.getLandName().length() > 100) {
-            return "The name of the plot cannot exceed 100 characters.";
+        if (StrUtil.isBlank(landInfo.getFarmerId())) {
+            return "The farmer ID cannot be left blank.";
         }
 
-        // 村代码必填校验
-        if (StrUtil.isBlank(landInfo.getKebeleCode())) {
+        if (StrUtil.isBlank(landInfo.getKebeleId()) && StrUtil.isBlank(landInfo.getKebeleCode())) {
             return "The kebele code cannot be left blank.";
-        }
-
-        // 详细地址必填校验
-        if (StrUtil.isBlank(landInfo.getAddress())) {
-            return "The address cannot be left blank.";
         }
 
         return null;
