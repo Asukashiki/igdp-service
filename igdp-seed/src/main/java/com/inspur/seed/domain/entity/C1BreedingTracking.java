@@ -78,6 +78,15 @@ public class C1BreedingTracking implements Serializable {
     @TableField("operator")
     private String operator;
 
+    @TableField("audit_status")
+    private String auditStatus;
+
+    @TableField("submit_time")
+    private LocalDateTime submitTime;
+
+    @TableField("current_audit_id")
+    private String currentAuditId;
+
     @TableField("created_by")
     private String createdBy;
 

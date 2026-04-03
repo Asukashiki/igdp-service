@@ -4,9 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.inspur.common.utils.SecurityUtils;
 import com.inspur.seed.domain.entity.C1BreedingTest;
+import com.inspur.seed.domain.entity.DetectionAuditRecord;
 import com.inspur.seed.mapper.C1BreedingTestMapper;
 import com.inspur.seed.service.IC1BreedingTestService;
+import com.inspur.seed.service.IDetectionAuditRecordService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,6 +23,9 @@ import java.util.Map;
 @Service
 public class C1BreedingTestServiceImpl extends ServiceImpl<C1BreedingTestMapper, C1BreedingTest> 
         implements IC1BreedingTestService {
+
+    @Autowired
+    private IDetectionAuditRecordService detectionAuditRecordService;
 
     @Override
     public IPage<C1BreedingTest> pageList(Map<String, Object> params) {
@@ -34,6 +41,15 @@ public class C1BreedingTestServiceImpl extends ServiceImpl<C1BreedingTestMapper,
         }
         if (params.get("trackingId") != null && StringUtils.hasText(params.get("trackingId").toString())) {
             wrapper.eq(C1BreedingTest::getTrackingId, params.get("trackingId").toString());
+        }
+        if (params.get("seedClass") != null && StringUtils.hasText(params.get("seedClass").toString())) {
+            wrapper.eq(C1BreedingTest::getSeedClass, params.get("seedClass").toString());
+        }
+        if (params.get("testType") != null && StringUtils.hasText(params.get("testType").toString())) {
+            wrapper.eq(C1BreedingTest::getTestType, params.get("testType").toString());
+        }
+        if (params.get("auditStatus") != null && StringUtils.hasText(params.get("auditStatus").toString())) {
+            wrapper.eq(C1BreedingTest::getAuditStatus, params.get("auditStatus").toString());
         }
         
         wrapper.orderByDesc(C1BreedingTest::getCreatedTime);
@@ -54,13 +70,16 @@ public class C1BreedingTestServiceImpl extends ServiceImpl<C1BreedingTestMapper,
                 + "-" + String.format("%04d", (int)(Math.random() * 10000));
         entity.setTestId(testId);
         entity.setDeleted("0");
+        entity.setAuditStatus("draft");
         entity.setCreatedTime(LocalDateTime.now());
+        entity.setCreatedBy(SecurityUtils.getUsername());
         return this.save(entity);
     }
 
     @Override
     public boolean update(C1BreedingTest entity) {
         entity.setUpdatedTime(LocalDateTime.now());
+        entity.setUpdatedBy(SecurityUtils.getUsername());
         return this.updateById(entity);
     }
 
@@ -79,5 +98,43 @@ public class C1BreedingTestServiceImpl extends ServiceImpl<C1BreedingTestMapper,
         C1BreedingTest entity = this.getById(id);
         if (entity != null && "1".equals(entity.getDeleted())) return null;
         return entity;
+    }
+
+    @Override
+    public boolean submit(String id) {
+        C1BreedingTest entity = getDetailById(id);
+        if (entity == null) {
+            return false;
+        }
+        DetectionAuditRecord record = detectionAuditRecordService.createSubmittedRecord("lab_testing", entity.getId(), entity.getBatchId());
+        entity.setAuditStatus("submitted");
+        entity.setSubmitTime(record.getSubmitTime());
+        entity.setCurrentAuditId(record.getId());
+        entity.setUpdatedBy(SecurityUtils.getUsername());
+        entity.setUpdatedTime(LocalDateTime.now());
+        return this.updateById(entity);
+    }
+
+    @Override
+    public boolean approve(String id, String auditComment) {
+        return audit(id, "approved", auditComment);
+    }
+
+    @Override
+    public boolean reject(String id, String auditComment) {
+        return audit(id, "rejected", auditComment);
+    }
+
+    private boolean audit(String id, String auditStatus, String auditComment) {
+        C1BreedingTest entity = getDetailById(id);
+        if (entity == null) {
+            return false;
+        }
+        DetectionAuditRecord record = detectionAuditRecordService.createDecisionRecord("lab_testing", entity.getId(), entity.getBatchId(), auditStatus, auditComment);
+        entity.setAuditStatus(auditStatus);
+        entity.setCurrentAuditId(record.getId());
+        entity.setUpdatedBy(SecurityUtils.getUsername());
+        entity.setUpdatedTime(LocalDateTime.now());
+        return this.updateById(entity);
     }
 }

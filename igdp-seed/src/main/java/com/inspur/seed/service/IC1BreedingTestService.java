@@ -12,4 +12,7 @@ public interface IC1BreedingTestService extends IService<C1BreedingTest> {
     boolean update(C1BreedingTest entity);
     boolean deleteByIds(List<String> ids);
     C1BreedingTest getDetailById(String id);
+    boolean submit(String id);
+    boolean approve(String id, String auditComment);
+    boolean reject(String id, String auditComment);
 }
