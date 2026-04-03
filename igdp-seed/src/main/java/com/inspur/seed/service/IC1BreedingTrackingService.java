@@ -12,4 +12,7 @@ public interface IC1BreedingTrackingService extends IService<C1BreedingTracking>
     boolean update(C1BreedingTracking entity);
     boolean deleteByIds(List<String> ids);
     C1BreedingTracking getDetailById(String id);
+    boolean submit(String id);
+    boolean approve(String id, String auditComment);
+    boolean reject(String id, String auditComment);
 }

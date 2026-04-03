@@ -53,4 +53,22 @@ public class C1BreedingTrackingController {
         boolean result = c1BreedingTrackingService.deleteByIds(ids);
         return result ? AjaxResult.success("删除成功") : AjaxResult.error("删除失败");
     }
+
+    @PostMapping("/submit/{id}")
+    public AjaxResult submit(@PathVariable String id) {
+        boolean result = c1BreedingTrackingService.submit(id);
+        return result ? AjaxResult.success("提交审核成功") : AjaxResult.error("提交审核失败");
+    }
+
+    @PostMapping("/approve")
+    public AjaxResult approve(@RequestBody Map<String, String> params) {
+        boolean result = c1BreedingTrackingService.approve(params.get("id"), params.get("auditComment"));
+        return result ? AjaxResult.success("审核通过") : AjaxResult.error("审核失败");
+    }
+
+    @PostMapping("/reject")
+    public AjaxResult reject(@RequestBody Map<String, String> params) {
+        boolean result = c1BreedingTrackingService.reject(params.get("id"), params.get("auditComment"));
+        return result ? AjaxResult.success("审核驳回成功") : AjaxResult.error("审核驳回失败");
+    }
 }
