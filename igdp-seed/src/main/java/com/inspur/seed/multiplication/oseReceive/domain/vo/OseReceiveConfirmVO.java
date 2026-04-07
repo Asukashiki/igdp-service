@@ -14,7 +14,7 @@ import java.util.List;
  * @author igdp
  */
 @Data
-public class OseReceiveConfirmVO implements Serializable {
+public class    OseReceiveConfirmVO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -119,6 +119,10 @@ public class OseReceiveConfirmVO implements Serializable {
          */
         private String seedType;
 
+        /**
+         * Multiplication Level
+         */
+        private String multiplicationLevel;
         /**
          * 分发数量
          */

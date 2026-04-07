@@ -295,6 +295,7 @@ public class OseReceiveConfirmServiceImpl extends ServiceImpl<OseReceiveConfirmM
             item.setCropType(detail.getCropType());
             item.setDistributeQuantity(detail.getDistributeQuantity());
             item.setProduceBatchName(detail.getProduceBatchName());
+            item.setMultiplicationLevel(main.getToSeedLevel());
 
             // 获取种子类型 (toSeedLevel)
             String produceBatchId = detail.getProduceBatchId();
