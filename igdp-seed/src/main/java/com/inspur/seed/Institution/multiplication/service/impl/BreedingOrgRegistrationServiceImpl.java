@@ -74,11 +74,11 @@ public class BreedingOrgRegistrationServiceImpl extends ServiceImpl<BreedingOrgR
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R<String> submitRegistration(BreedingOrgRegistrationDTO dto) {
-        validateRegistrationDTO(dto);
+//        validateRegistrationDTO(dto);
 
-        if (!checkUsernameUnique(dto.getApplyUsername(), dto.getId())) {
-            throw new ServiceException("登录账号已存在，请更换账号");
-        }
+//        if (!checkUsernameUnique(dto.getApplyUsername(), dto.getId())) {
+//            throw new ServiceException("登录账号已存在，请更换账号");
+//        }
 
         BreedingOrgRegistration entity = new BreedingOrgRegistration();
         BeanUtils.copyProperties(dto, entity);
