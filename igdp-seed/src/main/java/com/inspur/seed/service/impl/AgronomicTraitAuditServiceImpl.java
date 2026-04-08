@@ -49,28 +49,46 @@ public class AgronomicTraitAuditServiceImpl extends ServiceImpl<AgronomicTraitAu
             LambdaQueryWrapper<AgronomicTraitAudit> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(AgronomicTraitAudit::getDeleted, "0");
 
-            // ========== 新增：先处理 growthStage 筛选（主表字段） ==========
+            LambdaQueryWrapper<AgronomicTraitRecord> recordWrapper = new LambdaQueryWrapper<>();
+            recordWrapper.eq(AgronomicTraitRecord::getIsDeleted, 0);
+            boolean needRecordFilter = false;
+
+            if (StrUtil.isNotBlank(queryDTO.getTrialId())) {
+                recordWrapper.eq(AgronomicTraitRecord::getTrialId, queryDTO.getTrialId());
+                needRecordFilter = true;
+            }
+
+            if (StrUtil.isNotBlank(queryDTO.getPlotId())) {
+                recordWrapper.eq(AgronomicTraitRecord::getPlotId, queryDTO.getPlotId());
+                needRecordFilter = true;
+            }
+
+            if (StrUtil.isNotBlank(queryDTO.getBatchId())) {
+                recordWrapper.eq(AgronomicTraitRecord::getBatchId, queryDTO.getBatchId());
+                needRecordFilter = true;
+            }
+
+            // ========== 先处理主表字段筛选 ==========
             if (StrUtil.isNotBlank(queryDTO.getGrowthStage())) {
-                // 1. 构建主表查询条件，根据 growthStage 查询所有符合条件的 recordId
-                LambdaQueryWrapper<AgronomicTraitRecord> recordWrapper = new LambdaQueryWrapper<>();
-                recordWrapper.eq(AgronomicTraitRecord::getIsDeleted, "0");
                 recordWrapper.eq(AgronomicTraitRecord::getGrowthStage, queryDTO.getGrowthStage());
-                // 2. 查询主表的 recordId 集合
+                needRecordFilter = true;
+            }
+
+            if (needRecordFilter) {
                 List<String> recordIdList = traitRecordMapper.selectList(recordWrapper).stream()
                         .map(AgronomicTraitRecord::getRecordId)
                         .collect(Collectors.toList());
-                // 3. 若主表有匹配数据，用 recordId（对应审核表的 traitId）筛选审核表
+
                 if (!recordIdList.isEmpty()) {
                     wrapper.in(AgronomicTraitAudit::getTraitId, recordIdList);
                 } else {
-                    // 若主表无匹配数据，直接返回空结果（避免无效查询）
                     Map<String, Object> emptyData = new HashMap<>();
                     emptyData.put("list", new ArrayList<>());
                     emptyData.put("total", 0);
                     return AjaxResult.success("查询成功", emptyData);
                 }
             }
-            // ========== growthStage 预处理结束 ==========
+            // ========== 主表筛选处理结束 ==========
 
             // 筛选条件对接查询DTO
             Set<String> allowedAuditStatus = new HashSet<>(Arrays.asList("pending", "approved"));

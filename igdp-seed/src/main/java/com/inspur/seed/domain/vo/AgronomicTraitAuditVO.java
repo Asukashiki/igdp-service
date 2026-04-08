@@ -17,6 +17,7 @@ public class AgronomicTraitAuditVO implements Serializable {
 
     // ===================== 审核表字段（保留 LocalDateTime 类型，无需修改） =====================
     private String id;
+    private String recordId;
     private String traitId;
     private String batchId;
     private String auditNode;
