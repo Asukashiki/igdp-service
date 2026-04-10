@@ -53,4 +53,9 @@ public interface IC1BreedingBatchService extends IService<C1BreedingBatch> {
      * 记录打印次数
      */
     boolean recordPrint(String id);
+
+    /**
+     * 分页查询可用于证书颁发的C1繁殖批次列表
+     */
+    IPage<C1BreedingBatchVO> pageCertificateEligibleList(C1BreedingBatchQueryDTO queryDTO, java.util.List<String> batchIds);
 }

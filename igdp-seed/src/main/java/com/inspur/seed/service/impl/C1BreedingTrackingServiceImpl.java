@@ -17,8 +17,10 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class C1BreedingTrackingServiceImpl extends ServiceImpl<C1BreedingTrackingMapper, C1BreedingTracking> 
@@ -126,6 +128,25 @@ public class C1BreedingTrackingServiceImpl extends ServiceImpl<C1BreedingTrackin
     @Override
     public boolean reject(String id, String auditComment) {
         return audit(id, "rejected", auditComment);
+    }
+
+    @Override
+    public Set<String> getApprovedBatchIdsBySeedClass(String seedClass) {
+        LambdaQueryWrapper<C1BreedingTracking> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(C1BreedingTracking::getDeleted, "0")
+                .eq(C1BreedingTracking::getAuditStatus, "approved")
+                .isNotNull(C1BreedingTracking::getBatchId);
+        if (StringUtils.hasText(seedClass)) {
+            wrapper.eq(C1BreedingTracking::getSeedClass, seedClass);
+        }
+        List<C1BreedingTracking> records = this.list(wrapper);
+        Set<String> batchIds = new LinkedHashSet<>();
+        for (C1BreedingTracking record : records) {
+            if (StringUtils.hasText(record.getBatchId())) {
+                batchIds.add(record.getBatchId());
+            }
+        }
+        return batchIds;
     }
 
     private boolean audit(String id, String auditStatus, String auditComment) {

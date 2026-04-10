@@ -67,6 +67,7 @@ public class BreedingBatchDetectionController {
             C1BreedingBatchQueryDTO c1Query = new C1BreedingBatchQueryDTO();
             c1Query.setPageNum(1);
             c1Query.setPageSize(1000);
+            c1Query.setAuditStatus("approved");
             List<C1BreedingBatchVO> c1Batches = c1BreedingBatchService.pageList(c1Query).getRecords();
 
             // 转换C1批次为统一格式

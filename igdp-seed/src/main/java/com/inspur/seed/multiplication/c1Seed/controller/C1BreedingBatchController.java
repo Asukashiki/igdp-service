@@ -7,12 +7,17 @@ import com.inspur.seed.multiplication.c1Seed.domain.dto.C1BreedingBatchQueryDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.vo.C1BreedingBatchVO;
 import com.inspur.seed.multiplication.c1Seed.service.IC1BreedingBatchService;
 import com.inspur.seed.multiplication.c1Seed.service.IC1SeedPropagationService;
+import com.inspur.seed.service.IC1BreedingTestService;
+import com.inspur.seed.service.IC1BreedingTrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * C1繁殖批次Controller
@@ -28,6 +33,12 @@ public class C1BreedingBatchController {
 
     @Autowired
     private IC1SeedPropagationService propagationService;
+
+    @Autowired
+    private IC1BreedingTrackingService c1BreedingTrackingService;
+
+    @Autowired
+    private IC1BreedingTestService c1BreedingTestService;
 
     /**
      * 获取已审核通过的繁殖申请列表（供选择批次号使用）
@@ -136,8 +147,10 @@ public class C1BreedingBatchController {
      */
     @PostMapping("/approved-list")
     public AjaxResult getApprovedList(@RequestBody C1BreedingBatchQueryDTO queryDTO) {
-        queryDTO.setAuditStatus("approved");
-        IPage<C1BreedingBatchVO> page = c1BreedingBatchService.pageList(queryDTO);
+        Set<String> batchIdSet = new LinkedHashSet<>();
+        batchIdSet.addAll(c1BreedingTrackingService.getApprovedBatchIdsBySeedClass("C1"));
+        batchIdSet.addAll(c1BreedingTestService.getApprovedBatchIdsBySeedClass("C1"));
+        IPage<C1BreedingBatchVO> page = c1BreedingBatchService.pageCertificateEligibleList(queryDTO, new ArrayList<>(batchIdSet));
         Map<String, Object> result = new HashMap<>();
         result.put("list", page.getRecords());
         result.put("total", page.getTotal());

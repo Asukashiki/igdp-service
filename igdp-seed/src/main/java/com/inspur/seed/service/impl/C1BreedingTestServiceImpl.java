@@ -17,8 +17,10 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class C1BreedingTestServiceImpl extends ServiceImpl<C1BreedingTestMapper, C1BreedingTest> 
@@ -123,6 +125,25 @@ public class C1BreedingTestServiceImpl extends ServiceImpl<C1BreedingTestMapper,
     @Override
     public boolean reject(String id, String auditComment) {
         return audit(id, "rejected", auditComment);
+    }
+
+    @Override
+    public Set<String> getApprovedBatchIdsBySeedClass(String seedClass) {
+        LambdaQueryWrapper<C1BreedingTest> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(C1BreedingTest::getDeleted, "0")
+                .eq(C1BreedingTest::getAuditStatus, "approved")
+                .isNotNull(C1BreedingTest::getBatchId);
+        if (StringUtils.hasText(seedClass)) {
+            wrapper.eq(C1BreedingTest::getSeedClass, seedClass);
+        }
+        List<C1BreedingTest> records = this.list(wrapper);
+        Set<String> batchIds = new LinkedHashSet<>();
+        for (C1BreedingTest record : records) {
+            if (StringUtils.hasText(record.getBatchId())) {
+                batchIds.add(record.getBatchId());
+            }
+        }
+        return batchIds;
     }
 
     private boolean audit(String id, String auditStatus, String auditComment) {

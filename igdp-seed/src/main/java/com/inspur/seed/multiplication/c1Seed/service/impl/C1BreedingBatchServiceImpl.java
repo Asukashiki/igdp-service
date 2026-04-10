@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,10 +42,29 @@ public class C1BreedingBatchServiceImpl extends ServiceImpl<C1BreedingBatchMappe
 
     @Override
     public IPage<C1BreedingBatchVO> pageList(C1BreedingBatchQueryDTO queryDTO) {
+        return pageListInternal(queryDTO, null);
+    }
+
+    @Override
+    public IPage<C1BreedingBatchVO> pageCertificateEligibleList(C1BreedingBatchQueryDTO queryDTO, List<String> batchIds) {
+        if (batchIds == null || batchIds.isEmpty()) {
+            return new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize(), 0);
+        }
+        return pageListInternal(queryDTO, batchIds);
+    }
+
+    private IPage<C1BreedingBatchVO> pageListInternal(C1BreedingBatchQueryDTO queryDTO, List<String> includedBatchIds) {
         Page<C1BreedingBatch> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
 
         LambdaQueryWrapper<C1BreedingBatch> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(C1BreedingBatch::getDeleted, "0");
+
+        if (includedBatchIds != null) {
+            if (includedBatchIds.isEmpty()) {
+                return new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize(), 0);
+            }
+            wrapper.in(C1BreedingBatch::getBatchId, includedBatchIds);
+        }
 
         // 批次编号模糊搜索
         if (StringUtils.hasText(queryDTO.getBatchId())) {
