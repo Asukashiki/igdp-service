@@ -61,7 +61,7 @@ public class BreedSeedProduceDTO implements Serializable {
     /**
      * 地块ID
      */
-    @NotBlank(message = "地块ID不能为空")
+//    @NotBlank(message = "地块ID不能为空")
     private String landId;
 
 

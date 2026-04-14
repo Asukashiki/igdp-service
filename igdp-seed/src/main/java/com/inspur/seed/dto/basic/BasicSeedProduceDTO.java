@@ -18,7 +18,7 @@ public class BasicSeedProduceDTO {
     @NotBlank(message = "Source Pre-basic batch ID cannot be empty")
     private String prebasicSeedBatchId;
     
-    @NotBlank(message = "Land ID cannot be empty")
+//    @NotBlank(message = "Land ID cannot be empty")
     private String landId;
     
     private String landName; // 地块名称（用于显示）
