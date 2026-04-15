@@ -7,6 +7,7 @@ import com.inspur.seed.multiplication.basic.service.IBreedingBatchInfoService;
 import com.inspur.seed.multiplication.c1Seed.domain.dto.C1BreedingBatchQueryDTO;
 import com.inspur.seed.multiplication.c1Seed.domain.vo.C1BreedingBatchVO;
 import com.inspur.seed.multiplication.c1Seed.service.IC1BreedingBatchService;
+import com.inspur.seed.service.IDetectionCertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,9 @@ public class BreedingBatchDetectionController {
 
     @Autowired
     private IC1BreedingBatchService c1BreedingBatchService;
+
+    @Autowired
+    private IDetectionCertificateService detectionCertificateService;
 
     /**
      * 获取用于检测的批次列表（Basic + C1）
@@ -92,4 +96,38 @@ public class BreedingBatchDetectionController {
             return AjaxResult.error("获取批次列表失败：" + e.getMessage());
         }
     }
+
+    /**
+     * 批量获取 Certificate ID 映射（推荐前端调用）
+     * 规则：CERT-{SeedClass}-{CropType}-{BatchId}
+     * 说明：不使用 uuid；同一批次始终生成同一个证书ID。
+     */
+    @PostMapping("/certificate-id-map")
+    public AjaxResult getCertificateIdMap(@RequestBody(required = false) List<String> batchIds) {
+        try {
+            return AjaxResult.success(detectionCertificateService.getCertificateIdMap(batchIds));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return AjaxResult.error("获取证书ID映射失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据生产批次ID获取 Certificate ID
+     */
+    @GetMapping("/certificate-id/{produceBatchId}")
+    public AjaxResult getCertificateIdByProduceBatchId(@PathVariable("produceBatchId") String produceBatchId,
+                                                       @RequestParam(value = "seedClass", required = false) String seedClass,
+                                                       @RequestParam(value = "cropType", required = false) String cropType) {
+        try {
+            Map<String, String> result = new HashMap<>();
+            result.put("produceBatchId", produceBatchId);
+            result.put("certificateId", detectionCertificateService.getCertificateId(produceBatchId, seedClass, cropType));
+            return AjaxResult.success(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return AjaxResult.error("获取证书ID失败：" + e.getMessage());
+        }
+    }
+
 }
