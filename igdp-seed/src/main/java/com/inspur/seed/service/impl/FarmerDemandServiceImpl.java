@@ -12,6 +12,7 @@ import com.inspur.agriculture.input.dto.demand.DemandInputSummaryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
+import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.constant.AuditLevelEnum;
 import com.inspur.seed.constant.DemandStatusEnum;
@@ -78,6 +79,9 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
 
     @Autowired
     private IDemandInputSummaryItemService demandInputSummaryItemService;
+
+    @Autowired
+    private IDemandInputSummaryService demandInputSummaryService;
 
     @Autowired
     private PubRegionMapper regionMapper;
@@ -690,6 +694,12 @@ public class FarmerDemandServiceImpl extends ServiceImpl<DemandFarmerDetailMappe
         }
         if (count == 0) {
             throw new ServiceException("Failed to insert aggregated demand data");
+        }
+        boolean processSuccess = demandInputSummaryService.processLevelRecord(
+                demandOrganDTO.getTargetCode(), demandOrganDTO.getLevel(), demandOrganDTO.getYear());
+        if (!processSuccess) {
+            log.warn("Failed to process demand input summary level record, sourceCode: {}, level: {}, year: {}",
+                    demandOrganDTO.getTargetCode(), demandOrganDTO.getLevel(), demandOrganDTO.getYear());
         }
         return count;
     }

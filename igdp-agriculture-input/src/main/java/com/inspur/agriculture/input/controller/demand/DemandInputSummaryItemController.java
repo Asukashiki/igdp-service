@@ -122,7 +122,7 @@ public class DemandInputSummaryItemController {
 
 
     @PostMapping("/aggregate")
-    public AjaxResult aggregate(@RequestBody DemandOrganDTO demandOrganDTO) {
+    public AjaxResult aggregate(@Validated @RequestBody DemandOrganDTO demandOrganDTO) {
         try {
             int count = demandInputSummaryItemService.submitInputAggregation(demandOrganDTO);
             return AjaxResult.success("汇聚成功，共汇聚" + count + "条记录", count);

@@ -347,8 +347,22 @@ public class DemandInputSummaryServiceImpl implements IDemandInputSummaryService
      * @param year       年份
      * @return 是否成功
      */
-    private boolean processLevelRecord(String sourceCode, String level, String year) {
+    @Override
+    public boolean processLevelRecord(String sourceCode, String level, String year) {
         try {
+            QueryWrapper<DemandInputSummary> wrapper = new QueryWrapper<>();
+            wrapper.eq("source_code", sourceCode);
+            wrapper.eq("level", level);
+            wrapper.eq("year", year);
+
+            DemandInputSummary existingSummary = demandInputSummaryMapper.selectOne(wrapper);
+            if (existingSummary != null) {
+                DemandInputSummary updateSummary = new DemandInputSummary();
+                updateSummary.setId(existingSummary.getId());
+                updateSummary.setSubQuantity((existingSummary.getSubQuantity() == null ? 0 : existingSummary.getSubQuantity()) + 1);
+                return demandInputSummaryMapper.updateById(updateSummary) > 0;
+            }
+
             DemandInputSummaryDTO dto = new DemandInputSummaryDTO();
             dto.setLevel(level);
             dto.setYear(year);

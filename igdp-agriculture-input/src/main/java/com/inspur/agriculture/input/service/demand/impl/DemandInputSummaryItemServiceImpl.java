@@ -10,15 +10,18 @@ import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryItemMapper;
 import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
+import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
 import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.DateUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -30,6 +33,7 @@ import java.util.List;
  * @author inspur
  * @date 2025-12-09
  */
+@Slf4j
 @Service
 public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryItemService {
 
@@ -38,6 +42,9 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
 
     @Autowired
     private PubRegionMapper regionMapper;
+
+    @Autowired
+    private ObjectProvider<IDemandInputSummaryService> demandInputSummaryServiceProvider;
 
     @Override
     public List<DemandInputSummaryItemVO> getDemandInputSummaryItemList(DemandInputSummaryItemQueryDTO queryDTO) {
@@ -185,6 +192,14 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
             item.setSummaryId(demandOrganDTO.getSummaryId());
             int tempCount = demandInputSummaryItemMapper.insert(item);
             count+=tempCount;
+        }
+        if (count > 0) {
+            boolean processSuccess = demandInputSummaryServiceProvider.getObject().processLevelRecord(
+                    demandOrganDTO.getTargetCode(), demandOrganDTO.getLevel(), demandOrganDTO.getYear());
+            if (!processSuccess) {
+                log.warn("Failed to process demand input summary level record, sourceCode: {}, level: {}, year: {}",
+                        demandOrganDTO.getTargetCode(), demandOrganDTO.getLevel(), demandOrganDTO.getYear());
+            }
         }
         return count;
     }

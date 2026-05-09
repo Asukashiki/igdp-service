@@ -68,4 +68,6 @@ public interface IDemandInputSummaryService {
     int batchDeleteDemandInputSummary(List<String> ids);
 
     java.util.Map<String, DemandInputSummaryServiceImpl.CreateTaskResult> createAllMainTask(String year);
+
+    boolean processLevelRecord(String sourceCode, String level, String year);
 }

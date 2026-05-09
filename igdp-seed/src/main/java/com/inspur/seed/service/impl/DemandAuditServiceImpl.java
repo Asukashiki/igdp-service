@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.seed.constant.*;
 import com.inspur.seed.domain.dto.*;
@@ -49,6 +50,9 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
 
     @Autowired
     private IDemandSummaryService summaryService;
+
+    @Autowired
+    private IDemandInputSummaryService demandInputSummaryService;
 
     // @Autowired
     // private IDemandCategorySummaryService categorySummaryService;
@@ -139,6 +143,15 @@ public class DemandAuditServiceImpl implements IDemandAuditService {
         DemandAuditResultVO result = new DemandAuditResultVO();
         result.setSuccessCount(successCount);
         result.setFailCount(failCount);
+
+        if (successCount > 0) {
+            boolean processSuccess = demandInputSummaryService.processLevelRecord(dto.getSourceCode(), dto.getLevel(), dto.getYear());
+            if (!processSuccess) {
+                log.warn("Failed to process demand input summary level record, sourceCode: {}, level: {}, year: {}",
+                        dto.getSourceCode(), dto.getLevel(), dto.getYear());
+            }
+        }
+
         return result;
     }
 

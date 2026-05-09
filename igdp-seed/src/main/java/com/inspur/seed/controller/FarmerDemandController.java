@@ -128,7 +128,7 @@ public class FarmerDemandController {
 
 
     @PostMapping("/input/aggregation")
-    public AjaxResult submitInputAggregation(@RequestBody DemandOrganDTO demanOrganDTO) {
+    public AjaxResult submitInputAggregation(@Validated @RequestBody DemandOrganDTO demanOrganDTO) {
         return AjaxResult.success(farmerDemandService.submitInputAggregation(demanOrganDTO));
     }
 }
