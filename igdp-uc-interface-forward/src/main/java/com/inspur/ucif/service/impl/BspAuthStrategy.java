@@ -61,6 +61,7 @@ public class BspAuthStrategy implements IAuthStrategy {
     private static final Integer SSO_CODE_SUCCESS = 200;
     private static final String SSO_RESPONSE_DATA = "data";
     private static final String SSO_RESPONSE_MSG = "msg";
+    private static final String BSP_AUTH_SERVER = "http://196.189.236.220:30006/auth";
 
     @Resource
     private ISysUserService userService;
@@ -87,7 +88,7 @@ public class BspAuthStrategy implements IAuthStrategy {
         if (null == ssoInfo) {
             return AjaxResult.error("配置信息ssoInf有误");
         }
-        String loginUrl = ssoInfo.getServer() + ssoInfo.getTokenApi();
+        String loginUrl = BSP_AUTH_SERVER + ssoInfo.getTokenApi();
         Map<String, Object> params = new HashMap<>(5);
         params.put("code", oauthPayload.getCode());
         params.put("grant_type", "authorization_code");
@@ -113,7 +114,7 @@ public class BspAuthStrategy implements IAuthStrategy {
         params.put("grant_type", "password");
         params.put("client_id", ssoInfo.getClientId());
         params.put("client_secret", ssoInfo.getClientSecret());
-        String result = HttpUtil.post(ssoInfo.getServer() + ssoInfo.getTokenApi(), params);
+        String result = HttpUtil.post(BSP_AUTH_SERVER + ssoInfo.getTokenApi(), params);
         log.info("密码模式登录结果：{}", result);
         return handleTokenResult(result, ssoInfo);
     }
@@ -124,7 +125,7 @@ public class BspAuthStrategy implements IAuthStrategy {
      * 用于封装本地登录用户信息
      */
     public LoginUser getCurrentUser(String token, SsoInfo ssoInfo) {
-        String currentUserUrl = ssoInfo.getAccountServer() + ssoInfo.getCurrentUserApi();
+        String currentUserUrl = BSP_AUTH_SERVER + ssoInfo.getCurrentUserApi();
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", token);
         // 添加 appId 参数
@@ -229,7 +230,7 @@ public class BspAuthStrategy implements IAuthStrategy {
         if (null == ssoInfo) {
             return AjaxResult.error("配置信息ssoInf有误");
         }
-        String refreshTokenUrl = ssoInfo.getServer() + ssoInfo.getRefreshTokenApi();
+        String refreshTokenUrl = BSP_AUTH_SERVER + ssoInfo.getRefreshTokenApi();
         Map<String, Object> params = new HashMap<>(4);
         params.put("grant_type", "refresh_token");
         params.put("refresh_token", refreshToken);
@@ -254,7 +255,7 @@ public class BspAuthStrategy implements IAuthStrategy {
         if (null == ssoInfo) {
             return AjaxResult.error("配置信息ssoInf有误");
         }
-        String logoutUrl = ssoInfo.getServer() + ssoInfo.getLogoutApi();
+        String logoutUrl = BSP_AUTH_SERVER + ssoInfo.getLogoutApi();
         Map<String, String> headers = initHeaders(token);
         headers.put("Authorization",token);
         String result = HttpRequest.post(logoutUrl).addHeaders(headers).execute().body();
@@ -380,7 +381,7 @@ public class BspAuthStrategy implements IAuthStrategy {
         if (null == ssoInfo) {
             return  AjaxResult.success();
         }
-        String getAllTreeUrl = ssoInfo.getServer() + ssoInfo.getGetOrgAllTree();
+        String getAllTreeUrl = BSP_AUTH_SERVER + ssoInfo.getGetOrgAllTree();
         Map<String, String> headers = initHeaders(null);
         String result = HttpRequest.get(getAllTreeUrl).addHeaders(headers).execute().body();
         log.info("调用用户中心获取所有树接口响应内容：{}", result);

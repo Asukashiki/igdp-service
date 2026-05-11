@@ -45,6 +45,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "sys.account-select-type", havingValue = "bsp")
 public class BspAccountStrategy implements IAccountStrategy {
+
+    private static final String BSP_AUTH_SERVER = "http://196.189.236.220:30006/auth";
     
     private final SsoConfig ssoConfig;
 
@@ -57,7 +59,7 @@ public class BspAccountStrategy implements IAccountStrategy {
     @Override
     public List<SysMenu> getMenuTree(String token) {
         SsoInfo ssoInfo = ssoConfig.getSsoInfo(GrantTypeConstants.BSP_GRANT_TYPE);
-        String getMenuUrl = ssoInfo.getServer() + ssoInfo.getGetMenuByUserApi();
+        String getMenuUrl = BSP_AUTH_SERVER + ssoInfo.getGetMenuByUserApi();
 
         if (StringUtils.isBlank(token)) {
             token = StpUtil.getTokenValue();
