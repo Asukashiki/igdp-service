@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.inspur.agriculture.input.mapper.demand.DemandInputSummaryAdjustmentHistoryMapper">
+
+    <resultMap id="DemandSummaryAdjustmentHistoryVOResult" type="com.inspur.agriculture.input.vo.demand.DemandSummaryAdjustmentHistoryVO">
+        <id property="id" column="id"/>
+        <result property="detailId" column="detail_id"/>
+        <result property="summaryId" column="summary_id"/>
+        <result property="sourceCode" column="source_code"/>
+        <result property="sourceName" column="source_name"/>
+        <result property="targetCode" column="target_code"/>
+        <result property="targetName" column="target_name"/>
+        <result property="inputType" column="input_type"/>
+        <result property="inputCategory" column="input_category"/>
+        <result property="variety" column="variety"/>
+        <result property="season" column="season"/>
+        <result property="unit" column="unit"/>
+        <result property="originalQuantity" column="original_quantity"/>
+        <result property="beforeQuantity" column="before_quantity"/>
+        <result property="afterQuantity" column="after_quantity"/>
+        <result property="remark" column="remark"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="operationType" column="operation_type"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
+
+    <select id="selectHistoryByDetailId" resultMap="DemandSummaryAdjustmentHistoryVOResult">
+        select
+            id, detail_id, summary_id, source_code, source_name, target_code, target_name,
+            input_type, input_category, variety, season, unit,
+            original_quantity, before_quantity, after_quantity,
+            remark, operator_id, operator_name, operation_type, created_time
+        from demand_input_summary_adjustment_history
+        where detail_id = #{detailId}
+          and (deleted is null or deleted = 0)
+        order by created_time desc
+    </select>
+</mapper>

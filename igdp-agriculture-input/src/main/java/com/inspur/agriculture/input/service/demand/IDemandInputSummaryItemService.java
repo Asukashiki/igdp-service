@@ -3,7 +3,10 @@ package com.inspur.agriculture.input.service.demand;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
+import com.inspur.agriculture.input.dto.demand.DemandSummaryDetailAdjustDTO;
+import com.inspur.agriculture.input.dto.demand.DemandSummaryDetailSubmitDTO;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
+import com.inspur.agriculture.input.vo.demand.DemandSummaryAdjustmentHistoryVO;
 import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
 
 import java.util.List;
@@ -73,4 +76,10 @@ public interface IDemandInputSummaryItemService {
     List<InputAggregationSummaryVO> getInputAggregation(DemandOrganDTO demandOrganDTO);
 
     List<InputAggregationSummaryVO> getInputAggregationZone(DemandOrganDTO demandOrganDTO);
+
+    DemandInputSummaryItemVO adjustDetail(DemandSummaryDetailAdjustDTO dto);
+
+    List<DemandSummaryAdjustmentHistoryVO> getAdjustmentHistory(String detailId);
+
+    DemandInputSummaryItemVO submitDetailToZone(DemandSummaryDetailSubmitDTO dto);
 }

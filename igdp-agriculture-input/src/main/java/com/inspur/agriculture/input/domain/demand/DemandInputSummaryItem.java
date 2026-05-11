@@ -35,6 +35,22 @@ public class DemandInputSummaryItem implements Serializable {
     /** 总数量 */
     private BigDecimal totalQuantity;
 
+    /** Woreda调整后数量 */
+    private BigDecimal adjustedQuantity;
+
+    /** 是否已调整 */
+    private Integer hasAdjustment;
+
+    /** 最新调整备注 */
+    private String adjustmentRemark;
+
+    /** 调整状态: pending/adjusted/submitted/approved/rejected */
+    private String adjustmentStatus;
+
+    /** 提交到Zone时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date submittedToZoneTime;
+
     /** 总项目数 */
     private Integer totalCount;
 

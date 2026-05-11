@@ -9,11 +9,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="inputCategory" column="input_category"/>
         <result property="inputType" column="input_type"/>
         <result property="totalQuantity" column="total_quantity"/>
+        <result property="receivedQuantity" column="received_quantity"/>
+        <result property="adjustedQuantity" column="adjusted_quantity"/>
+        <result property="hasAdjustment" column="has_adjustment"/>
+        <result property="adjustmentRemark" column="adjustment_remark"/>
+        <result property="adjustmentStatus" column="adjustment_status"/>
+        <result property="submittedToZoneTime" column="submitted_to_zone_time"/>
         <result property="totalCount" column="total_count"/>
         <result property="demandCount" column="demand_count"/>
         <result property="varieties" column="varieties"/>
+        <result property="variety" column="variety"/>
         <result property="specifications" column="specifications"/>
         <result property="units" column="units"/>
+        <result property="unit" column="unit"/>
         <result property="sourceName" column="source_name"/>
         <result property="sourceCode" column="source_code"/>
         <result property="targetName" column="target_name"/>
@@ -23,12 +31,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="statusDesc" column="status_desc"/>
         <result property="createdTime" column="created_time"/>
         <result property="updatedTime" column="updated_time"/>
+        <result property="summaryId" column="summary_id"/>
+        <result property="year" column="year"/>
     </resultMap>
 
     <sql id="selectDemandInputSummaryItemVo">
         select
-            d.id, d.input_category, d.input_type, d.total_quantity, d.total_count,
-            d.demand_count, d.varieties, d.specifications, d.units,
+            d.id, d.summary_id, s.year,
+            d.input_category, d.input_type, d.total_quantity, d.total_quantity as received_quantity,
+            d.adjusted_quantity, d.has_adjustment, d.adjustment_remark,
+            COALESCE(d.adjustment_status, 'pending') as adjustment_status,
+            d.submitted_to_zone_time,
+            d.total_count,
+            d.demand_count, d.varieties, d.varieties as variety, d.specifications, d.units, d.units as unit,
             d.source_name, d.source_code, d.target_name, d.target_code, d.season, d.status,
             CASE d.status
                 WHEN '0' THEN '待审核'
@@ -38,6 +53,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             END as status_desc,
             d.created_time, d.updated_time
         from demand_input_summary_item d
+        left join demand_input_summary s on d.summary_id = s.id COLLATE utf8mb4_unicode_ci
     </sql>
 
     <select id="selectDemandInputSummaryItemList" resultMap="DemandInputSummaryItemVOResult">
@@ -105,7 +121,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             input_type AS inputType,
             varieties AS variety,
             COUNT(*) AS totalCount,
-            SUM(total_quantity) AS totalQuantity
+            SUM(CASE
+                WHEN has_adjustment = 1 AND adjusted_quantity IS NOT NULL THEN adjusted_quantity
+                ELSE total_quantity
+            END) AS totalQuantity
         FROM demand_input_summary_item i INNER JOIN demand_input_summary s
         ON i.summary_id = s.id COLLATE utf8mb4_unicode_ci
         WHERE s.year = #{query.year}

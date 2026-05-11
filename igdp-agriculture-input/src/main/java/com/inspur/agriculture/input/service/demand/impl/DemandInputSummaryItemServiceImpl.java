@@ -2,16 +2,23 @@ package com.inspur.agriculture.input.service.demand.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import com.inspur.agriculture.input.domain.demand.DemandInputSummaryAdjustmentHistory;
 import com.inspur.agriculture.input.domain.demand.DemandInputSummaryItem;
 import com.inspur.agriculture.input.domain.oauth.PubRegion;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
+import com.inspur.agriculture.input.dto.demand.DemandSummaryDetailAdjustDTO;
+import com.inspur.agriculture.input.dto.demand.DemandSummaryDetailSubmitDTO;
+import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryAdjustmentHistoryMapper;
 import com.inspur.agriculture.input.mapper.demand.DemandInputSummaryItemMapper;
 import com.inspur.agriculture.input.mapper.oauth.PubRegionMapper;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
+import com.inspur.agriculture.input.vo.demand.DemandSummaryAdjustmentHistoryVO;
 import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.DateUtils;
@@ -24,8 +31,10 @@ import org.springframework.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Date;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 农资汇聚统计 Service实现
@@ -41,6 +50,9 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
     private DemandInputSummaryItemMapper demandInputSummaryItemMapper;
 
     @Autowired
+    private DemandInputSummaryAdjustmentHistoryMapper adjustmentHistoryMapper;
+
+    @Autowired
     private PubRegionMapper regionMapper;
 
     @Autowired
@@ -54,6 +66,68 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
     @Override
     public DemandInputSummaryItemVO getDemandInputSummaryItemById(String id) {
         return demandInputSummaryItemMapper.selectDemandInputSummaryItemById(id);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public DemandInputSummaryItemVO adjustDetail(DemandSummaryDetailAdjustDTO dto) {
+        DemandInputSummaryItem detail = getAndValidateDetail(dto.getDetailId(), dto.getSummaryId(),
+                dto.getYear(), dto.getSourceCode(), dto.getTargetCode());
+
+        BigDecimal originalQuantity = defaultQuantity(detail.getTotalQuantity());
+        BigDecimal beforeQuantity = isAdjusted(detail) ? defaultQuantity(detail.getAdjustedQuantity()) : BigDecimal.ZERO;
+
+        detail.setAdjustedQuantity(dto.getAdjustedQuantity());
+        detail.setHasAdjustment(1);
+        detail.setAdjustmentRemark(dto.getAdjustmentRemark());
+        detail.setAdjustmentStatus("adjusted");
+        detail.setUpdatedTime(DateUtils.getNowDate());
+        demandInputSummaryItemMapper.updateById(detail);
+
+        insertHistory(detail, dto.getYear(), originalQuantity, beforeQuantity, dto.getAdjustedQuantity(),
+                dto.getAdjustmentRemark(), dto.getCurrentUserId(), dto.getCurrentUserName(), "adjust");
+
+        return demandInputSummaryItemMapper.selectDemandInputSummaryItemById(detail.getId());
+    }
+
+    @Override
+    public List<DemandSummaryAdjustmentHistoryVO> getAdjustmentHistory(String detailId) {
+        if (StrUtil.isBlank(detailId)) {
+            throw new ServiceException("Detail ID cannot be empty");
+        }
+        return adjustmentHistoryMapper.selectHistoryByDetailId(detailId);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public DemandInputSummaryItemVO submitDetailToZone(DemandSummaryDetailSubmitDTO dto) {
+        DemandInputSummaryItem detail = getAndValidateDetail(dto.getDetailId(), dto.getSummaryId(),
+                dto.getYear(), dto.getSourceCode(), dto.getTargetCode());
+
+        if ("submitted".equals(detail.getAdjustmentStatus())) {
+            return demandInputSummaryItemMapper.selectDemandInputSummaryItemById(detail.getId());
+        }
+
+        BigDecimal submitQuantity = isAdjusted(detail)
+                ? defaultQuantity(detail.getAdjustedQuantity())
+                : defaultQuantity(detail.getTotalQuantity());
+
+        detail.setAdjustmentStatus("submitted");
+        detail.setSubmittedToZoneTime(DateUtils.getNowDate());
+        detail.setUpdatedTime(DateUtils.getNowDate());
+        demandInputSummaryItemMapper.updateById(detail);
+
+        insertHistory(detail, dto.getYear(), defaultQuantity(detail.getTotalQuantity()), submitQuantity, submitQuantity,
+                "Submitted to Zone", dto.getCurrentUserId(), dto.getCurrentUserName(), "submit_to_zone");
+
+        boolean processSuccess = demandInputSummaryServiceProvider.getObject().processLevelRecord(
+                dto.getTargetCode(), dto.getLevel(), dto.getYear());
+        if (!processSuccess) {
+            log.warn("Failed to process demand input summary level record, sourceCode: {}, level: {}, year: {}",
+                    dto.getTargetCode(), dto.getLevel(), dto.getYear());
+        }
+
+        return demandInputSummaryItemMapper.selectDemandInputSummaryItemById(detail.getId());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -212,5 +286,62 @@ public class DemandInputSummaryItemServiceImpl implements IDemandInputSummaryIte
     @Override
     public List<InputAggregationSummaryVO> getInputAggregationZone(DemandOrganDTO demandOrganDTO) {
         return demandInputSummaryItemMapper.getInputAggregationZone(demandOrganDTO);
+    }
+
+    private DemandInputSummaryItem getAndValidateDetail(String detailId, String summaryId, String year,
+                                                        String sourceCode, String targetCode) {
+        DemandInputSummaryItem detail = demandInputSummaryItemMapper.selectById(detailId);
+        if (detail == null) {
+            throw new ServiceException("Demand summary detail does not exist");
+        }
+        if (!Objects.equals(detail.getSummaryId(), summaryId)) {
+            throw new ServiceException("Summary ID does not match");
+        }
+        if (!Objects.equals(detail.getSourceCode(), sourceCode)) {
+            throw new ServiceException("Source code does not match");
+        }
+        if (!Objects.equals(detail.getTargetCode(), targetCode)) {
+            throw new ServiceException("Target code does not match");
+        }
+        if (StrUtil.isBlank(year)) {
+            throw new ServiceException("Year cannot be empty");
+        }
+        return detail;
+    }
+
+    private void insertHistory(DemandInputSummaryItem detail, String year, BigDecimal originalQuantity,
+                               BigDecimal beforeQuantity, BigDecimal afterQuantity, String remark,
+                               String operatorId, String operatorName, String operationType) {
+        DemandInputSummaryAdjustmentHistory history = new DemandInputSummaryAdjustmentHistory();
+        history.setDetailId(detail.getId());
+        history.setSummaryId(detail.getSummaryId());
+        history.setYear(year);
+        history.setSourceCode(detail.getSourceCode());
+        history.setSourceName(detail.getSourceName());
+        history.setTargetCode(detail.getTargetCode());
+        history.setTargetName(detail.getTargetName());
+        history.setInputType(detail.getInputType());
+        history.setInputCategory(detail.getInputCategory());
+        history.setVariety(detail.getVarieties());
+        history.setSeason(detail.getSeason());
+        history.setUnit(detail.getUnits());
+        history.setOriginalQuantity(originalQuantity);
+        history.setBeforeQuantity(beforeQuantity);
+        history.setAfterQuantity(afterQuantity);
+        history.setRemark(remark);
+        history.setOperatorId(operatorId);
+        history.setOperatorName(operatorName);
+        history.setOperationType(operationType);
+        history.setCreatedTime(DateUtils.getNowDate());
+        history.setDeleted(0);
+        adjustmentHistoryMapper.insert(history);
+    }
+
+    private boolean isAdjusted(DemandInputSummaryItem detail) {
+        return detail.getHasAdjustment() != null && detail.getHasAdjustment() == 1;
+    }
+
+    private BigDecimal defaultQuantity(BigDecimal quantity) {
+        return quantity == null ? BigDecimal.ZERO : quantity;
     }
 }

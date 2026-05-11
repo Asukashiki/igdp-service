@@ -5,6 +5,8 @@ import com.github.pagehelper.PageInfo;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemDTO;
 import com.inspur.agriculture.input.dto.demand.DemandInputSummaryItemQueryDTO;
 import com.inspur.agriculture.input.dto.demand.DemandOrganDTO;
+import com.inspur.agriculture.input.dto.demand.DemandSummaryDetailAdjustDTO;
+import com.inspur.agriculture.input.dto.demand.DemandSummaryDetailSubmitDTO;
 import com.inspur.agriculture.input.service.demand.IDemandInputSummaryItemService;
 import com.inspur.agriculture.input.vo.demand.DemandInputSummaryItemVO;
 import com.inspur.agriculture.input.vo.demand.InputAggregationSummaryVO;
@@ -77,6 +79,35 @@ public class DemandInputSummaryItemController {
         try {
             List<DemandInputSummaryItemVO> result = demandInputSummaryItemService.getDemandInputSummaryItemList(dto);
             return AjaxResult.success(result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/detail/adjust")
+    public AjaxResult adjustDetail(@Validated @RequestBody DemandSummaryDetailAdjustDTO dto) {
+        try {
+            DemandInputSummaryItemVO result = demandInputSummaryItemService.adjustDetail(dto);
+            return AjaxResult.success("Adjustment saved successfully", result);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/detail/adjust/history")
+    public AjaxResult getAdjustmentHistory(@RequestParam String detailId) {
+        try {
+            return AjaxResult.success("获取成功", demandInputSummaryItemService.getAdjustmentHistory(detailId));
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/detail/submit-to-zone")
+    public AjaxResult submitDetailToZone(@Validated @RequestBody DemandSummaryDetailSubmitDTO dto) {
+        try {
+            DemandInputSummaryItemVO result = demandInputSummaryItemService.submitDetailToZone(dto);
+            return AjaxResult.success("Submitted to Zone successfully", result);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }
