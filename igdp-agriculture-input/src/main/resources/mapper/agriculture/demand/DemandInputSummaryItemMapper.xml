@@ -142,7 +142,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             input_type AS inputType,
             varieties AS variety,
             COUNT(*) AS totalCount,
-            SUM(total_quantity) AS totalQuantity
+            SUM(CASE
+                WHEN has_adjustment = 1 AND adjusted_quantity IS NOT NULL THEN adjusted_quantity
+                ELSE total_quantity
+            END) AS totalQuantity
         FROM demand_input_summary_item i INNER JOIN demand_input_summary s
                                                     ON i.summary_id = s.id COLLATE utf8mb4_unicode_ci
         WHERE s.year = #{query.year}
