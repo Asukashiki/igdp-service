@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -26,7 +27,9 @@ public class OpenInventoryController extends BaseController {
     private IInventoryOutboundService outboundService;
 
     @PostMapping("/inbound")
-    public AjaxResult createInbound(@RequestBody InventoryInbound inbound) {
+    public AjaxResult createInbound(@RequestBody InventoryInbound inbound, @RequestParam String flag) {
+        validateFlag(flag);
+        inbound.setFlag(flag);
         boolean ok = inboundService.createInbound(inbound);
         if (ok) {
             boolean submitted = inboundService.submitInbound(inbound.getId());
@@ -39,7 +42,9 @@ public class OpenInventoryController extends BaseController {
     }
 
     @PostMapping("/outbound")
-    public AjaxResult createOutbound(@RequestBody InventoryOutbound outbound) {
+    public AjaxResult createOutbound(@RequestBody InventoryOutbound outbound, @RequestParam String flag) {
+        validateFlag(flag);
+        outbound.setFlag(flag);
         boolean ok = outboundService.createOutbound(outbound);
         if (ok) {
             boolean submitted = outboundService.submitOutbound(outbound.getId());
@@ -49,5 +54,11 @@ public class OpenInventoryController extends BaseController {
             return AjaxResult.success("Outbound order created and submitted for approval.", outbound.getId());
         }
         return AjaxResult.error("Failed to create outbound order.");
+    }
+
+    private void validateFlag(String flag) {
+        if (!"0".equals(flag) && !"1".equals(flag)) {
+            throw new IllegalArgumentException("flag参数只能为0或1");
+        }
     }
 }

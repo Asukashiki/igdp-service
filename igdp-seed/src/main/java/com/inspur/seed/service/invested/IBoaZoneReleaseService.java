@@ -84,6 +84,15 @@ public interface IBoaZoneReleaseService extends IService<BoaZoneReleaseMain> {
      * @return 鍙敤搴撳瓨淇℃伅
      */
     Map<String, Object> queryAvailableStock(String inputCategory, String organCode);
+
+    /**
+     * 按存储类型（0/1）将本次接口请求参数写入缓存。
+     *
+     * @param storeType    0 或 1
+     * @param bizScene     业务场景标识，如 list、delete、stockStatus
+     * @param requestBody  请求参数快照
+     */
+    void saveRequestSnapshot(int storeType, String bizScene, Map<String, Object> requestBody);
 }
 
 

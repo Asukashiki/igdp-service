@@ -106,6 +106,11 @@ public class InputReleaseMain extends BaseEntity {
     private String status;
 
     /**
+     * 数据标识（0/1）
+     */
+    private String flag;
+
+    /**
      * 操作人
      */
     private String operateBy;

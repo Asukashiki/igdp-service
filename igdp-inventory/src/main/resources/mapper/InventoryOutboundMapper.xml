@@ -13,6 +13,7 @@
         <result property="receiver" column="receiver"/>
         <result property="bizNo" column="biz_no"/>
         <result property="operator" column="operator"/>
+        <result property="flag" column="flag"/>
         <result property="orderDate" column="order_date"/>
         <result property="auditBy" column="audit_by"/>
         <result property="auditTime" column="audit_time"/>
@@ -36,6 +37,7 @@
             oo.receiver,
             oo.biz_no,
             oo.operator,
+            oo.flag,
             oo.order_date,
             oo.audit_by,
             oo.audit_time,
@@ -62,6 +64,7 @@
             oo.receiver,
             oo.biz_no,
             oo.operator,
+            oo.flag,
             oo.order_date,
             oo.audit_by,
             oo.audit_time,
@@ -95,6 +98,9 @@
             </if>
             <if test="warehouseCode != null and warehouseCode != ''">
                 AND oo.warehouse_code = #{warehouseCode}
+            </if>
+            <if test="flag != null and flag != ''">
+                AND oo.flag = #{flag}
             </if>
         </where>
         ORDER BY oo.create_time DESC

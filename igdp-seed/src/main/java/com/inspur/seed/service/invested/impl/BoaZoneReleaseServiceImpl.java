@@ -8,6 +8,9 @@ import com.inspur.agriculture.input.domain.inventory.Warehouse;
 import com.inspur.agriculture.input.mapper.AgriInputMapper;
 import com.inspur.agriculture.input.mapper.inventory.StockMapper;
 import com.inspur.agriculture.input.mapper.inventory.WarehouseMapper;
+import com.alibaba.fastjson2.JSON;
+import com.inspur.common.constant.CacheConstants;
+import com.inspur.common.core.redis.RedisCache;
 import com.inspur.common.exception.ServiceException;
 import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
@@ -28,8 +31,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 鎶曞叆鍝佸垎鍙慡ervice瀹炵幇
@@ -61,6 +66,9 @@ public class BoaZoneReleaseServiceImpl extends ServiceImpl<BoaZoneReleaseMainMap
 
     @Resource
     private BoaZoneReleaseMainMapper boaZoneReleaseMainMapper;
+
+    @Resource
+    private RedisCache redisCache;
 
     @Override
     public List<BoaZoneReleaseMain> queryReleaseList(String releaseType, String releaseName, String inputType,
@@ -461,5 +469,17 @@ public class BoaZoneReleaseServiceImpl extends ServiceImpl<BoaZoneReleaseMainMap
         result.put("organCode", organCode);
         
         return result;
+    }
+
+    @Override
+    public void saveRequestSnapshot(int storeType, String bizScene, Map<String, Object> requestBody) {
+        Map<String, Object> envelope = new LinkedHashMap<>(requestBody.size() + 3);
+        envelope.put("storeType", storeType);
+        envelope.put("bizScene", bizScene);
+        envelope.put("snapshotTime", LocalDateTime.now().toString());
+        envelope.putAll(requestBody);
+        String key = CacheConstants.PREFIX + "boa_zone_release:snapshot:" + storeType + ":" + bizScene + ":"
+                + IdUtils.fastSimpleUUID();
+        redisCache.setCacheObject(key, JSON.toJSONString(envelope), 60 * 60 * 24 * 30, TimeUnit.SECONDS);
     }
 }

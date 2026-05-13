@@ -96,6 +96,11 @@ public class InputReceiveUnion extends BaseEntity {
     private String releaseOrg;
 
     /**
+     * 数据标识（0/1）
+     */
+    private String flag;
+
+    /**
      * 操作人
      */
     private String operateBy;

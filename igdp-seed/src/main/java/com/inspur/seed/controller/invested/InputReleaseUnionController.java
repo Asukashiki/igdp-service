@@ -38,9 +38,11 @@ public class InputReleaseUnionController extends BaseController {
             @RequestParam(required = false) String releaseName,
                                @RequestParam(required = false) String inputType,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
-                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
+                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime,
+                               @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
         startPage();
-        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime);
+        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime, flag);
         return getDataTable(list);
     }
 
@@ -75,8 +77,10 @@ public class InputReleaseUnionController extends BaseController {
      * 根据releaseId查询Union分发单详情
      */
     @GetMapping("/detailByReleaseId/{releaseId}")
-    public AjaxResult detailByReleaseId(@PathVariable String releaseId) {
-        Map<String, Object> result = releaseService.queryReleaseDetailByReleaseId(releaseId);
+    public AjaxResult detailByReleaseId(@PathVariable String releaseId,
+                                        @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
+        Map<String, Object> result = releaseService.queryReleaseDetailByReleaseId(releaseId, flag);
         return AjaxResult.success(result);
     }
 
@@ -84,9 +88,17 @@ public class InputReleaseUnionController extends BaseController {
      * 删除Union分发单
      */
     @GetMapping("/delete/{ids}")
-    public AjaxResult delete(@PathVariable String ids) {
+    public AjaxResult delete(@PathVariable String ids,
+                             @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
         List<String> idList = Arrays.asList(ids.split(","));
-        boolean success = releaseService.removeRelease(idList);
+        boolean success = releaseService.removeRelease(idList, flag);
         return success ? AjaxResult.success("Union分发单删除成功") : AjaxResult.error("Union分发单删除失败");
+    }
+
+    private void validateFlag(String flag) {
+        if (!"0".equals(flag) && !"1".equals(flag)) {
+            throw new IllegalArgumentException("flag参数只能为0或1");
+        }
     }
 }

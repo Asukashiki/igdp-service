@@ -91,6 +91,11 @@ public class InputReleaseDTO {
     private String releaseType;
 
     /**
+     * 数据标识（0/1）
+     */
+    private String flag;
+
+    /**
      * 分发明细列表
      */
     private List<InputReleaseDetailDTO> details;

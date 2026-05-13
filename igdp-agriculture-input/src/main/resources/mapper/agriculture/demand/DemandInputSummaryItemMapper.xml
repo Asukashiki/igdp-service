@@ -39,7 +39,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select
             d.id, d.summary_id, s.year,
             d.input_category, d.input_type, d.total_quantity, d.total_quantity as received_quantity,
-            d.adjusted_quantity, d.has_adjustment, d.adjustment_remark,
+            d.adjusted_quantity,
+            CASE
+                WHEN d.adjusted_quantity IS NOT NULL THEN 1
+                ELSE 0
+            END as has_adjustment,
+            d.adjustment_remark,
             COALESCE(d.adjustment_status, 'pending') as adjustment_status,
             d.submitted_to_zone_time,
             d.total_count,
@@ -122,7 +127,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             varieties AS variety,
             COUNT(*) AS totalCount,
             SUM(CASE
-                WHEN has_adjustment = 1 AND adjusted_quantity IS NOT NULL THEN adjusted_quantity
+                WHEN adjusted_quantity IS NOT NULL THEN adjusted_quantity
                 ELSE total_quantity
             END) AS totalQuantity
         FROM demand_input_summary_item i INNER JOIN demand_input_summary s
@@ -143,7 +148,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             varieties AS variety,
             COUNT(*) AS totalCount,
             SUM(CASE
-                WHEN has_adjustment = 1 AND adjusted_quantity IS NOT NULL THEN adjusted_quantity
+                WHEN adjusted_quantity IS NOT NULL THEN adjusted_quantity
                 ELSE total_quantity
             END) AS totalQuantity
         FROM demand_input_summary_item i INNER JOIN demand_input_summary s

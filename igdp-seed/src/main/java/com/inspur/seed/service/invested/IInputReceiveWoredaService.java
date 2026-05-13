@@ -2,6 +2,7 @@ package com.inspur.seed.service.invested;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.inspur.seed.domain.invested.InputReceiveWoreda;
+import com.inspur.seed.domain.vo.InputCirculationSummaryVO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,12 +29,29 @@ public interface IInputReceiveWoredaService extends IService<InputReceiveWoreda>
                                                LocalDate startTime, LocalDate endTime, String releaseName);
 
     /**
+     * 按数据标识查询Woreda接收确认列表
+     */
+    List<InputReceiveWoreda> queryReceiveList(String woredaName, String receiveStatus,
+                                               LocalDate startTime, LocalDate endTime, String releaseName, String flag);
+
+    /**
+     * 查询Woreda接收明细汇总列表
+     */
+    List<InputCirculationSummaryVO> queryReceiveSummaryList(String woredaName, String receiveStatus,
+                                                            LocalDate startTime, LocalDate endTime, String releaseName);
+
+    /**
      * 查询接收确认详情
      *
      * @param id 主键ID
      * @return 接收确认详情（包含分发明细）
      */
     Map<String, Object> queryReceiveDetail(String id);
+
+    /**
+     * 查询接收确认详情（明细按投入品汇总）
+     */
+    Map<String, Object> queryReceiveSummaryDetail(String id);
 
     /**
      * 确认接收
@@ -44,4 +62,9 @@ public interface IInputReceiveWoredaService extends IService<InputReceiveWoreda>
      * @return 是否成功
      */
     boolean confirmReceive(String id, String confirmBy, String confirmOrg);
+
+    /**
+     * 按数据标识确认接收
+     */
+    boolean confirmReceive(String id, String confirmBy, String confirmOrg, String flag);
 }

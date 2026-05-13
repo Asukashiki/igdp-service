@@ -43,10 +43,12 @@ public class InputReceiveUnionController extends BaseController {
             @RequestParam(required = false) String varietyName,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime,
-            @RequestParam(required = false) String receiveStatus) {
+            @RequestParam(required = false) String receiveStatus,
+            @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
         startPage();
         List<InputReceiveUnion> list = receiveService.queryReceiveList(releaseBy, batchId, cropType,
-                varietyName, startTime, endTime, receiveStatus);
+                varietyName, startTime, endTime, receiveStatus, flag);
         return getDataTable(list);
     }
 
@@ -54,11 +56,14 @@ public class InputReceiveUnionController extends BaseController {
      * 确认接收操作
      */
     @PutMapping("/confirm/{id}")
-    public AjaxResult confirm(@PathVariable String id, @RequestBody Map<String, String> params) {
+    public AjaxResult confirm(@PathVariable String id,
+                              @RequestBody Map<String, String> params,
+                              @RequestParam(required = false, defaultValue = "0") String flag) {
         try {
+            validateFlag(flag);
             String confirmBy = params.get("confirmBy");
             String confirmOrg = params.get("confirmOrg");
-            receiveService.confirmReceive(id, confirmBy, confirmOrg);
+            receiveService.confirmReceive(id, confirmBy, confirmOrg, flag);
             return AjaxResult.success("接收确认成功");
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
@@ -75,5 +80,11 @@ public class InputReceiveUnionController extends BaseController {
             return AjaxResult.error("接收记录不存在");
         }
         return AjaxResult.success("查询成功", receive);
+    }
+
+    private void validateFlag(String flag) {
+        if (!"0".equals(flag) && !"1".equals(flag)) {
+            throw new IllegalArgumentException("flag参数只能为0或1");
+        }
     }
 }

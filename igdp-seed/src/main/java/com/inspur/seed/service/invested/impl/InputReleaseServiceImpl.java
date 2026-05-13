@@ -15,6 +15,7 @@ import com.inspur.common.utils.SecurityUtils;
 import com.inspur.common.utils.StringUtils;
 import com.inspur.common.utils.uuid.IdUtils;
 import com.inspur.seed.domain.invested.*;
+import com.inspur.seed.domain.vo.InputCirculationSummaryVO;
 import com.inspur.seed.dto.invested.InputReleaseDTO;
 import com.inspur.seed.dto.invested.InputReleaseDetailDTO;
 import com.inspur.seed.mapper.invested.*;
@@ -30,9 +31,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 投入品分发Service实现
@@ -73,6 +78,12 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     @Override
     public List<InputReleaseMain> queryReleaseList(String releaseType, String releaseName, String inputType,
                                                    LocalDate startTime, LocalDate endTime) {
+        return queryReleaseList(releaseType, releaseName, inputType, startTime, endTime, null);
+    }
+
+    @Override
+    public List<InputReleaseMain> queryReleaseList(String releaseType, String releaseName, String inputType,
+                                                   LocalDate startTime, LocalDate endTime, String flag) {
         LambdaQueryWrapper<InputReleaseMain> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(InputReleaseMain::getReleaseType, releaseType);
 
@@ -85,10 +96,27 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         if (endTime != null) {
             wrapper.le(InputReleaseMain::getReleaseDate, LocalDateTime.of(endTime, LocalTime.MAX));
         }
+        if (StringUtils.isNotEmpty(flag)) {
+            wrapper.eq(InputReleaseMain::getFlag, flag);
+        }
 
         wrapper.orderByDesc(InputReleaseMain::getReleaseDate);
 
         return list(wrapper);
+    }
+
+    @Override
+    public List<InputCirculationSummaryVO> queryReleaseSummaryList(String releaseType, String releaseName, String inputType,
+                                                                   LocalDate startTime, LocalDate endTime) {
+        List<InputReleaseMain> mainList = queryReleaseList(releaseType, releaseName, inputType, startTime, endTime);
+        Map<String, InputCirculationSummaryVO> summaryMap = new LinkedHashMap<>();
+        for (InputReleaseMain main : mainList) {
+            LambdaQueryWrapper<InputReleaseDetail> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(InputReleaseDetail::getReleaseId, main.getReleaseId());
+            List<InputReleaseDetail> details = detailMapper.selectList(wrapper);
+            mergeSummary(summaryMap, details);
+        }
+        return new ArrayList<>(summaryMap.values());
     }
 
     @Override
@@ -112,6 +140,9 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         main.setReleaseType(releaseType);
         main.setAuditBy(SecurityUtils.getUsername());
         main.setReleaseYear(String.valueOf(dto.getReleaseYear()));
+        if (StringUtils.isEmpty(main.getFlag())) {
+            main.setFlag("0");
+        }
         save(main);
 
         // 保存明细
@@ -163,7 +194,10 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             throw new ServiceException("分发单不存在");
         }
 
-        BeanUtils.copyProperties(dto, main, "id", "releaseId", "createTime", "createBy");
+        BeanUtils.copyProperties(dto, main, "id", "releaseId", "createTime", "createBy", "flag");
+        if (StringUtils.isNotEmpty(dto.getFlag())) {
+            main.setFlag(dto.getFlag());
+        }
         main.setOperateBy("admin"); // TODO: 从登录用户获取
         main.setOperateTime(LocalDateTime.now());
         main.setUpdateTime(LocalDateTime.now());
@@ -213,10 +247,31 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     }
 
     @Override
+    public Map<String, Object> queryReleaseSummaryDetail(String id) {
+        Map<String, Object> detail = queryReleaseDetail(id);
+        Object detailsObj = detail.get("details");
+        List<InputReleaseDetail> details = detailsObj instanceof List ? (List<InputReleaseDetail>) detailsObj : new ArrayList<>();
+        Map<String, InputCirculationSummaryVO> summaryMap = new LinkedHashMap<>();
+        mergeSummary(summaryMap, details);
+        Map<String, Object> result = new HashMap<>();
+        result.put("main", detail.get("main"));
+        result.put("details", new ArrayList<>(summaryMap.values()));
+        return result;
+    }
+
+    @Override
     public Map<String, Object> queryReleaseDetailByReleaseId(String releaseId) {
+        return queryReleaseDetailByReleaseId(releaseId, null);
+    }
+
+    @Override
+    public Map<String, Object> queryReleaseDetailByReleaseId(String releaseId, String flag) {
         // 根据releaseId查询主表
         LambdaQueryWrapper<InputReleaseMain> mainWrapper = new LambdaQueryWrapper<>();
         mainWrapper.eq(InputReleaseMain::getReleaseId, releaseId);
+        if (StringUtils.isNotEmpty(flag)) {
+            mainWrapper.eq(InputReleaseMain::getFlag, flag);
+        }
         InputReleaseMain main = getOne(mainWrapper);
         if (main == null) {
             throw new ServiceException("分发单不存在");
@@ -235,11 +290,33 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
     }
 
     @Override
+    public Map<String, Object> queryReleaseSummaryDetailByReleaseId(String releaseId) {
+        Map<String, Object> detail = queryReleaseDetailByReleaseId(releaseId);
+        Object detailsObj = detail.get("details");
+        List<InputReleaseDetail> details = detailsObj instanceof List ? (List<InputReleaseDetail>) detailsObj : new ArrayList<>();
+        Map<String, InputCirculationSummaryVO> summaryMap = new LinkedHashMap<>();
+        mergeSummary(summaryMap, details);
+        Map<String, Object> result = new HashMap<>();
+        result.put("main", detail.get("main"));
+        result.put("details", new ArrayList<>(summaryMap.values()));
+        return result;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean removeRelease(List<String> ids) {
+        return removeRelease(ids, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean removeRelease(List<String> ids, String flag) {
         for (String id : ids) {
             InputReleaseMain main = getById(id);
             if (main != null) {
+                if (StringUtils.isNotEmpty(flag) && !flag.equals(main.getFlag())) {
+                    throw new ServiceException("分发单数据标识不匹配");
+                }
                 // 删除主表
                 removeById(id);
 
@@ -358,6 +435,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         receive.setReleaseDate(main.getReleaseDate());
         receive.setReleaseBy(main.getReleaseBy());
         receive.setReleaseOrg(main.getReleaseOrg());
+        receive.setFlag(main.getFlag());
         receive.setOperateBy(main.getOperateBy());
         receive.setOperateTime(LocalDateTime.now());
         receive.setCreateTime(LocalDateTime.now());
@@ -382,6 +460,7 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
         receive.setReleaseDate(main.getReleaseDate());
         receive.setReleaseBy(main.getReleaseBy());
         receive.setReleaseOrg(main.getReleaseOrg());
+        receive.setFlag(main.getFlag());
         receive.setOperateBy(main.getOperateBy());
         receive.setOperateTime(LocalDateTime.now());
         receive.setCreateTime(LocalDateTime.now());
@@ -391,6 +470,11 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
 
     @Override
     public Map<String, String> queryStockStatus(List<String> releaseIds) {
+        return queryStockStatus(releaseIds, null);
+    }
+
+    @Override
+    public Map<String, String> queryStockStatus(List<String> releaseIds, String flag) {
         Map<String, String> statusMap = new HashMap<>();
         
         for (String releaseId : releaseIds) {
@@ -398,6 +482,9 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             LambdaQueryWrapper<InputReleaseMain> mainWrapper = new LambdaQueryWrapper<>();
             mainWrapper.eq(InputReleaseMain::getReleaseId, releaseId)
                        .eq(InputReleaseMain::getIsDeleted, 0);
+            if (StringUtils.isNotEmpty(flag)) {
+                mainWrapper.eq(InputReleaseMain::getFlag, flag);
+            }
             InputReleaseMain main = this.getOne(mainWrapper);
             
             if (main == null) {
@@ -424,6 +511,45 @@ public class InputReleaseServiceImpl extends ServiceImpl<InputReleaseMainMapper,
             }
         }
         return statusMap;
+    }
+
+    @Override
+    public Map<String, Long> queryStockStatusSummary(List<String> releaseIds) {
+        Map<String, String> statusMap = queryStockStatus(releaseIds);
+        Map<String, Long> summary = new HashMap<>();
+        for (String status : statusMap.values()) {
+            summary.put(status, summary.getOrDefault(status, 0L) + 1L);
+        }
+        return summary;
+    }
+
+    private void mergeSummary(Map<String, InputCirculationSummaryVO> summaryMap, List<InputReleaseDetail> details) {
+        Set<String> countedKeys = new HashSet<>();
+        for (InputReleaseDetail detail : details) {
+            String key = buildSummaryKey(detail.getInputType(), detail.getInputCategory(), detail.getUnit());
+            InputCirculationSummaryVO summary = summaryMap.computeIfAbsent(key, k -> {
+                InputCirculationSummaryVO vo = new InputCirculationSummaryVO();
+                vo.setInputType(detail.getInputType());
+                vo.setInputCategory(detail.getInputCategory());
+                vo.setUnit(detail.getUnit());
+                return vo;
+            });
+            if (detail.getRequired() != null) {
+                summary.setRequired(summary.getRequired().add(detail.getRequired()));
+            }
+            if (detail.getQuantity() != null) {
+                summary.setQuantity(summary.getQuantity().add(detail.getQuantity()));
+            }
+            if (countedKeys.add(key)) {
+                summary.setReleaseCount(summary.getReleaseCount() + 1);
+            }
+        }
+    }
+
+    private String buildSummaryKey(String inputType, String inputCategory, String unit) {
+        return (inputType == null ? "" : inputType) + "|" +
+                (inputCategory == null ? "" : inputCategory) + "|" +
+                (unit == null ? "" : unit);
     }
 
     @Override

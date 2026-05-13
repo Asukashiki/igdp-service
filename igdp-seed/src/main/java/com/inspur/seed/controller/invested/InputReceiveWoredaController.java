@@ -34,9 +34,11 @@ public class InputReceiveWoredaController extends BaseController {
                                @RequestParam(required = false) String receiveStatus,
                                @RequestParam(required = false) String releaseBy,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
-                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
+                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime,
+                               @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
         startPage();
-        List<InputReceiveWoreda> list = receiveService.queryReceiveList(woredaName, receiveStatus, startTime, endTime, releaseBy);
+        List<InputReceiveWoreda> list = receiveService.queryReceiveList(woredaName, receiveStatus, startTime, endTime, releaseBy, flag);
         return getDataTable(list);
     }
 
@@ -55,8 +57,16 @@ public class InputReceiveWoredaController extends BaseController {
     @PostMapping("/confirm/{id}")
     public AjaxResult confirm(@PathVariable String id,
                               @RequestParam String confirmBy,
-                              @RequestParam String confirmOrg) {
-        boolean success = receiveService.confirmReceive(id, confirmBy, confirmOrg);
+                              @RequestParam String confirmOrg,
+                              @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
+        boolean success = receiveService.confirmReceive(id, confirmBy, confirmOrg, flag);
         return success ? AjaxResult.success("接收确认成功") : AjaxResult.error("接收确认失败");
+    }
+
+    private void validateFlag(String flag) {
+        if (!"0".equals(flag) && !"1".equals(flag)) {
+            throw new IllegalArgumentException("flag参数只能为0或1");
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.inspur.seed.service.invested;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.inspur.seed.domain.invested.InputReleaseMain;
+import com.inspur.seed.domain.vo.InputCirculationSummaryVO;
 import com.inspur.seed.dto.invested.InputReleaseDTO;
 
 import java.time.LocalDate;
@@ -29,6 +30,18 @@ public interface IInputReleaseService extends IService<InputReleaseMain> {
                                              LocalDate startTime, LocalDate endTime);
 
     /**
+     * 按数据标识查询分发单列表
+     */
+    List<InputReleaseMain> queryReleaseList(String releaseType, String releaseName, String inputType,
+                                             LocalDate startTime, LocalDate endTime, String flag);
+
+    /**
+     * 查询分发单明细汇总列表
+     */
+    List<InputCirculationSummaryVO> queryReleaseSummaryList(String releaseType, String releaseName, String inputType,
+                                                            LocalDate startTime, LocalDate endTime);
+
+    /**
      * 新增分发单（主表+明细）
      *
      * @param dto 分发单DTO
@@ -53,12 +66,27 @@ public interface IInputReleaseService extends IService<InputReleaseMain> {
     Map<String, Object> queryReleaseDetail(String id);
 
     /**
+     * 查询分发单详情（明细按投入品汇总）
+     */
+    Map<String, Object> queryReleaseSummaryDetail(String id);
+
+    /**
      * 根据releaseId查询分发单详情（包含明细）
      *
      * @param releaseId 分发单编号
      * @return 分发单详情（包含main和details）
      */
     Map<String, Object> queryReleaseDetailByReleaseId(String releaseId);
+
+    /**
+     * 根据releaseId和数据标识查询分发单详情（包含明细）
+     */
+    Map<String, Object> queryReleaseDetailByReleaseId(String releaseId, String flag);
+
+    /**
+     * 根据releaseId查询分发单详情（明细按投入品汇总）
+     */
+    Map<String, Object> queryReleaseSummaryDetailByReleaseId(String releaseId);
 
     /**
      * 删除分发单（主表+明细）
@@ -69,12 +97,27 @@ public interface IInputReleaseService extends IService<InputReleaseMain> {
     boolean removeRelease(List<String> ids);
 
     /**
+     * 按数据标识删除分发单（主表+明细）
+     */
+    boolean removeRelease(List<String> ids, String flag);
+
+    /**
      * 查询分发单出入库状态
      *
      * @param releaseIds 分发单编号集合
      * @return Map<releaseId, stockStatus> 出入库状态映射
      */
     Map<String, String> queryStockStatus(List<String> releaseIds);
+
+    /**
+     * 按数据标识查询分发单出入库状态
+     */
+    Map<String, String> queryStockStatus(List<String> releaseIds, String flag);
+
+    /**
+     * 查询分发单出入库状态汇总
+     */
+    Map<String, Long> queryStockStatusSummary(List<String> releaseIds);
 
     /**
      * 查询可用库存

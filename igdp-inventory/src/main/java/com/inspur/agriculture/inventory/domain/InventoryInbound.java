@@ -34,6 +34,7 @@ public class InventoryInbound extends BaseEntity {
     private String status;
     private String bizNo;
     private String operator;
+    private String flag;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)

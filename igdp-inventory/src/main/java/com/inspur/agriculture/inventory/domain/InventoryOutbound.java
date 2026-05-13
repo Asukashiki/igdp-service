@@ -32,6 +32,7 @@ public class InventoryOutbound extends BaseEntity {
     private String receiver;
     private String bizNo;
     private String operator;
+    private String flag;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date orderDate;

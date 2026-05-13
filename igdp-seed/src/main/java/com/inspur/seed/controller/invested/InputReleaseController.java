@@ -45,9 +45,11 @@ public class InputReleaseController extends BaseController {
             @RequestParam(required = false) String releaseName,
             @RequestParam(required = false) String inputType,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime,
+            @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
         startPage();
-        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime);
+        List<InputReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime, flag);
         return getDataTable(list);
     }
 
@@ -94,9 +96,11 @@ public class InputReleaseController extends BaseController {
      * 根据releaseId查询分发单详情
      */
     @GetMapping("/detailByReleaseId/{releaseId}")
-    public AjaxResult getDetailByReleaseId(@PathVariable String releaseId) {
+    public AjaxResult getDetailByReleaseId(@PathVariable String releaseId,
+                                           @RequestParam(required = false, defaultValue = "0") String flag) {
         try {
-            Map<String, Object> detail = releaseService.queryReleaseDetailByReleaseId(releaseId);
+            validateFlag(flag);
+            Map<String, Object> detail = releaseService.queryReleaseDetailByReleaseId(releaseId, flag);
             return AjaxResult.success("查询成功", detail);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
@@ -107,10 +111,12 @@ public class InputReleaseController extends BaseController {
      * 删除分发单
      */
     @DeleteMapping("/delete/{ids}")
-    public AjaxResult delete(@PathVariable String ids) {
+    public AjaxResult delete(@PathVariable String ids,
+                             @RequestParam(required = false, defaultValue = "0") String flag) {
         try {
+            validateFlag(flag);
             List<String> idList = Arrays.asList(ids.split(","));
-            releaseService.removeRelease(idList);
+            releaseService.removeRelease(idList, flag);
             return AjaxResult.success("分发单删除成功");
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
@@ -122,10 +128,12 @@ public class InputReleaseController extends BaseController {
      * @param releaseIds 逗号分隔的分发单ID列表
      */
     @GetMapping("/stockStatus")
-    public AjaxResult getStockStatus(@RequestParam String releaseIds) {
+    public AjaxResult getStockStatus(@RequestParam String releaseIds,
+                                     @RequestParam(required = false, defaultValue = "0") String flag) {
         try {
+            validateFlag(flag);
             List<String> idList = Arrays.asList(releaseIds.split(","));
-            Map<String, String> statusMap = releaseService.queryStockStatus(idList);
+            Map<String, String> statusMap = releaseService.queryStockStatus(idList, flag);
             return AjaxResult.success("查询成功", statusMap);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
@@ -147,6 +155,12 @@ public class InputReleaseController extends BaseController {
             return AjaxResult.success("查询成功", result);
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    private void validateFlag(String flag) {
+        if (!"0".equals(flag) && !"1".equals(flag)) {
+            throw new IllegalArgumentException("flag参数只能为0或1");
         }
     }
 }

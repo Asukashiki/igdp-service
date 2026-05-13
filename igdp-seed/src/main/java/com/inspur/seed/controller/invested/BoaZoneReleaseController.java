@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,11 +36,20 @@ public class BoaZoneReleaseController extends BaseController {
 
     @GetMapping("/list")
     public TableDataInfo list(
+            @RequestParam(required = false, defaultValue = "0") Integer storeType,
             @RequestParam(required = true) String releaseType,
             @RequestParam(required = false) String releaseName,
             @RequestParam(required = false) String inputType,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
+        int type = resolveStoreType(storeType);
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("releaseType", releaseType);
+        snapshot.put("releaseName", releaseName);
+        snapshot.put("inputType", inputType);
+        snapshot.put("startTime", startTime != null ? startTime.toString() : null);
+        snapshot.put("endTime", endTime != null ? endTime.toString() : null);
+        releaseService.saveRequestSnapshot(type, "list", snapshot);
         startPage();
         List<BoaZoneReleaseMain> list = releaseService.queryReleaseList(releaseType, releaseName, inputType, startTime, endTime);
         return getDataTable(list);
@@ -86,8 +96,14 @@ public class BoaZoneReleaseController extends BaseController {
     }
 
     @DeleteMapping("/delete/{ids}")
-    public AjaxResult delete(@PathVariable String ids) {
+    public AjaxResult delete(
+            @RequestParam(required = false, defaultValue = "0") Integer storeType,
+            @PathVariable String ids) {
         try {
+            int type = resolveStoreType(storeType);
+            Map<String, Object> snapshot = new LinkedHashMap<>();
+            snapshot.put("ids", ids);
+            releaseService.saveRequestSnapshot(type, "delete", snapshot);
             List<String> idList = Arrays.asList(ids.split(","));
             releaseService.removeRelease(idList);
             return AjaxResult.success("BOA to Zone release deleted successfully");
@@ -97,8 +113,14 @@ public class BoaZoneReleaseController extends BaseController {
     }
 
     @GetMapping("/stockStatus")
-    public AjaxResult getStockStatus(@RequestParam String releaseIds) {
+    public AjaxResult getStockStatus(
+            @RequestParam(required = false, defaultValue = "0") Integer storeType,
+            @RequestParam String releaseIds) {
         try {
+            int type = resolveStoreType(storeType);
+            Map<String, Object> snapshot = new LinkedHashMap<>();
+            snapshot.put("releaseIds", releaseIds);
+            releaseService.saveRequestSnapshot(type, "stockStatus", snapshot);
             List<String> idList = Arrays.asList(releaseIds.split(","));
             Map<String, String> statusMap = releaseService.queryStockStatus(idList);
             return AjaxResult.success("Query success", statusMap);
@@ -118,5 +140,9 @@ public class BoaZoneReleaseController extends BaseController {
         } catch (Exception e) {
             return AjaxResult.error(e.getMessage());
         }
+    }
+
+    private static int resolveStoreType(Integer storeType) {
+        return (storeType != null && storeType == 1) ? 1 : 0;
     }
 }

@@ -2,6 +2,7 @@ package com.inspur.seed.service.invested;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.inspur.seed.domain.invested.InputReceiveUnion;
+import com.inspur.seed.domain.vo.InputCirculationSummaryVO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +33,20 @@ public interface IInputReceiveUnionService extends IService<InputReceiveUnion> {
                                               String receiveStatus);
 
     /**
+     * 按数据标识查询接收确认列表
+     */
+    List<InputReceiveUnion> queryReceiveList(String releaseBy, String batchId, String cropType,
+                                              String varietyName, LocalDate startTime, LocalDate endTime,
+                                              String receiveStatus, String flag);
+
+    /**
+     * 查询Union接收明细汇总列表
+     */
+    List<InputCirculationSummaryVO> queryReceiveSummaryList(String releaseBy, String batchId, String cropType,
+                                                            String varietyName, LocalDate startTime, LocalDate endTime,
+                                                            String receiveStatus);
+
+    /**
      * 确认接收
      *
      * @param id 接收确认表ID
@@ -42,10 +57,20 @@ public interface IInputReceiveUnionService extends IService<InputReceiveUnion> {
     boolean confirmReceive(String id, String confirmBy, String confirmOrg);
 
     /**
+     * 按数据标识确认接收
+     */
+    boolean confirmReceive(String id, String confirmBy, String confirmOrg, String flag);
+
+    /**
      * 根据分发单ID查询接收确认详情
      *
      * @param id 接收确认表ID
      * @return 接收确认详情
      */
     Map<String, Object> queryById(String id);
+
+    /**
+     * 根据接收确认ID查询详情（明细按投入品汇总）
+     */
+    Map<String, Object> querySummaryById(String id);
 }
