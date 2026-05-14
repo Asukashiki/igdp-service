@@ -102,6 +102,11 @@ public class InputReleaseFarmerMain extends BaseEntity {
     private LocalDateTime operateTime;
 
     /**
+     * 数据标识
+     */
+    private String flag;
+
+    /**
      * 逻辑删除标识(0=未删除,1=已删除)
      */
     @TableLogic

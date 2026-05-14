@@ -63,6 +63,7 @@ public class InputReceiveUnionController extends BaseController {
             validateFlag(flag);
             String confirmBy = params.get("confirmBy");
             String confirmOrg = params.get("confirmOrg");
+            flag = params.get("flag");
             receiveService.confirmReceive(id, confirmBy, confirmOrg, flag);
             return AjaxResult.success("接收确认成功");
         } catch (Exception e) {

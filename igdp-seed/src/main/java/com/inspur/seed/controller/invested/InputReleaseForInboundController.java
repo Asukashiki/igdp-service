@@ -51,7 +51,7 @@ public class InputReleaseForInboundController extends BaseController {
             List<InputReleaseMain> unionToWoredaList = releaseService.queryReleaseList(
                     "UNION_TO_WOREDA", null, null, null, null);
             //查询 Woreda->farmer的分发单
-            List<InputReleaseFarmerMain> coopTofarmer = releaseFarmerService.queryReleaseList(null,null,null,null,null,null,null);
+            List<InputReleaseFarmerMain> coopTofarmer = releaseFarmerService.queryReleaseList(null,null,null,null,null,null,null,"0");
             // 合并两个列表
             List<Map<String, Object>> resultList = new ArrayList<>();
 

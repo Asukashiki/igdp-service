@@ -26,11 +26,12 @@ public interface IInputReleaseFarmerService extends IService<InputReleaseFarmerM
      * @param receiveStatus 领用状态
      * @param startTime     开始时间
      * @param endTime       结束时间
+     * @param flag          数据标识
      * @return 分发列表
      */
     List<InputReleaseFarmerMain> queryReleaseList(String woredaName, String farmerName, String farmerId,
                                                    Integer year, String receiveStatus,
-                                                   LocalDate startTime, LocalDate endTime);
+                                                   LocalDate startTime, LocalDate endTime, String flag);
 
     /**
      * 新增农民分发单

@@ -41,7 +41,7 @@ public class InputReleaseFarmerServiceImpl extends ServiceImpl<InputReleaseFarme
     @Override
     public List<InputReleaseFarmerMain> queryReleaseList(String woredaName, String farmerName, String farmerId,
                                                           Integer year, String receiveStatus,
-                                                          LocalDate startTime, LocalDate endTime) {
+                                                          LocalDate startTime, LocalDate endTime, String flag) {
         LambdaQueryWrapper<InputReleaseFarmerMain> wrapper = new LambdaQueryWrapper<>();
 
         if (StringUtils.isNotEmpty(woredaName)) {
@@ -64,6 +64,9 @@ public class InputReleaseFarmerServiceImpl extends ServiceImpl<InputReleaseFarme
         }
         if (endTime != null) {
             wrapper.le(InputReleaseFarmerMain::getReleaseDate, LocalDateTime.of(endTime, LocalTime.MAX));
+        }
+        if (StringUtils.isNotEmpty(flag) && !"2".equals(flag)) {
+            wrapper.eq(InputReleaseFarmerMain::getFlag, flag);
         }
 
         wrapper.orderByDesc(InputReleaseFarmerMain::getReleaseDate);

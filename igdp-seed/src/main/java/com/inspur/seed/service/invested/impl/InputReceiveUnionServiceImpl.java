@@ -101,9 +101,9 @@ public class InputReceiveUnionServiceImpl extends ServiceImpl<InputReceiveUnionM
         if (receive == null) {
             throw new ServiceException("接收记录不存在");
         }
-        if (StringUtils.isNotEmpty(flag) && StringUtils.isNotEmpty(receive.getFlag()) && !flag.equals(receive.getFlag())) {
-            throw new ServiceException("接收记录数据标识不匹配");
-        }
+//        if (StringUtils.isNotEmpty(flag) && StringUtils.isNotEmpty(receive.getFlag()) && !flag.equals(receive.getFlag())) {
+//            throw new ServiceException("接收记录数据标识不匹配");
+//        }
 
         if ("已确认".equals(receive.getReceiveStatus())) {
             throw new ServiceException("该记录已确认，无需重复操作");

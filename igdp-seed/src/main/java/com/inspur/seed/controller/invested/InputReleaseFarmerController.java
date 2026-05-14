@@ -38,10 +38,12 @@ public class InputReleaseFarmerController extends BaseController {
                                @RequestParam(required = false) Integer year,
                                @RequestParam(required = false) String receiveStatus,
                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
-                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
+                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime,
+                               @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
         startPage();
         List<InputReleaseFarmerMain> list = releaseService.queryReleaseList(woredaName, farmerName, farmerId,
-                year, receiveStatus, startTime, endTime);
+                year, receiveStatus, startTime, endTime, flag);
         return getDataTable(list);
     }
 
@@ -91,10 +93,12 @@ public class InputReleaseFarmerController extends BaseController {
                                       @RequestParam(required = false) Integer year,
                                       @RequestParam(required = false) String receiveStatus,
                                       @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startTime,
-                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime) {
+                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endTime,
+                                      @RequestParam(required = false, defaultValue = "0") String flag) {
+        validateFlag(flag);
         startPage();
         List<InputReleaseFarmerMain> list = releaseService.queryReleaseList(null, farmerName, farmerId,
-                year, receiveStatus, startTime, endTime);
+                year, receiveStatus, startTime, endTime, flag);
         return getDataTable(list);
     }
 
@@ -114,5 +118,11 @@ public class InputReleaseFarmerController extends BaseController {
     public AjaxResult confirmReceive(@PathVariable String id) {
         boolean success = releaseService.confirmReceive(id);
         return success ? AjaxResult.success("领用确认成功") : AjaxResult.error("领用确认失败");
+    }
+
+    private void validateFlag(String flag) {
+        if (!"0".equals(flag) && !"1".equals(flag) && !"2".equals(flag)) {
+            throw new IllegalArgumentException("flag参数只能为0、1或2");
+        }
     }
 }
